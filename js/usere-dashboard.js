@@ -60,6 +60,80 @@
     return host;
   }
 
+  /*
+   * بناء عناصر السايدبار وقائمة الموبايل ديناميكياً حسب نوع النشاط الحالي
+   * (GMStoreTypeConfig). لو الملف مش محمّل لأي سبب، بيسيب الـ HTML الثابت
+   * الموجود أصلاً في الـ partial زي ما هو (سلوك احتياطي آمن).
+   */
+  function getStoreTypeConfig() {
+    if (window.GMStoreTypeConfig && typeof window.GMStoreTypeConfig.getConfig === 'function') {
+      return window.GMStoreTypeConfig.getConfig();
+    }
+    return null;
+  }
+
+  function navItemAttrs(item) {
+    var attrs = '';
+    if (item.page) attrs += ' data-page="' + item.page + '"';
+    if (item.action) attrs += ' data-action="' + item.action + '"';
+    return attrs;
+  }
+
+  function renderSidebarNav() {
+    var config = getStoreTypeConfig();
+    if (!config) return;
+    var nav = document.querySelector('.sidebar-nav');
+    if (!nav) return;
+
+    var html = config.sidebar.map(function (item) {
+      var badge = item.badge ? '<span class="nav-item-badge">' + item.badge + '</span>' : '';
+      return (
+        '<a href="' + (item.href || '#') + '" class="nav-item"' + navItemAttrs(item) + '>' +
+          '<span class="nav-item-icon"><i data-lucide="' + item.icon + '" class="icon"></i></span>' +
+          '<span class="nav-item-text">' +
+            '<span class="nav-item-label">' + item.label + '</span>' +
+            '<span class="label-sub">' + item.sub + '</span>' +
+          '</span>' +
+          badge +
+          '<i data-lucide="chevron-left" class="icon nav-item-chevron"></i>' +
+        '</a>'
+      );
+    }).join('');
+
+    nav.innerHTML = html;
+  }
+
+  function renderMobileNav() {
+    var config = getStoreTypeConfig();
+    if (!config) return;
+    var nav = document.getElementById('mobile-bottom-nav');
+    if (!nav) return;
+
+    var moreBtn = nav.querySelector('[data-action="open-mobile-more"]');
+    var moreBtnHTML = moreBtn ? moreBtn.outerHTML : '';
+
+    var itemsHTML = config.mobileNav.map(function (item) {
+      var badge = item.badge ? '<span class="mobile-nav-badge"></span>' : '';
+      return (
+        '<a href="' + (item.href || '#') + '" class="mobile-nav-item"' + navItemAttrs(item) + '>' +
+          '<i data-lucide="' + item.icon + '" class="icon"></i>' +
+          '<span>' + item.label + '</span>' +
+          badge +
+        '</a>'
+      );
+    }).join('');
+
+    nav.innerHTML = itemsHTML + moreBtnHTML;
+  }
+
+  function applyStoreTypeLabel() {
+    var config = getStoreTypeConfig();
+    if (!config) return;
+    document.querySelectorAll('[data-store-type-label]').forEach(function (el) {
+      el.textContent = config.label;
+    });
+  }
+
   function markActiveNavItem() {
     var page = document.body.getAttribute('data-page');
     if (!page) return;
@@ -867,7 +941,11 @@
     if (profileName && profile.name) profileName.textContent = profile.name;
 
     var profileSub = document.getElementById('profile-sub-text');
-    if (profileSub && profile.regionLabel) profileSub.textContent = profile.regionLabel + ' · Workspace';
+    if (profileSub && profile.regionLabel) {
+      var topbarTypeConfig = getStoreTypeConfig();
+      var topbarTypeLabel = topbarTypeConfig ? topbarTypeConfig.label : 'مساحة عمل';
+      profileSub.textContent = profile.regionLabel + ' · ' + topbarTypeLabel;
+    }
 
     var avatarLetter = document.getElementById('profile-avatar-letter');
     if (avatarLetter) {
@@ -925,7 +1003,11 @@
     if (ppName) ppName.textContent = profile.name || 'مساحتي';
 
     var ppSub = document.getElementById('profile-page-sub');
-    if (ppSub) ppSub.textContent = (profile.regionLabel || 'لم تحدد المنطقة بعد') + ' · workspace';
+    if (ppSub) {
+      var profilePageTypeConfig = getStoreTypeConfig();
+      var profilePageTypeLabel = profilePageTypeConfig ? profilePageTypeConfig.label : 'مساحة عمل';
+      ppSub.textContent = (profile.regionLabel || 'لم تحدد المنطقة بعد') + ' · ' + profilePageTypeLabel;
+    }
 
     var ppAddress = document.getElementById('profile-address-value');
     if (ppAddress) ppAddress.textContent = profile.address || '—';
@@ -2282,6 +2364,9 @@
       loadPartial('#ad-edit-slot', 'ad-edit-panel.html'),
       loadPartial('#mobile-nav-slot', 'mobile-nav.html')
     ]);
+    renderSidebarNav();
+    renderMobileNav();
+    applyStoreTypeLabel();
     markActiveNavItem();
     wireDrawer();
     wireSwitches();
