@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>التقييمات — سوق غزة</title>
+<script src="auth/auth-api.js"></script>
+<script src="auth/auth-guard.js"></script>
+<link rel="stylesheet" href="../../css/user-dashboard.css">
+</head>
+<body data-page="reviews">
+
+  <div id="sidebar-slot"></div>
+
+  <div class="app-shell">
+    <main class="app-main">
+      <div id="topbar-slot"></div>
+
+      <div class="app-content">
+
+        <div class="page-head">
+          <div>
+            <div class="breadcrumb">سوق غزة <span class="sep">/</span> <span class="current">التقييمات</span></div>
+            <div class="page-title">التقييمات</div>
+          </div>
+        </div>
+
+        <div class="hero">
+          <div class="card hero-side" style="grid-column:1;">
+            <div class="big-num">—</div>
+            <div class="cap">لا يوجد تقييمات كافية بعد</div>
+          </div>
+          <div class="card card-pad" style="grid-column:2;">
+            <div class="card-header"><h3>توزيع التقييمات</h3></div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div class="flex gap-8"><span class="text-muted mono" style="width:14px;">5</span><div style="flex:1;height:6px;background:var(--bg-canvas);border-radius:4px;"></div></div>
+              <div class="flex gap-8"><span class="text-muted mono" style="width:14px;">4</span><div style="flex:1;height:6px;background:var(--bg-canvas);border-radius:4px;"></div></div>
+              <div class="flex gap-8"><span class="text-muted mono" style="width:14px;">3</span><div style="flex:1;height:6px;background:var(--bg-canvas);border-radius:4px;"></div></div>
+              <div class="flex gap-8"><span class="text-muted mono" style="width:14px;">2</span><div style="flex:1;height:6px;background:var(--bg-canvas);border-radius:4px;"></div></div>
+              <div class="flex gap-8"><span class="text-muted mono" style="width:14px;">1</span><div style="flex:1;height:6px;background:var(--bg-canvas);border-radius:4px;"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card card-pad mt-20">
+          <div class="card-header">
+            <div>
+              <h3>آراء الزوار</h3>
+              <div class="sub">تقييمات وتعليقات من زاروا مساحتك عبر سوق غزة</div>
+            </div>
+          </div>
+          <div class="empty-state">
+            <i data-lucide="star" class="icon"></i>
+            <div class="title">لا توجد تقييمات بعد</div>
+            <div class="sub">شارك رابط مساحتك مع الزبائن ليتمكنوا من تقييم تجربتهم</div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/lucide@1.45.0/dist/umd/lucide.min.js"></script>
+  <script src="../../js/usere-dashboard.js"></script>
+</body>
+</html>

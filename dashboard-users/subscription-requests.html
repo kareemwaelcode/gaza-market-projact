@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>طلبات الاشتراك — سوق غزة</title>
+<script src="auth/auth-api.js"></script>
+<script src="auth/auth-guard.js"></script>
+<link rel="stylesheet" href="../css/user-dashboard.css">
+</head>
+<body data-page="subscription-requests">
+<script>(function(){try{if(localStorage.getItem('gaza-market-dashboard-theme')==='dark'){document.body.classList.add('dark-mode');}}catch(e){}})();</script>
+
+  <div id="topnav-slot"></div>
+
+  <aside class="side-panel">
+    <div id="topbar-slot"></div>
+    <div id="sidebar-slot"></div>
+  </aside>
+
+  <div class="app-shell">
+    <main class="app-main">
+
+      <button class="mobile-menu-btn" data-action="open-sidebar" aria-label="فتح القائمة">
+        <i data-lucide="menu" class="icon"></i>
+      </button>
+
+      <div class="app-content">
+
+        <div class="page-head">
+          <div>
+            <div class="page-title">طلبات الاشتراك</div>
+            <div class="page-subtitle">طلبات اشتراك وصلتك أونلاين — وافق لإضافة المشترك أو ارفض</div>
+          </div>
+        </div>
+
+        <div id="req-data-wrap" style="display:none;">
+
+          <div class="card card-pad" id="req-table-card">
+            <div class="table-wrap" id="req-table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>المشترك</th>
+                    <th>الواتساب</th>
+                    <th>النوع</th>
+                    <th>التاريخ</th>
+                    <th>إجراءات</th>
+                  </tr>
+                </thead>
+                <tbody id="req-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="sub-cards-wrap" id="req-cards-wrap"></div>
+
+        </div>
+
+        <div class="card card-pad empty-state" id="req-empty-state">
+          <i data-lucide="thumbs-up" class="icon"></i>
+          <div class="title">لا يوجد طلبات اشتراك حالياً</div>
+          <div class="sub">راح تظهر هون أي طلبات اشتراك جديدة توصلك من صفحة مساحتك</div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <div id="prices-edit-slot"></div>
+  <div id="services-edit-slot"></div>
+
+  <script src="https://unpkg.com/lucide@1.45.0/dist/umd/lucide.min.js"></script>
+  <script src="../js/usere-dashboard.js"></script>
+</body>
+</html>

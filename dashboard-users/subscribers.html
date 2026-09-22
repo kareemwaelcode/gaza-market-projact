@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>المشتركين — سوق غزة</title>
+<script src="auth/auth-api.js"></script>
+<script src="auth/auth-guard.js"></script>
+<link rel="stylesheet" href="../css/user-dashboard.css">
+</head>
+<body data-page="subscribers">
+<script>(function(){try{if(localStorage.getItem('gaza-market-dashboard-theme')==='dark'){document.body.classList.add('dark-mode');}}catch(e){}})();</script>
+
+  <div id="topnav-slot"></div>
+
+  <aside class="side-panel">
+    <div id="topbar-slot"></div>
+    <div id="sidebar-slot"></div>
+  </aside>
+
+  <div class="app-shell">
+    <main class="app-main">
+
+      <button class="mobile-menu-btn" data-action="open-sidebar" aria-label="فتح القائمة">
+        <i data-lucide="menu" class="icon"></i>
+      </button>
+
+      <div class="app-content">
+
+        <div class="page-head">
+          <div>
+            <div class="page-title">المشتركين</div>
+            <div class="page-subtitle">إدارة اشتراكات مساحتك — إضافة، تجديد، إلغاء</div>
+          </div>
+          <div class="page-actions">
+            <button type="button" class="btn btn-primary btn-pill" data-action="open-subscriber-add">
+              <i data-lucide="plus" class="icon"></i> مشترك
+            </button>
+          </div>
+        </div>
+
+        <div class="stat-grid stat-grid--3">
+          <div class="stat-card stat-card--plain">
+            <div class="label">منتهي</div>
+            <div class="value" id="sub-stat-expired" style="color:var(--db-red-text);">0</div>
+          </div>
+          <div class="stat-card stat-card--plain">
+            <div class="label">نشط</div>
+            <div class="value" id="sub-stat-active" style="color:var(--db-accent-text);">0</div>
+          </div>
+          <div class="stat-card stat-card--plain">
+            <div class="label">إجمالي</div>
+            <div class="value" id="sub-stat-total">0</div>
+          </div>
+        </div>
+
+        <div id="sub-data-wrap" style="display:none;">
+
+          <div class="card card-pad" id="sub-table-card">
+            <div class="table-wrap" id="sub-table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>المشترك</th>
+                    <th>الواتساب</th>
+                    <th>النوع</th>
+                    <th>الانتهاء</th>
+                    <th>الحالة</th>
+                    <th>إجراءات</th>
+                  </tr>
+                </thead>
+                <tbody id="sub-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="sub-cards-wrap" id="sub-cards-wrap"></div>
+
+        </div>
+
+        <div class="card card-pad empty-state" id="sub-empty-state">
+          <i data-lucide="users" class="icon"></i>
+          <div class="title">لا يوجد مشتركون بعد</div>
+          <div class="sub"><a href="#" data-action="open-subscriber-add">أضف أول مشترك في مساحتك</a></div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <div id="subscriber-add-slot"></div>
+  <div id="prices-edit-slot"></div>
+  <div id="services-edit-slot"></div>
+
+  <script src="https://unpkg.com/lucide@1.45.0/dist/umd/lucide.min.js"></script>
+  <script src="../js/usere-dashboard.js"></script>
+</body>
+</html>

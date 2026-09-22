@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>الخدمات المتاحة — سوق غزة</title>
+<script src="auth/auth-api.js"></script>
+<script src="auth/auth-guard.js"></script>
+<link rel="stylesheet" href="../css/user-dashboard.css">
+</head>
+<body data-page="services">
+
+  <div id="sidebar-slot"></div>
+
+  <div class="app-shell">
+    <main class="app-main">
+      <div id="topbar-slot"></div>
+
+      <div class="app-content">
+
+        <div class="page-head">
+          <div>
+            <div class="breadcrumb">سوق غزة <span class="sep">/</span> <span class="current">الخدمات المتاحة</span></div>
+            <div class="page-title">الخدمات المتاحة</div>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-primary"><i data-lucide="plus" class="icon"></i> إضافة خدمة</button>
+          </div>
+        </div>
+
+        <div class="card card-pad">
+          <div class="card-header">
+            <div>
+              <h3>خدماتك المعروضة</h3>
+              <div class="sub">الخدمات التي يطّلع عليها الزوار في صفحة مساحتك</div>
+            </div>
+          </div>
+
+          <div class="empty-state">
+            <i data-lucide="wrench" class="icon"></i>
+            <div class="title">لم تُضِف أي خدمة بعد</div>
+            <div class="sub">أضف خدمة مثل التوصيل أو التركيب ليطّلع عليها الزوار قبل زيارتك</div>
+            <button class="btn btn-primary btn-sm mt-12"><i data-lucide="plus" class="icon"></i> إضافة أول خدمة</button>
+          </div>
+        </div>
+
+        <div class="section-title">أفكار خدمات شائعة في منطقتك</div>
+        <div class="quick-grid">
+          <div class="quick-card">
+            <div class="icon-wrap"><i data-lucide="truck" class="icon"></i></div>
+            <div><div class="title">توصيل للمنازل</div><div class="sub">خلال المدينة</div></div>
+          </div>
+          <div class="quick-card">
+            <div class="icon-wrap"><i data-lucide="wrench" class="icon"></i></div>
+            <div><div class="title">تركيب وصيانة</div><div class="sub">عند الشراء</div></div>
+          </div>
+          <div class="quick-card">
+            <div class="icon-wrap"><i data-lucide="rotate-ccw" class="icon"></i></div>
+            <div><div class="title">استبدال وإرجاع</div><div class="sub">خلال 3 أيام</div></div>
+          </div>
+          <div class="quick-card">
+            <div class="icon-wrap"><i data-lucide="package-check" class="icon"></i></div>
+            <div><div class="title">تغليف هدايا</div><div class="sub">بدون رسوم إضافية</div></div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/lucide@1.45.0/dist/umd/lucide.min.js"></script>
+  <script src="../js/usere-dashboard.js"></script>
+</body>
+</html>
