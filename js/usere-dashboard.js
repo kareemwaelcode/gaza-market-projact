@@ -12,8 +12,6 @@
 
   var PUBLIC_BASE_URL = 'https://gazaprice.com';
 
-  var SERVICE_IDS = ['wifi', 'electricity', 'printing', 'screens', 'private_rooms', 'drinks'];
-
   var CURRENT_SCRIPT_URL = document.currentScript ? document.currentScript.src : null;
   var PARTIALS_BASE_URL = CURRENT_SCRIPT_URL
     ? new URL('../dashboard-users/partials/', CURRENT_SCRIPT_URL).href
@@ -124,6 +122,28 @@
     }).join('');
 
     nav.innerHTML = itemsHTML + moreBtnHTML;
+  }
+
+  function renderDashboardQuickCards() {
+    var config = getStoreTypeConfig();
+    if (!config || !Array.isArray(config.dashboardCards)) return;
+    var grid = document.getElementById('dashboard-quick-grid');
+    if (!grid) return;
+
+    var html = config.dashboardCards.map(function (item) {
+      var inner =
+        '<div class="icon-wrap"><i data-lucide="' + item.icon + '" class="icon"></i></div>' +
+        '<div>' +
+          '<div class="title">' + item.label + '</div>' +
+          '<div class="sub">' + item.sub + '</div>' +
+        '</div>';
+      if (item.action) {
+        return '<div class="card quick-card" data-action="' + item.action + '">' + inner + '</div>';
+      }
+      return '<a href="' + (item.href || '#') + '" class="card quick-card">' + inner + '</a>';
+    }).join('');
+
+    grid.innerHTML = html;
   }
 
   function applyStoreTypeLabel() {
@@ -1373,6 +1393,26 @@
     }
   }
 
+  function getCurrentTypeServices() {
+    var config = getStoreTypeConfig();
+    return (config && Array.isArray(config.services)) ? config.services : [];
+  }
+
+  function renderServiceRows() {
+    var container = document.getElementById('sve-rows');
+    if (!container) return;
+    var services = getCurrentTypeServices();
+    container.innerHTML = services.map(function (svc) {
+      return (
+        '<div class="sve-row">' +
+          '<div class="switch" id="sve-switch-' + svc.id + '"></div>' +
+          '<span class="sve-row-label">' + svc.label + '</span>' +
+          '<input type="text" id="sve-details-' + svc.id + '" class="sve-details-input" placeholder="تفاصيل إضافية (اختياري)...">' +
+        '</div>'
+      );
+    }).join('');
+  }
+
   function initServicesEditPanel() {
     var panel = document.getElementById('sve-panel');
     var scrim = document.getElementById('sve-scrim');
@@ -1384,14 +1424,17 @@
       closeSidebarDrawerIfNeeded();
       closeMobileMoreSheet();
 
+      renderServiceRows();
+      var services = getCurrentTypeServices();
       var data = getStoredServices() || {};
-      SERVICE_IDS.forEach(function (id) {
-        var switchEl = document.getElementById('sve-switch-' + id);
-        var detailsInput = document.getElementById('sve-details-' + id);
-        var entry = data[id] || {};
+      services.forEach(function (svc) {
+        var switchEl = document.getElementById('sve-switch-' + svc.id);
+        var detailsInput = document.getElementById('sve-details-' + svc.id);
+        var entry = data[svc.id] || {};
         if (switchEl) switchEl.classList.toggle('on', !!entry.enabled);
         if (detailsInput) detailsInput.value = entry.details || '';
       });
+      bootIcons();
 
       panel.classList.add('open');
       if (scrim) scrim.classList.add('open');
@@ -1423,11 +1466,12 @@
 
     if (saveBtn) {
       saveBtn.addEventListener('click', function () {
+        var services = getCurrentTypeServices();
         var data = {};
-        SERVICE_IDS.forEach(function (id) {
-          var switchEl = document.getElementById('sve-switch-' + id);
-          var detailsInput = document.getElementById('sve-details-' + id);
-          data[id] = {
+        services.forEach(function (svc) {
+          var switchEl = document.getElementById('sve-switch-' + svc.id);
+          var detailsInput = document.getElementById('sve-details-' + svc.id);
+          data[svc.id] = {
             enabled: !!(switchEl && switchEl.classList.contains('on')),
             details: detailsInput ? detailsInput.value.trim() : ''
           };
@@ -2366,6 +2410,7 @@
     ]);
     renderSidebarNav();
     renderMobileNav();
+    renderDashboardQuickCards();
     applyStoreTypeLabel();
     markActiveNavItem();
     wireDrawer();

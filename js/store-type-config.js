@@ -18,7 +18,10 @@ window.GMStoreTypeConfig = (function () {
   'use strict';
 
   var STORAGE_KEY = 'gm-store-type';
-  var DEFAULT_TYPE = 'workspace';
+  // ملاحظة: الـ id لكل نوع لازم يطابق تماماً قيمة data-value في كروت
+  // اختيار النوع بصفحة add-store.html (وهي نفسها اللي هترجع من الباك إند
+  // بعدين كـ "type"): cowork, restaurant, cafe, restaurant-cafe, store.
+  var DEFAULT_TYPE = 'cowork';
 
   /*
    * كل عنصر sidebar/mobileNav:
@@ -32,9 +35,9 @@ window.GMStoreTypeConfig = (function () {
    */
   var TYPES = {
 
-    // النوع الحالي — مطابق تماماً لما هو موجود فعلياً في sidebar.html و mobile-nav.html
-    workspace: {
-      id: 'workspace',
+    // مساحة عمل — مطابق تماماً لما كان موجود فعلياً في sidebar.html و mobile-nav.html
+    cowork: {
+      id: 'cowork',
       label: 'مساحة عمل',
       sidebar: [
         { page: 'dashboard', href: 'dashboard.html', icon: 'layout-grid', label: 'الرئيسية', sub: 'نظرة عامة على مساحتك' },
@@ -53,15 +56,77 @@ window.GMStoreTypeConfig = (function () {
         { page: 'subscribers', href: 'subscribers.html', icon: 'users', label: 'المشتركين' },
         { page: 'subscription-requests', href: 'subscription-requests.html', icon: 'thumbs-up', label: 'طلبات الاشتراك' },
         { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', badge: true }
+      ],
+      // خدمات "الخدمات المتاحة" — نفس الست خدمات اللي كانت ثابتة أصلاً بالكود
+      services: [
+        { id: 'wifi', label: 'WiFi' },
+        { id: 'electricity', label: 'كهرباء' },
+        { id: 'printing', label: 'طباعة' },
+        { id: 'screens', label: 'شاشات' },
+        { id: 'private_rooms', label: 'غرف خاصة' },
+        { id: 'drinks', label: 'مشروبات' }
+      ],
+      // كروت "الرئيسية" السريعة (quick-grid) في dashboard.html
+      dashboardCards: [
+        { action: 'open-services-edit', href: '#', icon: 'wifi', label: 'الخدمات المتاحة', sub: 'واي فاي، كهرباء' },
+        { action: 'open-prices-edit', href: '#', icon: 'tag', label: 'الأسعار والأوقات', sub: 'أسعار، مواعيد' },
+        { page: 'subscription-requests', href: 'subscription-requests.html', icon: 'thumbs-up', label: 'طلبات الاشتراك', sub: 'للموافقة أونلاين' },
+        { page: 'subscribers', href: 'subscribers.html', icon: 'users', label: 'المشتركين', sub: 'إضافة، تجديد' }
       ]
-    }
+    },
 
     /*
-     * أنواع تانية (restaurant, cafe, restaurant_cafe, store...) هتتضاف هنا
-     * بنفس الشكل، بس بعد ما نتفق مع بعض على الصفحات والحقول بتاعة كل نوع —
-     * السكيل بتاع المشروع بيمنع تخمين الصفحات دي، لازم تتحدد بالنقاش الأول.
+     * مطعم / كافيه / مطعم وكافيه — نفس هيكل لوحة التحكم بالظبط لكل الثلاثة
+     * (المصفوفات معرّفة مرة واحدة وبتتشارك بين التلاتة، بدل تكرار).
+     * الفرق الوحيد بينهم هو التسمية (label) وتسمية المنيو حسب النوع.
+     * تم الاتفاق عليها مع صاحب المشروع:
+     *  - "الأسعار والأوقات" تتحول لـ "المنيو" (صفحة كاملة menu.html)
+     *  - "المشتركين" و"طلبات الاشتراك" بتتشال خالص (مالهاش معنى لمطعم/كافيه)
+     *  - "الخدمات المتاحة" تفضل، بس بخدمات مختلفة تناسب مطعم/كافيه
+     */
+    restaurant: buildFoodTypeConfig('restaurant', 'مطعم'),
+    cafe: buildFoodTypeConfig('cafe', 'كافيه'),
+    'restaurant-cafe': buildFoodTypeConfig('restaurant-cafe', 'مطعم وكافيه')
+
+    /*
+     * أنواع تانية (store وفروعه...) هتتضاف هنا بنفس الشكل، بس بعد ما نتفق
+     * مع بعض على الصفحات والحقول بتاعة كل نوع — السكيل بتاع المشروع بيمنع
+     * تخمين الصفحات دي، لازم تتحدد بالنقاش الأول.
      */
   };
+
+  // دالة مساعدة تبني نفس هيكل لوحة التحكم لأي نوع "أكل" (مطعم/كافيه/الاتنين)
+  function buildFoodTypeConfig(id, label) {
+    return {
+      id: id,
+      label: label,
+      sidebar: [
+        { page: 'dashboard', href: 'dashboard.html', icon: 'layout-grid', label: 'الرئيسية', sub: 'نظرة عامة على نشاطك' },
+        { page: 'menu', href: 'menu.html', icon: 'utensils', label: 'المنيو', sub: 'التصنيفات، الأصناف، الأسعار' },
+        { action: 'open-services-edit', href: '#', icon: 'wrench', label: 'الخدمات المتاحة', sub: 'توصيل، جلسات خارجية، وأكثر' },
+        { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', sub: 'فعاليات، عروض، وظائف', badge: 2 },
+        { page: 'packages', href: 'packages.html', icon: 'layers', label: 'الباقات', sub: 'اختر باقة نشاطك' },
+        { page: 'profile', href: 'profile.html', icon: 'store', label: 'بروفايل النشاط', sub: 'تعديل المعلومات والصورة' }
+      ],
+      mobileNav: [
+        { page: 'dashboard', href: 'dashboard.html', icon: 'layout-grid', label: 'الرئيسية' },
+        { page: 'menu', href: 'menu.html', icon: 'utensils', label: 'المنيو' },
+        { action: 'open-services-edit', href: '#', icon: 'wrench', label: 'الخدمات المتاحة' },
+        { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', badge: true }
+      ],
+      services: [
+        { id: 'delivery', label: 'توصيل مجاني' },
+        { id: 'smoking_area', label: 'منطقة تدخين' },
+        { id: 'outdoor_seating', label: 'جلسات خارجية' },
+        { id: 'parking', label: 'مواقف سيارات' },
+        { id: 'card_payment', label: 'دفع بالبطاقة' }
+      ],
+      dashboardCards: [
+        { page: 'menu', href: 'menu.html', icon: 'utensils', label: 'المنيو', sub: 'التصنيفات والأسعار' },
+        { action: 'open-services-edit', href: '#', icon: 'wrench', label: 'الخدمات المتاحة', sub: 'توصيل، جلسات خارجية' }
+      ]
+    };
+  }
 
   function getCurrentType() {
     try {
