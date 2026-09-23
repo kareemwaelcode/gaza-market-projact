@@ -33,79 +33,76 @@
             <div class="page-title">المنيو</div>
           </div>
           <div class="page-actions">
-            <button class="btn btn-ghost"><i data-lucide="folder-plus" class="icon"></i> إضافة تصنيف</button>
-            <button class="btn btn-primary"><i data-lucide="plus" class="icon"></i> إضافة صنف</button>
+            <button type="button" class="btn btn-ghost" data-action="open-menu-category-panel">
+              <i data-lucide="folder-plus" class="icon"></i> التصنيفات
+            </button>
+            <button type="button" class="btn btn-primary" data-action="open-menu-item-add">
+              <i data-lucide="plus" class="icon"></i> إضافة صنف
+            </button>
           </div>
         </div>
 
         <div class="stat-grid">
           <div class="card stat-card">
             <div class="icon-wrap brand"><i data-lucide="layers" class="icon"></i></div>
-            <div><div class="value">1</div><div class="label">إجمالي الأصناف</div></div>
+            <div><div class="value" id="menu-stat-total">0</div><div class="label">إجمالي الأصناف</div></div>
           </div>
           <div class="card stat-card">
             <div class="icon-wrap blue"><i data-lucide="badge-check" class="icon"></i></div>
-            <div><div class="value">1</div><div class="label">أصناف متاحة</div></div>
+            <div><div class="value" id="menu-stat-available">0</div><div class="label">أصناف متاحة</div></div>
           </div>
           <div class="card stat-card">
             <div class="icon-wrap amber"><i data-lucide="folder" class="icon"></i></div>
-            <div><div class="value">1</div><div class="label">التصنيفات</div></div>
+            <div><div class="value" id="menu-stat-categories">0</div><div class="label">التصنيفات</div></div>
           </div>
           <div class="card stat-card">
             <div class="icon-wrap red"><i data-lucide="ban" class="icon"></i></div>
-            <div><div class="value">0</div><div class="label">أصناف غير متاحة حالياً</div></div>
+            <div><div class="value" id="menu-stat-unavailable">0</div><div class="label">أصناف غير متاحة حالياً</div></div>
           </div>
         </div>
 
-        <div class="card card-pad">
-          <div class="card-header">
-            <div>
-              <h3>أصناف المنيو</h3>
-              <div class="sub">الأصناف والأسعار التي يراها الزوار عند تصفح صفحتك</div>
+        <div id="menu-data-wrap" style="display:none;">
+          <div class="card card-pad">
+            <div class="card-header">
+              <div>
+                <h3>أصناف المنيو</h3>
+                <div class="sub">الأصناف والأسعار التي يراها الزوار عند تصفح صفحتك</div>
+              </div>
+              <div class="topbar-search" style="display:block;max-width:240px;">
+                <input type="search" id="menu-search-input" placeholder="ابحث عن صنف...">
+                <i data-lucide="search" class="icon"></i>
+              </div>
             </div>
-            <div class="topbar-search" style="display:block;max-width:240px;">
-              <input type="search" placeholder="ابحث عن صنف...">
-              <i data-lucide="search" class="icon"></i>
+
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>الصنف</th>
+                    <th>التصنيف</th>
+                    <th>السعر</th>
+                    <th>الحالة</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="menu-table-body"></tbody>
+              </table>
             </div>
           </div>
+        </div>
 
-          <div class="table-wrap">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>الصنف</th>
-                  <th>التصنيف</th>
-                  <th>السعر</th>
-                  <th>الحالة</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>مسقعة باللحمة</td>
-                  <td>أطباق رئيسية</td>
-                  <td class="mono">35 ₪</td>
-                  <td><span class="badge green">متاح</span></td>
-                  <td>
-                    <button class="icon-btn" aria-label="تعديل"><i data-lucide="pencil" class="icon"></i></button>
-                    <button class="icon-btn" aria-label="حذف"><i data-lucide="trash-2" class="icon"></i></button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div class="empty-state" style="display:none;">
-            <i data-lucide="utensils" class="icon"></i>
-            <div class="title">لا توجد أصناف بعد</div>
-            <div class="sub">أضف أول صنف بمنيو نشاطك ليظهر للزوار</div>
-          </div>
+        <div class="card card-pad empty-state" id="menu-empty-state">
+          <i data-lucide="utensils" class="icon"></i>
+          <div class="title">لا توجد أصناف بعد</div>
+          <div class="sub">أضف أول صنف بمنيو نشاطك ليظهر للزوار</div>
         </div>
 
       </div>
     </main>
   </div>
 
+  <div id="menu-category-slot"></div>
+  <div id="menu-item-edit-slot"></div>
   <div id="mobile-nav-slot"></div>
 
   <script src="https://unpkg.com/lucide@1.45.0/dist/umd/lucide.min.js"></script>

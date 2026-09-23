@@ -941,6 +941,43 @@ table.data-table tr:hover td { background: var(--bg-hover); }
 .empty-state .icon { width: 34px; height: 34px; margin-bottom: 10px; }
 .empty-state .title { font-size: 14.5px; font-weight: 700; color: var(--db-text-secondary); margin-bottom: 4px; }
 
+/* صورة مصغرة لصنف المنيو — داخل فورم الإضافة/التعديل (مربّعة بدل الدائرية الافتراضية) */
+.pep-item-thumb { border-radius: var(--radius-sm); }
+.pep-item-thumb .icon { width: 24px; height: 24px; }
+
+/* صورة مصغرة لصنف المنيو — داخل صف الجدول */
+.menu-item-name-cell { display: flex; align-items: center; gap: 10px; }
+.menu-item-thumb {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--db-bg-card-raised);
+  color: var(--db-text-tertiary);
+}
+.menu-item-thumb .icon { width: 16px; height: 16px; }
+
+.icon-btn[data-action="delete-menu-item"],
+.icon-btn[data-action="delete-menu-category"] { color: var(--db-red-text); }
+.icon-btn[data-action="delete-menu-item"]:hover,
+.icon-btn[data-action="delete-menu-category"]:hover {
+  background: var(--db-red-soft);
+  color: var(--db-red-text);
+  border-color: rgba(217, 48, 37, 0.3);
+}
+.icon-btn[data-action="edit-menu-item"]:hover,
+.icon-btn[data-action="edit-menu-category"]:hover {
+  background: var(--db-blue-soft);
+  color: var(--db-accent-text);
+}
+.icon-btn[data-action="close-menu-item-add"]:hover,
+.icon-btn[data-action="close-menu-category-panel"]:hover {
+  background: var(--db-red-soft);
+  color: var(--db-red-text);
+  border-color: rgba(217, 48, 37, 0.3);
+}
+
 .plan-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 @media (max-width: 900px) { .plan-grid { grid-template-columns: 1fr; } }
 
