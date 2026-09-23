@@ -2,19 +2,28 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>الخدمات المتاحة — سوق غزة</title>
 <script src="auth/auth-api.js"></script>
 <script src="auth/auth-guard.js"></script>
 <link rel="stylesheet" href="../css/user-dashboard.css">
 </head>
 <body data-page="services">
+<script>(function(){try{if(localStorage.getItem('gaza-market-dashboard-theme')==='dark'){document.body.classList.add('dark-mode');}}catch(e){}})();</script>
 
-  <div id="sidebar-slot"></div>
+  <div id="topnav-slot"></div>
+
+  <aside class="side-panel">
+    <div id="topbar-slot"></div>
+    <div id="sidebar-slot"></div>
+  </aside>
 
   <div class="app-shell">
     <main class="app-main">
-      <div id="topbar-slot"></div>
+
+      <button class="mobile-menu-btn" data-action="open-sidebar" aria-label="فتح القائمة">
+        <i data-lucide="menu" class="icon"></i>
+      </button>
 
       <div class="app-content">
 
@@ -67,6 +76,8 @@
       </div>
     </main>
   </div>
+
+  <div id="mobile-nav-slot"></div>
 
   <script src="https://unpkg.com/lucide@1.45.0/dist/umd/lucide.min.js"></script>
   <script src="../js/store-type-config.js"></script>
