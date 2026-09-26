@@ -321,6 +321,29 @@
     }
   }
 
+  // Temporary source for the dashboard (js/store-type-config.js) until the
+  // backend + admin-approval flow exists. See SKILL.md "Registration Flow".
+  const DASHBOARD_TYPE_KEY = "gm-store-type";
+  const DASHBOARD_SUBCAT_KEY = "gm-store-subcategory";
+
+  function persistTypeForDashboard() {
+    try {
+      if (state.type) localStorage.setItem(DASHBOARD_TYPE_KEY, state.type);
+
+      if (state.type === "store" && state.storeSubCat) {
+        const subLabel =
+          typeof i18n !== "undefined"
+            ? i18n.tagLabel(state.storeSubCat)
+            : state.storeSubCat;
+        localStorage.setItem(DASHBOARD_SUBCAT_KEY, subLabel);
+      } else {
+        localStorage.removeItem(DASHBOARD_SUBCAT_KEY);
+      }
+    } catch (e) {
+      /* localStorage unavailable (private mode, etc.) — ignore silently */
+    }
+  }
+
   function initStep4() {
     $("#gmSubmit")?.addEventListener("click", () => {
       console.log("[Gaza Market] Submission:", {
@@ -334,11 +357,13 @@
         hasImage: Boolean(state.imageDataUrl),
         lang:     getLang(),
       });
+      persistTypeForDashboard();
       goToStep("success");
     });
 
     $("#gmBack4")?.addEventListener("click", () => goToStep(3));
   }
+
 
   function initNavbar() {
     const toggler    = document.querySelector(".navbar-toggler");

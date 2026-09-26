@@ -1,41 +1,34 @@
-/*
- * Gaza Market — Store Type Config
- * ---------------------------------------------------------------------------
- * مصدر واحد مركزي يحدد "شكل وهيكل" لوحة التحكم (السايدبار، قائمة الموبايل،
- * تسمية النوع) حسب نوع النشاط. لوحة التحكم نفسها واحدة مشتركة لكل الأنواع —
- * هذا الملف لا يعرّف لوحات تحكم منفصلة، فقط يعرّف ما يُعرض لكل نوع.
- *
- * مصدر النوع الحالي (مؤقت لحد ما الباك إند يجهز):
- *   يُقرأ من localStorage تحت المفتاح STORAGE_KEY، بنفس فكرة الحقل "type"
- *   اللي هيرجع بعدين من الـ API بعد موافقة الأدمن على النشاط.
- *   لو مفيش قيمة محفوظة، يُستخدم DEFAULT_TYPE ('workspace') — عشان السلوك
- *   الحالي للوحة التحكم يفضل كما هو بدون أي تغيير ظاهر.
- *
- * إضافة نوع جديد لاحقاً = إضافة مفتاح جديد هنا فقط، بدون لمس أي HTML.
- * ---------------------------------------------------------------------------
- */
 window.GMStoreTypeConfig = (function () {
   'use strict';
 
   var STORAGE_KEY = 'gm-store-type';
-  // ملاحظة: الـ id لكل نوع لازم يطابق تماماً قيمة data-value في كروت
-  // اختيار النوع بصفحة add-store.html (وهي نفسها اللي هترجع من الباك إند
-  // بعدين كـ "type"): cowork, restaurant, cafe, restaurant-cafe, store.
+  var PLAN_STORAGE_KEY = 'gm-store-plan';
   var DEFAULT_TYPE = 'cowork';
+  var DEFAULT_PLAN = 'free';
+  var PLAN_IDS = ['free', 'paid'];
 
-  /*
-   * كل عنصر sidebar/mobileNav:
-   *   page:   قيمة data-page (للروابط اللي بتودّي لصفحة كاملة) — أو null
-   *   action: قيمة data-action (للروابط اللي بتفتح لوحة جانبية زي "تعديل الأسعار") — أو null
-   *   href:   رابط الصفحة، أو "#" لو action
-   *   icon:   اسم أيقونة Lucide
-   *   label:  العنوان الرئيسي
-   *   sub:    السطر الفرعي (للسايدبار فقط)
-   *   badge:  رقم/إشارة صغيرة اختيارية (مثلاً عدد الإعلانات الجديدة)
-   */
+  var FOOD_PLAN_LIMITS = {
+    free: { menuItems: 10, menuCategories: 10, ads: 5 },
+    paid: { menuItems: null, menuCategories: null, ads: null }
+  };
+
+  var FOOD_LOCKED_FEATURES = {
+    free: ['qrCode', 'shareWhatsapp', 'stats'],
+    paid: []
+  };
+
+  var STORE_PLAN_LIMITS = {
+    free: { products: 15, ads: 5 },
+    paid: { products: null, ads: null }
+  };
+
+  var STORE_LOCKED_FEATURES = {
+    free: ['qrCode', 'shareWhatsapp', 'stats'],
+    paid: []
+  };
+
   var TYPES = {
 
-    // مساحة عمل — مطابق تماماً لما كان موجود فعلياً في sidebar.html و mobile-nav.html
     cowork: {
       id: 'cowork',
       label: 'مساحة عمل',
@@ -57,7 +50,6 @@ window.GMStoreTypeConfig = (function () {
         { page: 'subscription-requests', href: 'subscription-requests.html', icon: 'thumbs-up', label: 'طلبات الاشتراك' },
         { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', badge: true }
       ],
-      // خدمات "الخدمات المتاحة" — نفس الست خدمات اللي كانت ثابتة أصلاً بالكود
       services: [
         { id: 'wifi', label: 'WiFi' },
         { id: 'electricity', label: 'كهرباء' },
@@ -66,36 +58,68 @@ window.GMStoreTypeConfig = (function () {
         { id: 'private_rooms', label: 'غرف خاصة' },
         { id: 'drinks', label: 'مشروبات' }
       ],
-      // كروت "الرئيسية" السريعة (quick-grid) في dashboard.html
       dashboardCards: [
         { action: 'open-services-edit', href: '#', icon: 'wifi', label: 'الخدمات المتاحة', sub: 'واي فاي، كهرباء' },
         { action: 'open-prices-edit', href: '#', icon: 'tag', label: 'الأسعار والأوقات', sub: 'أسعار، مواعيد' },
         { page: 'subscription-requests', href: 'subscription-requests.html', icon: 'thumbs-up', label: 'طلبات الاشتراك', sub: 'للموافقة أونلاين' },
         { page: 'subscribers', href: 'subscribers.html', icon: 'users', label: 'المشتركين', sub: 'إضافة، تجديد' }
-      ]
+      ],
+      pageCopy: {
+        profileTitle: 'بيانات المساحة',
+        adsSubtitle: 'فعاليات، ورش، وظائف، عروض تظهر في صفحة مساحتك',
+        heroWelcomeText: 'مساحتك جاهزة لبدء استقبال طلباتك وخدماتك من هنا.'
+      },
+      packages: {
+        pageSubtitle: 'اختر باقة مساحتك',
+        entityNameLabel: 'اسم المساحة',
+        free: {
+          eyebrow: 'FREE',
+          name: 'مجاني',
+          desc: 'لوحة تحكم ومعلومات أساسية لمساحتك',
+          price: 0,
+          features: [
+            { label: 'صفحة خاصة بالـ Workspace على GazaPrice', on: true },
+            { label: 'لوحة تحكم لإدارة مساحتك', on: true },
+            { label: 'المعلومات الأساسية (الأسعار، الأوقات، الخدمات)', on: true },
+            { label: 'إدارة المشتركين', on: false },
+            { label: 'استقبال طلبات الاشتراك أونلاين', on: false },
+            { label: 'نظام حجز غرف الاجتماعات', on: false },
+            { label: 'نشر إعلانات غير محدودة', on: false },
+            { label: 'إشعارات تجديد الاشتراكات', on: false },
+            { label: 'QR لتسجيل حضور الفعاليات', on: false }
+          ]
+        },
+        paid: {
+          id: 'workspace',
+          eyebrow: 'WORKSPACE',
+          badge: 'باقة المساحة',
+          name: 'Workspace',
+          desc: 'كل ما تحتاجه لإدارة مساحتك ومشتركيك',
+          price: 99,
+          buttonLabel: 'اشترك في باقة المساحة',
+          whatsappMessage: 'السلام عليكم، قمت بتحويل مبلغ 99 ₪ لاشتراك باقة Workspace، وهذا إشعار التحويل.',
+          features: [
+            'صفحة خاصة بالـ Workspace على GazaPrice',
+            'إدارة المشتركين (إضافة، تجديد، انتهاء الاشتراك)',
+            'استقبال طلبات الاشتراك أونلاين',
+            'نظام حجز غرف الاجتماعات',
+            'نشر عدد غير محدود من الإعلانات (فعاليات، ورش، وظائف، عروض)',
+            'لوحة تحكم: عدد المشتركين، الحجوزات، نسبة إشغال الغرف، مشاهدات الإعلانات',
+            'إشعارات لتجديد الاشتراكات',
+            'QR Code لتسجيل حضور الفعاليات'
+          ]
+        }
+      }
     },
 
-    /*
-     * مطعم / كافيه / مطعم وكافيه — نفس هيكل لوحة التحكم بالظبط لكل الثلاثة
-     * (المصفوفات معرّفة مرة واحدة وبتتشارك بين التلاتة، بدل تكرار).
-     * الفرق الوحيد بينهم هو التسمية (label) وتسمية المنيو حسب النوع.
-     * تم الاتفاق عليها مع صاحب المشروع:
-     *  - "الأسعار والأوقات" تتحول لـ "المنيو" (صفحة كاملة menu.html)
-     *  - "المشتركين" و"طلبات الاشتراك" بتتشال خالص (مالهاش معنى لمطعم/كافيه)
-     *  - "الخدمات المتاحة" تفضل، بس بخدمات مختلفة تناسب مطعم/كافيه
-     */
     restaurant: buildFoodTypeConfig('restaurant', 'مطعم'),
     cafe: buildFoodTypeConfig('cafe', 'كافيه'),
-    'restaurant-cafe': buildFoodTypeConfig('restaurant-cafe', 'مطعم وكافيه')
+    'restaurant-cafe': buildFoodTypeConfig('restaurant-cafe', 'مطعم وكافيه'),
 
-    /*
-     * أنواع تانية (store وفروعه...) هتتضاف هنا بنفس الشكل، بس بعد ما نتفق
-     * مع بعض على الصفحات والحقول بتاعة كل نوع — السكيل بتاع المشروع بيمنع
-     * تخمين الصفحات دي، لازم تتحدد بالنقاش الأول.
-     */
+    store: buildStoreTypeConfig('store', 'متجر')
+
   };
 
-  // دالة مساعدة تبني نفس هيكل لوحة التحكم لأي نوع "أكل" (مطعم/كافيه/الاتنين)
   function buildFoodTypeConfig(id, label) {
     return {
       id: id,
@@ -124,7 +148,150 @@ window.GMStoreTypeConfig = (function () {
       dashboardCards: [
         { page: 'menu', href: 'menu.html', icon: 'utensils', label: 'المنيو', sub: 'التصنيفات والأسعار' },
         { action: 'open-services-edit', href: '#', icon: 'wrench', label: 'الخدمات المتاحة', sub: 'توصيل، جلسات خارجية' }
-      ]
+      ],
+      limits: FOOD_PLAN_LIMITS,
+      lockedFeatures: FOOD_LOCKED_FEATURES,
+      pageCopy: {
+        profileTitle: 'بيانات النشاط',
+        adsSubtitle: 'فعاليات، عروض، وظائف تظهر في صفحة نشاطك',
+        heroWelcomeText: 'نشاطك جاهز لبدء استقبال طلباتك وخدماتك من هنا.'
+      },
+      packages: {
+        pageSubtitle: 'اختر باقة نشاطك',
+        entityNameLabel: 'اسم النشاط',
+        free: {
+          eyebrow: 'FREE',
+          name: 'مجاني',
+          desc: 'لوحة تحكم ومعلومات أساسية لنشاطك',
+          price: 0,
+          features: [
+            { label: 'صفحة خاصة بنشاطك على GazaPrice', on: true },
+            { label: 'لوحة تحكم لإدارة نشاطك', on: true },
+            { label: 'المنيو (حتى ' + FOOD_PLAN_LIMITS.free.menuItems + ' أصناف)', on: true },
+            { label: 'حتى ' + FOOD_PLAN_LIMITS.free.menuCategories + ' تصنيفات للمنيو', on: true },
+            { label: 'نشر حتى ' + FOOD_PLAN_LIMITS.free.ads + ' إعلانات', on: true },
+            { label: 'الخدمات المتاحة الأساسية', on: true },
+            { label: 'منيو غير محدود', on: false },
+            { label: 'إعلانات غير محدودة', on: false },
+            { label: 'شارة "مميز" وأولوية الظهور', on: false },
+            { label: 'إحصائيات النشاط', on: false },
+            { label: 'كود QR لصفحة النشاط', on: false },
+            { label: 'المشاركة عبر واتساب', on: false },
+            { label: 'طلب مباشر عبر واتساب', on: false },
+            { label: 'إشعارات فورية', on: false }
+          ]
+        },
+        paid: {
+          id: 'premium',
+          eyebrow: 'PREMIUM',
+          badge: 'الباقة المميزة',
+          name: 'المميزة',
+          desc: 'كل ما يحتاجه نشاطك ليظهر بأفضل شكل ويتفاعل معاه الزباين أكتر',
+          price: 99,
+          buttonLabel: 'اشترك في الباقة المميزة',
+          whatsappMessage: 'السلام عليكم، قمت بتحويل مبلغ 99 ₪ لاشتراك الباقة المميزة، وهذا إشعار التحويل.',
+          features: [
+            'صفحة خاصة بنشاطك على GazaPrice',
+            'لوحة تحكم لإدارة نشاطك',
+            'منيو غير محدود (تصنيفات وأصناف بلا حدود)',
+            'نشر عدد غير محدود من الإعلانات (عروض، فعاليات، وظائف)',
+            'شارة "مميز" وأولوية الظهور في نتائج البحث',
+            'إحصائيات النشاط (مشاهدات الصفحة، مشاهدات المنيو، تفاعل الإعلانات)',
+            'كود QR لصفحة النشاط',
+            'مشاركة صفحة النشاط مباشرة عبر واتساب',
+            'زر طلب مباشر عبر واتساب من صفحة النشاط',
+            'إشعارات فورية (تنبيهات، تذكير تجديد)'
+          ]
+        }
+      }
+    };
+  }
+
+  function buildStoreTypeConfig(id, label) {
+    return {
+      id: id,
+      label: label,
+      sidebar: [
+        { page: 'dashboard', href: 'dashboard.html', icon: 'layout-grid', label: 'الرئيسية', sub: 'نظرة عامة على متجرك' },
+        { page: 'prices', href: 'prices.html', icon: 'shopping-bag', label: 'المنتجات والأسعار', sub: 'الأصناف، الأسعار، التوفر' },
+        { page: 'services', href: 'services.html', icon: 'wrench', label: 'الخدمات', sub: 'توصيل، تركيب، صيانة' },
+        { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', sub: 'عروض وتخفيضات', badge: 2 },
+        { page: 'packages', href: 'packages.html', icon: 'layers', label: 'الباقات', sub: 'اختر باقة متجرك' },
+        { page: 'profile', href: 'profile.html', icon: 'store', label: 'بروفايل المتجر', sub: 'تعديل المعلومات والصورة' }
+      ],
+      mobileNav: [
+        { page: 'dashboard', href: 'dashboard.html', icon: 'layout-grid', label: 'الرئيسية' },
+        { page: 'prices', href: 'prices.html', icon: 'shopping-bag', label: 'المنتجات' },
+        { page: 'services', href: 'services.html', icon: 'wrench', label: 'الخدمات' },
+        { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', badge: true }
+      ],
+      services: [
+        { id: 'delivery', label: 'توصيل للمنازل' },
+        { id: 'installation', label: 'تركيب وتوصيل فني' },
+        { id: 'warranty', label: 'ضمان على المنتجات' },
+        { id: 'card_payment', label: 'دفع بالبطاقة' },
+        { id: 'gift_wrap', label: 'تغليف هدايا' },
+        { id: 'exchange_return', label: 'استبدال واسترجاع' }
+      ],
+      dashboardCards: [
+        { page: 'prices', href: 'prices.html', icon: 'shopping-bag', label: 'المنتجات والأسعار', sub: 'الأصناف والتوفر' },
+        { page: 'services', href: 'services.html', icon: 'wrench', label: 'الخدمات', sub: 'توصيل، تركيب' },
+        { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', sub: 'عروض وتخفيضات' }
+      ],
+      limits: STORE_PLAN_LIMITS,
+      lockedFeatures: STORE_LOCKED_FEATURES,
+      pageCopy: {
+        profileTitle: 'بيانات المتجر',
+        adsSubtitle: 'عروض وتخفيضات ومنتجات جديدة تظهر في صفحة متجرك',
+        heroWelcomeText: 'متجرك جاهز لعرض منتجاتك وخدماتك من هنا.'
+      },
+      packages: {
+        pageSubtitle: 'اختر باقة متجرك',
+        entityNameLabel: 'اسم المتجر',
+        free: {
+          eyebrow: 'FREE',
+          name: 'مجاني',
+          desc: 'لوحة تحكم ومعلومات أساسية لمتجرك',
+          price: 0,
+          features: [
+            { label: 'صفحة خاصة بمتجرك على GazaPrice', on: true },
+            { label: 'لوحة تحكم لإدارة متجرك', on: true },
+            { label: 'إضافة حتى ' + STORE_PLAN_LIMITS.free.products + ' منتج', on: true },
+            { label: 'نشر حتى ' + STORE_PLAN_LIMITS.free.ads + ' إعلانات', on: true },
+            { label: 'الخدمات المتاحة الأساسية', on: true },
+            { label: 'منتجات غير محدودة', on: false },
+            { label: 'إعلانات غير محدودة', on: false },
+            { label: 'شارة "مميز" وأولوية الظهور', on: false },
+            { label: 'إحصائيات المتجر', on: false },
+            { label: 'كود QR لصفحة المتجر', on: false },
+            { label: 'المشاركة عبر واتساب', on: false },
+            { label: 'طلب مباشر عبر واتساب', on: false },
+            { label: 'إشعارات فورية', on: false }
+          ]
+        },
+        paid: {
+          id: 'premium',
+          eyebrow: 'PREMIUM',
+          badge: 'الباقة المميزة',
+          name: 'المميزة',
+          desc: 'كل ما يحتاجه متجرك ليظهر بأفضل شكل ويتفاعل معاه الزباين أكتر',
+          price: 99,
+          buttonLabel: 'اشترك في الباقة المميزة',
+          whatsappMessage: 'السلام عليكم، قمت بتحويل مبلغ 99 ₪ لاشتراك الباقة المميزة، وهذا إشعار التحويل.',
+          features: [
+            'صفحة خاصة بمتجرك على GazaPrice',
+            'لوحة تحكم لإدارة متجرك',
+            'منتجات غير محدودة',
+            'نشر عدد غير محدود من الإعلانات (عروض، تخفيضات، منتجات جديدة)',
+            'شارة "مميز" وأولوية الظهور في نتائج البحث',
+            'إحصائيات المتجر (مشاهدات الصفحة، مشاهدات المنتجات، تفاعل الإعلانات)',
+            'كود QR لصفحة المتجر',
+            'مشاركة صفحة المتجر مباشرة عبر واتساب',
+            'زر طلب مباشر عبر واتساب من صفحة المتجر',
+            'إشعارات فورية (تنبيهات، تذكير تجديد)'
+          ]
+        }
+      }
     };
   }
 
@@ -132,14 +299,14 @@ window.GMStoreTypeConfig = (function () {
     try {
       var stored = window.localStorage.getItem(STORAGE_KEY);
       if (stored && TYPES[stored]) return stored;
-    } catch (e) { /* localStorage غير متاح */ }
+    } catch (e) { }
     return DEFAULT_TYPE;
   }
 
   function setCurrentType(typeId) {
     try {
       if (TYPES[typeId]) window.localStorage.setItem(STORAGE_KEY, typeId);
-    } catch (e) { /* localStorage غير متاح */ }
+    } catch (e) { }
   }
 
   function getConfig(typeId) {
@@ -147,12 +314,60 @@ window.GMStoreTypeConfig = (function () {
     return TYPES[id] || TYPES[DEFAULT_TYPE];
   }
 
+  function getCurrentPlan() {
+    try {
+      var stored = window.localStorage.getItem(PLAN_STORAGE_KEY);
+      if (stored && PLAN_IDS.indexOf(stored) !== -1) return stored;
+    } catch (e) { }
+    return DEFAULT_PLAN;
+  }
+
+  function setCurrentPlan(planId) {
+    try {
+      if (PLAN_IDS.indexOf(planId) !== -1) window.localStorage.setItem(PLAN_STORAGE_KEY, planId);
+    } catch (e) { }
+  }
+
+  function resolvePlan(planId) {
+    return planId && PLAN_IDS.indexOf(planId) !== -1 ? planId : getCurrentPlan();
+  }
+
+  function isFeatureLocked(featureKey, typeId, planId) {
+    var config = getConfig(typeId);
+    var plan = resolvePlan(planId);
+    var locked = (config.lockedFeatures && config.lockedFeatures[plan]) || [];
+    return locked.indexOf(featureKey) !== -1;
+  }
+
+  function getLimitStatus(limitKey, usedCount, typeId, planId) {
+    var config = getConfig(typeId);
+    var plan = resolvePlan(planId);
+    var planLimits = (config.limits && config.limits[plan]) || {};
+    var limit = planLimits[limitKey];
+    var unlimited = limit === undefined || limit === null;
+    var used = Math.max(0, parseInt(usedCount, 10) || 0);
+    return {
+      plan: plan,
+      limit: unlimited ? null : limit,
+      used: used,
+      remaining: unlimited ? null : Math.max(0, limit - used),
+      unlimited: unlimited,
+      canAdd: unlimited || used < limit
+    };
+  }
+
   return {
     STORAGE_KEY: STORAGE_KEY,
+    PLAN_STORAGE_KEY: PLAN_STORAGE_KEY,
     DEFAULT_TYPE: DEFAULT_TYPE,
+    DEFAULT_PLAN: DEFAULT_PLAN,
     TYPES: TYPES,
     getCurrentType: getCurrentType,
     setCurrentType: setCurrentType,
+    getCurrentPlan: getCurrentPlan,
+    setCurrentPlan: setCurrentPlan,
+    getLimitStatus: getLimitStatus,
+    isFeatureLocked: isFeatureLocked,
     getConfig: getConfig
   };
 })();

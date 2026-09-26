@@ -31,10 +31,12 @@
           <div>
             <div class="breadcrumb">سوق غزة <span class="sep">/</span> <span class="current">المنيو</span></div>
             <div class="page-title">المنيو</div>
+            <div class="page-subtitle" id="menu-usage-counter" style="display:none;"></div>
           </div>
           <div class="page-actions">
             <button type="button" class="btn btn-ghost" data-action="open-menu-category-panel">
               <i data-lucide="folder-plus" class="icon"></i> التصنيفات
+              <span class="btn-count" id="menu-cat-btn-count">0</span>
             </button>
             <button type="button" class="btn btn-primary" data-action="open-menu-item-add">
               <i data-lucide="plus" class="icon"></i> إضافة صنف
@@ -63,19 +65,19 @@
 
         <div id="menu-data-wrap" style="display:none;">
           <div class="card card-pad">
-            <div class="card-header">
+            <div class="card-header menu-card-header">
               <div>
                 <h3>أصناف المنيو</h3>
                 <div class="sub">الأصناف والأسعار التي يراها الزوار عند تصفح صفحتك</div>
               </div>
-              <div class="topbar-search" style="display:block;max-width:240px;">
+              <div class="menu-search">
                 <input type="search" id="menu-search-input" placeholder="ابحث عن صنف...">
                 <i data-lucide="search" class="icon"></i>
               </div>
             </div>
 
             <div class="table-wrap">
-              <table class="data-table">
+              <table class="data-table menu-table">
                 <thead>
                   <tr>
                     <th>الصنف</th>

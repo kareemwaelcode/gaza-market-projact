@@ -25,6 +25,9 @@
   var PROFILE_PAGE_URL = DASHBOARD_USERS_BASE_URL
     ? new URL('profile.html', DASHBOARD_USERS_BASE_URL).href
     : 'profile.html';
+  var PACKAGES_PAGE_URL = DASHBOARD_USERS_BASE_URL
+    ? new URL('packages.html', DASHBOARD_USERS_BASE_URL).href
+    : 'packages.html';
 
   async function loadPartial(selector, filename) {
     var host = document.querySelector(selector);
@@ -60,16 +63,23 @@
     return host;
   }
 
-  /*
-   * بناء عناصر السايدبار وقائمة الموبايل ديناميكياً حسب نوع النشاط الحالي
-   * (GMStoreTypeConfig). لو الملف مش محمّل لأي سبب، بيسيب الـ HTML الثابت
-   * الموجود أصلاً في الـ partial زي ما هو (سلوك احتياطي آمن).
-   */
   function getStoreTypeConfig() {
     if (window.GMStoreTypeConfig && typeof window.GMStoreTypeConfig.getConfig === 'function') {
       return window.GMStoreTypeConfig.getConfig();
     }
     return null;
+  }
+
+  var STORE_SUBCATEGORY_KEY = 'gm-store-subcategory';
+
+  function getTypeLabelWithSubCategory(typeLabel) {
+    var config = getStoreTypeConfig();
+    if (!config || config.id !== 'store') return typeLabel;
+    try {
+      var subLabel = localStorage.getItem(STORE_SUBCATEGORY_KEY);
+      if (subLabel) return typeLabel + ' — ' + subLabel;
+    } catch (e) {}
+    return typeLabel;
   }
 
   function navItemAttrs(item) {
@@ -154,6 +164,19 @@
     document.querySelectorAll('[data-store-type-label]').forEach(function (el) {
       el.textContent = config.label;
     });
+  }
+
+  function applyStoreTypePageCopy() {
+    var config = getStoreTypeConfig();
+    if (!config || !config.pageCopy) return;
+    document.querySelectorAll('[data-store-type-copy]').forEach(function (el) {
+      var key = el.getAttribute('data-store-type-copy');
+      var text = config.pageCopy[key];
+      if (text) el.textContent = text;
+    });
+    if (config.pageCopy.profileTitle && document.body.getAttribute('data-page') === 'profile') {
+      document.title = config.pageCopy.profileTitle + ' — سوق غزة';
+    }
   }
 
   function markActiveNavItem() {
@@ -328,7 +351,33 @@
     }
   }
 
-  var CURRENT_PLAN_NAME = 'مجانية';
+  var FREE_PLAN_CHIP_LABEL = 'مجانية';
+
+  function getCurrentPlanId() {
+    if (window.GMStoreTypeConfig && typeof window.GMStoreTypeConfig.getCurrentPlan === 'function') {
+      return window.GMStoreTypeConfig.getCurrentPlan();
+    }
+    return 'free';
+  }
+
+  function getCurrentPlanView() {
+    var config = getStoreTypeConfig();
+    var pkgs = config && config.packages ? config.packages : null;
+    if (getCurrentPlanId() === 'paid' && pkgs && pkgs.paid) {
+      return {
+        id: 'paid',
+        name: pkgs.paid.name,
+        chipLabel: pkgs.paid.name,
+        heroLabel: pkgs.paid.badge || ('باقة ' + pkgs.paid.name)
+      };
+    }
+    return {
+      id: 'free',
+      name: pkgs && pkgs.free ? pkgs.free.name : 'مجاني',
+      chipLabel: FREE_PLAN_CHIP_LABEL,
+      heroLabel: 'باقة ' + FREE_PLAN_CHIP_LABEL
+    };
+  }
 
   var GAZA_TZ = 'Asia/Gaza';
   var GAZA_LAT = 31.5;
@@ -540,7 +589,142 @@
 
   function updateHeroPlanChip() {
     var el = document.getElementById('hero-plan-chip');
-    if (el) el.textContent = 'باقة ' + CURRENT_PLAN_NAME;
+    if (el) el.textContent = getCurrentPlanView().heroLabel;
+  }
+
+  var LIMIT_NOUNS = {
+    menuItems: 'أصناف',
+    menuCategories: 'تصنيفات',
+    ads: 'إعلانات'
+  };
+
+  var LOCKED_FEATURE_LABELS = {
+    qrCode: 'كود QR',
+    shareWhatsapp: 'المشاركة عبر واتساب',
+    stats: 'الإحصائيات'
+  };
+
+  var LOCK_OVERLAY_TEXT = 'متاحة في الباقة المدفوعة';
+
+  function getPlanLimitStatus(limitKey, usedCount) {
+    if (window.GMStoreTypeConfig && typeof window.GMStoreTypeConfig.getLimitStatus === 'function') {
+      return window.GMStoreTypeConfig.getLimitStatus(limitKey, usedCount);
+    }
+    return { plan: 'free', limit: null, used: usedCount, remaining: null, unlimited: true, canAdd: true };
+  }
+
+  function isFeatureLockedForPlan(featureKey) {
+    if (window.GMStoreTypeConfig && typeof window.GMStoreTypeConfig.isFeatureLocked === 'function') {
+      return window.GMStoreTypeConfig.isFeatureLocked(featureKey);
+    }
+    return false;
+  }
+
+  function goToPackagesPage() {
+    window.location.href = PACKAGES_PAGE_URL;
+  }
+
+  function openUpgradeModal(opts) {
+    opts = opts || {};
+    var title;
+    var message;
+
+    if (opts.limitKey) {
+      var noun = LIMIT_NOUNS[opts.limitKey] || 'عناصر';
+      title = 'تجاوزت حد الباقة المجانية';
+      message = 'وصلت للحد الأقصى في الباقة المجانية (' + opts.limit + ' ' + noun + '). ' +
+        'اشترك بالباقة المدفوعة لإضافة ' + noun + ' أكثر.';
+    } else {
+      var label = LOCKED_FEATURE_LABELS[opts.featureKey];
+      title = 'ميزة للباقة المدفوعة';
+      message = (label ? 'ميزة «' + escapeHtml(label) + '»' : 'هذه الميزة') +
+        ' متاحة في الباقة المدفوعة فقط. اشترك بالباقة المدفوعة لتفعيلها.';
+    }
+
+    openConfirmModal({
+      icon: 'lock',
+      danger: false,
+      title: title,
+      message: message,
+      confirmLabel: 'اشترك بالباقة المدفوعة',
+      cancelLabel: 'إغلاق',
+      onConfirm: goToPackagesPage
+    });
+  }
+
+  function guardPlanLimit(limitKey, usedCount) {
+    var status = getPlanLimitStatus(limitKey, usedCount);
+    if (status.canAdd) return true;
+    openUpgradeModal({ limitKey: limitKey, limit: status.limit });
+    return false;
+  }
+
+  function initLockedFeatures() {
+    document.addEventListener('click', function (e) {
+      var trigger = e.target.closest && e.target.closest('[data-locked-feature]');
+      if (!trigger) return;
+      var featureKey = trigger.getAttribute('data-locked-feature');
+      if (!isFeatureLockedForPlan(featureKey)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      openUpgradeModal({ featureKey: featureKey });
+    }, true);
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      var trigger = e.target.closest && e.target.closest('[data-lock-overlay].is-locked');
+      if (!trigger) return;
+      e.preventDefault();
+      openUpgradeModal({ featureKey: trigger.getAttribute('data-locked-feature') });
+    });
+  }
+
+  function applyLockedFeaturesToUI() {
+    document.querySelectorAll('[data-locked-feature]').forEach(function (el) {
+      var locked = isFeatureLockedForPlan(el.getAttribute('data-locked-feature'));
+      el.classList.toggle('is-locked', locked);
+      if (!el.hasAttribute('data-lock-overlay')) return;
+
+      var overlay = el.querySelector('.feature-lock-overlay');
+      if (locked && !overlay) {
+        overlay = document.createElement('div');
+        overlay.className = 'feature-lock-overlay';
+        overlay.innerHTML =
+          '<span class="feature-lock-chip">' +
+            '<i data-lucide="lock" class="icon"></i>' +
+            '<span>' + LOCK_OVERLAY_TEXT + '</span>' +
+          '</span>';
+        el.appendChild(overlay);
+        el.setAttribute('role', 'button');
+        el.setAttribute('tabindex', '0');
+      } else if (!locked && overlay) {
+        el.removeChild(overlay);
+        el.removeAttribute('role');
+        el.removeAttribute('tabindex');
+      }
+    });
+  }
+
+  function applyCurrentPlanToUI() {
+    var view = getCurrentPlanView();
+    updateHeroPlanChip();
+
+    var sidebarChip = document.querySelector('.plan-mini-chip');
+    if (sidebarChip) sidebarChip.textContent = view.chipLabel;
+
+    var sidebarName = document.querySelector('.plan-mini-name');
+    if (sidebarName) sidebarName.textContent = view.name;
+
+    var mobileChip = document.querySelector('.mobile-plan-label .plan-chip');
+    if (mobileChip) mobileChip.textContent = view.name;
+
+    var isPaid = view.id === 'paid';
+    var sidebarDesc = document.querySelector('.plan-mini-desc');
+    if (sidebarDesc) sidebarDesc.style.display = isPaid ? 'none' : '';
+    var sidebarUpgradeBtn = document.querySelector('.plan-mini-btn');
+    if (sidebarUpgradeBtn) sidebarUpgradeBtn.style.display = isPaid ? 'none' : '';
+    var mobileUpgrade = document.querySelector('.mobile-plan-upgrade');
+    if (mobileUpgrade) mobileUpgrade.style.display = isPaid ? 'none' : '';
   }
 
   function initHeroDynamicInfo() {
@@ -568,8 +752,6 @@
     } catch (err) {}
   }
 
-  // رابط المساحة العام. الأولوية لما يرجعه الباك (publicUrl ثم slug).
-  // الفرع الأخير (الاسم) حل مؤقت قبل وجود الباك، ويُحذف عند ربط الـ API.
   function getPublicUrl(profile) {
     profile = profile || {};
     if (profile.publicUrl) return String(profile.publicUrl);
@@ -966,7 +1148,7 @@
     if (profileSub && profile.regionLabel) {
       var topbarTypeConfig = getStoreTypeConfig();
       var topbarTypeLabel = topbarTypeConfig ? topbarTypeConfig.label : 'مساحة عمل';
-      profileSub.textContent = profile.regionLabel + ' · ' + topbarTypeLabel;
+      profileSub.textContent = profile.regionLabel + ' · ' + getTypeLabelWithSubCategory(topbarTypeLabel);
     }
 
     var avatarLetter = document.getElementById('profile-avatar-letter');
@@ -1028,7 +1210,7 @@
     if (ppSub) {
       var profilePageTypeConfig = getStoreTypeConfig();
       var profilePageTypeLabel = profilePageTypeConfig ? profilePageTypeConfig.label : 'مساحة عمل';
-      ppSub.textContent = (profile.regionLabel || 'لم تحدد المنطقة بعد') + ' · ' + profilePageTypeLabel;
+      ppSub.textContent = (profile.regionLabel || 'لم تحدد المنطقة بعد') + ' · ' + getTypeLabelWithSubCategory(profilePageTypeLabel);
     }
 
     var ppAddress = document.getElementById('profile-address-value');
@@ -1638,11 +1820,6 @@
     });
   }
 
-  // تأكيد تسجيل الخروج.
-  // auth-guard.js يسجّل الخروج مباشرة عند النقر على [data-action="logout"].
-  // لذلك نلتقط النقرة في مرحلة الـ capture ونوقفها قبل وصولها لمستمع الحارس،
-  // ثم ننفذ GMAuth.logout() فقط بعد ضغط المستخدم على «تسجيل الخروج».
-  // إذا لم يكن الحارس محمّلاً لا نتدخل ونترك السلوك الافتراضي كما هو.
   function initLogoutAction() {
     document.addEventListener('click', function (e) {
       var btn = e.target.closest && e.target.closest('[data-action="logout"]');
@@ -2185,7 +2362,7 @@
       var openTrigger = e.target.closest && e.target.closest('[data-action="open-ad-add"]');
       if (openTrigger) {
         e.preventDefault();
-        open(null);
+        if (guardPlanLimit('ads', getStoredAds().length)) open(null);
         return;
       }
       var editTrigger = e.target.closest && e.target.closest('[data-action="edit-ad"]');
@@ -2214,6 +2391,8 @@
         if (!title) { if (titleInput) titleInput.focus(); return; }
 
         var list = getStoredAds();
+
+        if (!editingId && !guardPlanLimit('ads', list.length)) return;
 
         if (editingId) {
           var idx = -1;
@@ -2297,11 +2476,6 @@
     });
   }
 
-  // ---------------------------------------------------------------------
-  // المنيو (menu.html) — تصنيفات وأصناف المطعم/الكافيه/مطعم وكافيه
-  // نفس أسلوب التخزين والـ render المستخدم في الإعلانات (ads.html) بالظبط.
-  // ---------------------------------------------------------------------
-
   function getStoredMenuCategories() {
     try {
       var raw = localStorage.getItem(MENU_CATEGORIES_STORAGE_KEY);
@@ -2365,7 +2539,6 @@
     return getStoredMenuItems().filter(function (it) { return it.categoryId === categoryId; }).length;
   }
 
-  // التصنيف اللي بيتعدل دلوقتي inline داخل لوحة التصنيفات (null = مفيش تعديل شغال)
   var menuEditingCategoryId = null;
 
   function renderMenuCategoryList() {
@@ -2459,6 +2632,7 @@
       if (!name) { if (newNameInput) newNameInput.focus(); return; }
 
       var list = getStoredMenuCategories();
+      if (!guardPlanLimit('menuCategories', list.length)) return;
       list.push({ id: generateMenuCategoryId(), name: name, createdAt: Date.now() });
       setStoredMenuCategories(list);
 
@@ -2585,7 +2759,21 @@
     if (totalEl) totalEl.textContent = items.length;
     if (availableEl) availableEl.textContent = items.filter(function (it) { return it.available !== false; }).length;
     if (categoriesEl) categoriesEl.textContent = categories.length;
+    var catBtnCount = document.getElementById('menu-cat-btn-count');
+    if (catBtnCount) catBtnCount.textContent = categories.length;
     if (unavailableEl) unavailableEl.textContent = items.filter(function (it) { return it.available === false; }).length;
+
+    var usageEl = document.getElementById('menu-usage-counter');
+    if (usageEl) {
+      var usage = getPlanLimitStatus('menuItems', items.length);
+      if (usage.unlimited) {
+        usageEl.style.display = 'none';
+      } else {
+        usageEl.textContent = usage.used + ' من ' + usage.limit + ' ' + LIMIT_NOUNS.menuItems +
+          (usage.canAdd ? '' : ' — وصلت للحد الأقصى');
+        usageEl.style.display = '';
+      }
+    }
 
     var term = menuSearchTerm.trim().toLowerCase();
     var visibleItems = term
@@ -2603,13 +2791,20 @@
           ? '<img src="' + item.image + '" class="menu-item-thumb" alt="">'
           : '<span class="menu-item-thumb" style="display:inline-flex;align-items:center;justify-content:center;"><i data-lucide="utensils" class="icon"></i></span>';
 
+        var priceValue = (item.price !== '' && item.price != null && !isNaN(Number(item.price)))
+          ? Number(item.price).toFixed(2)
+          : null;
+        var priceHtml = priceValue !== null
+          ? '<span class="menu-price"><b>' + priceValue + '</b><i>₪</i></span>'
+          : '<span class="menu-price menu-price--none"><b>—</b></span>';
+
         return (
-          '<tr>' +
-            '<td><div class="menu-item-name-cell">' + thumb + '<span>' + escapeHtml(item.name) + '</span></div></td>' +
-            '<td>' + escapeHtml(menuCategoryLabel(item.categoryId)) + '</td>' +
-            '<td class="mono">' + (item.price !== '' && item.price != null ? item.price + ' ₪' : '—') + '</td>' +
-            '<td>' + buildMenuStatusBadge(item) + '</td>' +
-            '<td>' +
+          '<tr' + (item.available === false ? ' class="is-unavailable"' : '') + '>' +
+            '<td class="menu-td-name" data-label="الصنف"><div class="menu-item-name-cell">' + thumb + '<span>' + escapeHtml(item.name) + '</span></div></td>' +
+            '<td class="menu-td-cat" data-label="التصنيف"><span class="menu-cat-chip">' + escapeHtml(menuCategoryLabel(item.categoryId)) + '</span></td>' +
+            '<td class="menu-td-price" data-label="السعر">' + priceHtml + '</td>' +
+            '<td class="menu-td-status" data-label="الحالة">' + buildMenuStatusBadge(item) + '</td>' +
+            '<td class="menu-td-actions">' +
               '<button type="button" class="icon-btn" data-action="toggle-menu-item-availability" data-id="' + item.id + '" aria-label="' + (item.available !== false ? 'وضع كغير متاح' : 'وضع كمتاح') + '">' +
                 '<i data-lucide="' + (item.available !== false ? 'eye' : 'eye-off') + '" class="icon"></i>' +
               '</button>' +
@@ -2750,7 +2945,11 @@
 
     document.addEventListener('click', function (e) {
       var openTrigger = e.target.closest && e.target.closest('[data-action="open-menu-item-add"]');
-      if (openTrigger) { e.preventDefault(); open(null); return; }
+      if (openTrigger) {
+        e.preventDefault();
+        if (guardPlanLimit('menuItems', getStoredMenuItems().length)) open(null);
+        return;
+      }
 
       var editTrigger = e.target.closest && e.target.closest('[data-action="edit-menu-item"]');
       if (editTrigger) {
@@ -2780,6 +2979,8 @@
         var price = priceRaw !== '' ? Number(priceRaw) : null;
 
         var list = getStoredMenuItems();
+
+        if (!editingId && !guardPlanLimit('menuItems', list.length)) return;
 
         if (editingId) {
           for (var i = 0; i < list.length; i++) {
@@ -2860,7 +3061,128 @@
     });
   }
 
+  function packagesFeatureLi(text, on) {
+    var mark = on
+      ? '<span class="pkg-feature-mark" aria-hidden="true"><i data-lucide="check" class="icon"></i></span>'
+      : '<span class="pkg-feature-mark" aria-hidden="true"><i data-lucide="x" class="icon"></i></span>';
+    var srOnly = on ? '' : '<span class="pkg-sr-only">غير متاح: </span>';
+    return (
+      '<li class="pkg-feature' + (on ? '' : ' pkg-feature--off') + '">' +
+        mark +
+        '<span>' + srOnly + text + '</span>' +
+      '</li>'
+    );
+  }
+
+  function renderPackagesPage() {
+    var config = getStoreTypeConfig();
+    if (!config || !config.packages) return;
+    var grid = document.getElementById('pkg-grid');
+    if (!grid) return;
+
+    var pkgs = config.packages;
+    var free = pkgs.free;
+    var paid = pkgs.paid;
+    var planView = getCurrentPlanView();
+    var isPaidPlan = planView.id === 'paid';
+
+    var subtitle = document.getElementById('pkg-page-subtitle');
+    if (subtitle && pkgs.pageSubtitle) subtitle.textContent = pkgs.pageSubtitle;
+
+    var currentName = document.getElementById('pkg-current-name');
+    if (currentName) currentName.textContent = planView.name;
+    var currentChip = document.getElementById('pkg-current-chip');
+    if (currentChip) currentChip.textContent = planView.name;
+
+    var freeFeaturesHTML = free.features.map(function (f) {
+      return packagesFeatureLi(f.label, f.on);
+    }).join('');
+
+    var paidFeaturesHTML = paid.features.map(function (label) {
+      return packagesFeatureLi(label, true);
+    }).join('');
+
+    var badgeHTML = paid.badge ? '<span class="pkg-badge">' + paid.badge + '</span>' : '';
+
+    var currentPlanButtonHTML =
+      '<button type="button" class="btn pkg-btn pkg-btn--current" disabled>' +
+        '<i data-lucide="check" class="icon"></i> باقتك الحالية' +
+      '</button>';
+
+    var freeActionHTML = isPaidPlan ? '' : currentPlanButtonHTML;
+
+    var paidActionHTML = isPaidPlan ? currentPlanButtonHTML : (
+      '<button type="button" class="btn btn-primary pkg-btn" data-action="select-package" data-plan="' + paid.id + '" aria-expanded="false" aria-controls="pkg-pay">' +
+        '<span class="pkg-swap">' +
+          '<span class="pkg-swap-item">' + paid.buttonLabel + '</span>' +
+          '<span class="pkg-swap-item pkg-swap-item--alt" aria-hidden="true"><i data-lucide="check" class="icon"></i> تم الاختيار</span>' +
+        '</span>' +
+      '</button>' +
+      '<div class="pkg-pay" id="pkg-pay" role="region" aria-label="خطوات إتمام الاشتراك">' +
+        '<div class="pkg-pay-inner">' +
+          '<div class="pkg-pay-body">' +
+            '<div class="pkg-pay-box">' +
+              '<div class="pkg-pay-step">' +
+                '<span class="pkg-pay-step-no" aria-hidden="true">1</span>' +
+                '<span>حوّل المبلغ عبر بنك فلسطين</span>' +
+              '</div>' +
+              '<div class="pkg-pay-number-row">' +
+                '<span class="pkg-pay-number" data-bank-number>0592194533</span>' +
+                '<button type="button" class="btn btn-sm pkg-copy" data-action="copy-bank-number">' +
+                  '<span class="pkg-swap">' +
+                    '<span class="pkg-swap-item"><i data-lucide="copy" class="icon"></i> نسخ</span>' +
+                    '<span class="pkg-swap-item pkg-swap-item--alt" aria-hidden="true"><i data-lucide="check" class="icon"></i> تم النسخ</span>' +
+                  '</span>' +
+                '</button>' +
+              '</div>' +
+            '</div>' +
+            '<div class="pkg-pay-box">' +
+              '<div class="pkg-pay-step">' +
+                '<span class="pkg-pay-step-no" aria-hidden="true">2</span>' +
+                '<span>أرسل إشعار التحويل للتأكيد</span>' +
+              '</div>' +
+              '<a class="btn pkg-wa-btn" href="https://wa.me/qr/JJQK3CTIZA5YJ1" target="_blank" rel="noopener" data-whatsapp="970567359920" data-message="' + paid.whatsappMessage + '" data-entity-name-label="' + (pkgs.entityNameLabel || 'الاسم') + '">' +
+                '<i data-lucide="message-circle" class="icon"></i> إرسال عبر واتساب' +
+              '</a>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '<span class="pkg-sr-only" role="status" aria-live="polite" id="pkg-status"></span>'
+    );
+
+    grid.innerHTML =
+      '<article class="card pkg-card" aria-labelledby="pkg-free-name">' +
+        '<div class="pkg-eyebrow">' + free.eyebrow + '</div>' +
+        '<h2 class="pkg-name" id="pkg-free-name">' + free.name + '</h2>' +
+        '<p class="pkg-desc">' + free.desc + '</p>' +
+        '<div class="pkg-price">' +
+          '<span class="pkg-price-amount">' + free.price + '</span>' +
+          '<span class="pkg-price-currency">₪</span>' +
+        '</div>' +
+        '<ul class="pkg-features">' + freeFeaturesHTML + '</ul>' +
+        freeActionHTML +
+      '</article>' +
+      '<article class="card pkg-card pkg-card--featured" aria-labelledby="pkg-paid-name">' +
+        badgeHTML +
+        '<div class="pkg-eyebrow">' + paid.eyebrow + '</div>' +
+        '<h2 class="pkg-name" id="pkg-paid-name">' + paid.name + '</h2>' +
+        '<p class="pkg-desc">' + paid.desc + '</p>' +
+        '<div class="pkg-price">' +
+          '<span class="pkg-price-amount pkg-price-amount--accent">' + paid.price + '</span>' +
+          '<span class="pkg-price-currency">₪</span>' +
+          '<span class="pkg-price-period">/ شهر</span>' +
+        '</div>' +
+        '<ul class="pkg-features">' + paidFeaturesHTML + '</ul>' +
+        paidActionHTML +
+      '</article>';
+
+    bootIcons();
+  }
+
   function initPackagesPage() {
+    renderPackagesPage();
+
     var pay = document.getElementById('pkg-pay');
     if (!pay) return;
 
@@ -2891,7 +3213,8 @@
       var phone = link.getAttribute('data-whatsapp');
       var message = link.getAttribute('data-message') || '';
       var workspaceName = getWorkspaceName();
-      if (workspaceName) message += '\nاسم المساحة: ' + workspaceName;
+      var entityNameLabel = link.getAttribute('data-entity-name-label') || 'اسم المساحة';
+      if (workspaceName) message += '\n' + entityNameLabel + ': ' + workspaceName;
       link.setAttribute('href', 'https://wa.me/' + phone + '?text=' + encodeURIComponent(message));
     }
 
@@ -2979,6 +3302,9 @@
     renderMobileNav();
     renderDashboardQuickCards();
     applyStoreTypeLabel();
+    applyStoreTypePageCopy();
+    applyCurrentPlanToUI();
+    applyLockedFeaturesToUI();
     markActiveNavItem();
     wireDrawer();
     wireSwitches();
@@ -3008,6 +3334,7 @@
     initProfilePageExtras();
     initCopyLinkButtons();
     initPackagesPage();
+    initLockedFeatures();
     bootIcons();
   }
 

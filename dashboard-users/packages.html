@@ -26,7 +26,7 @@
         <div class="page-head">
           <div>
             <div class="page-title">الباقات</div>
-            <div class="page-subtitle">اختر باقة مساحتك</div>
+            <div class="page-subtitle" id="pkg-page-subtitle">اختر باقة مساحتك</div>
           </div>
         </div>
 
@@ -35,13 +35,13 @@
             <div class="pkg-current-icon" aria-hidden="true"><i data-lucide="layers" class="icon"></i></div>
             <div>
               <div class="pkg-current-cap">باقتك الحالية</div>
-              <div class="pkg-current-name">مجاني</div>
+              <div class="pkg-current-name" id="pkg-current-name">مجاني</div>
             </div>
           </div>
-          <span class="plan-chip">مجاني</span>
+          <span class="plan-chip" id="pkg-current-chip">مجاني</span>
         </section>
 
-        <div class="pkg-grid">
+        <div class="pkg-grid" id="pkg-grid">
 
           <article class="card pkg-card" aria-labelledby="pkg-free-name">
             <div class="pkg-eyebrow">FREE</div>
@@ -203,6 +203,5 @@
   <script src="https://unpkg.com/lucide@1.45.0/dist/umd/lucide.min.js"></script>
   <script src="../js/store-type-config.js"></script>
   <script src="../js/usere-dashboard.js"></script>
-  <script src="../js/packages.js"></script>
 </body>
 </html>
