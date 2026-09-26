@@ -32,6 +32,7 @@ window.GMStoreTypeConfig = (function () {
     cowork: {
       id: 'cowork',
       label: 'مساحة عمل',
+      fallbackAvatarLetter: 'م',
       sidebar: [
         { page: 'dashboard', href: 'dashboard.html', icon: 'layout-grid', label: 'الرئيسية', sub: 'نظرة عامة على مساحتك' },
         { action: 'open-prices-edit', href: '#', icon: 'tag', label: 'الأسعار والأوقات', sub: 'أسعار الساعة/اليوم، مواعيد العمل' },
@@ -40,7 +41,9 @@ window.GMStoreTypeConfig = (function () {
         { page: 'subscription-requests', href: 'subscription-requests.html', icon: 'thumbs-up', label: 'طلبات الاشتراك', sub: 'طلبات وصلتك أونلاين للموافقة' },
         { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', sub: 'فعاليات، ورش، وظائف، عروض', badge: 2 },
         { page: 'packages', href: 'packages.html', icon: 'layers', label: 'الباقات', sub: 'اختر باقة مساحتك' },
-        { page: 'profile', href: 'profile.html', icon: 'store', label: 'بروفايل المساحة', sub: 'تعديل المعلومات والصورة' }
+        { page: 'profile', href: 'profile.html', icon: 'store', label: 'بروفايل المساحة', sub: 'تعديل المعلومات والصورة' },
+        { page: 'reviews', href: 'reviews.html', icon: 'star', label: 'التقييمات', sub: 'آراء وتقييمات الزوار' },
+        { page: 'settings', href: 'settings.html', icon: 'settings', label: 'الإعدادات', sub: 'التنبيهات، الخصوصية، وأكثر' }
       ],
       mobileNav: [
         { page: 'dashboard', href: 'dashboard.html', icon: 'layout-grid', label: 'الرئيسية' },
@@ -66,6 +69,7 @@ window.GMStoreTypeConfig = (function () {
       ],
       pageCopy: {
         profileTitle: 'بيانات المساحة',
+        entityNameLabel: 'اسم المساحة',
         adsSubtitle: 'فعاليات، ورش، وظائف، عروض تظهر في صفحة مساحتك',
         heroWelcomeText: 'مساحتك جاهزة لبدء استقبال طلباتك وخدماتك من هنا.'
       },
@@ -124,13 +128,16 @@ window.GMStoreTypeConfig = (function () {
     return {
       id: id,
       label: label,
+      fallbackAvatarLetter: 'ن',
       sidebar: [
         { page: 'dashboard', href: 'dashboard.html', icon: 'layout-grid', label: 'الرئيسية', sub: 'نظرة عامة على نشاطك' },
         { page: 'menu', href: 'menu.html', icon: 'utensils', label: 'المنيو', sub: 'التصنيفات، الأصناف، الأسعار' },
         { action: 'open-services-edit', href: '#', icon: 'wrench', label: 'الخدمات المتاحة', sub: 'توصيل، جلسات خارجية، وأكثر' },
         { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', sub: 'فعاليات، عروض، وظائف', badge: 2 },
         { page: 'packages', href: 'packages.html', icon: 'layers', label: 'الباقات', sub: 'اختر باقة نشاطك' },
-        { page: 'profile', href: 'profile.html', icon: 'store', label: 'بروفايل النشاط', sub: 'تعديل المعلومات والصورة' }
+        { page: 'profile', href: 'profile.html', icon: 'store', label: 'بروفايل النشاط', sub: 'تعديل المعلومات والصورة' },
+        { page: 'reviews', href: 'reviews.html', icon: 'star', label: 'التقييمات', sub: 'آراء وتقييمات الزوار' },
+        { page: 'settings', href: 'settings.html', icon: 'settings', label: 'الإعدادات', sub: 'التنبيهات، الخصوصية، وأكثر' }
       ],
       mobileNav: [
         { page: 'dashboard', href: 'dashboard.html', icon: 'layout-grid', label: 'الرئيسية' },
@@ -153,6 +160,7 @@ window.GMStoreTypeConfig = (function () {
       lockedFeatures: FOOD_LOCKED_FEATURES,
       pageCopy: {
         profileTitle: 'بيانات النشاط',
+        entityNameLabel: 'اسم النشاط',
         adsSubtitle: 'فعاليات، عروض، وظائف تظهر في صفحة نشاطك',
         heroWelcomeText: 'نشاطك جاهز لبدء استقبال طلباتك وخدماتك من هنا.'
       },
@@ -211,13 +219,16 @@ window.GMStoreTypeConfig = (function () {
     return {
       id: id,
       label: label,
+      fallbackAvatarLetter: 'م',
       sidebar: [
         { page: 'dashboard', href: 'dashboard.html', icon: 'layout-grid', label: 'الرئيسية', sub: 'نظرة عامة على متجرك' },
         { page: 'prices', href: 'prices.html', icon: 'shopping-bag', label: 'المنتجات والأسعار', sub: 'الأصناف، الأسعار، التوفر' },
         { page: 'services', href: 'services.html', icon: 'wrench', label: 'الخدمات', sub: 'توصيل، تركيب، صيانة' },
         { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', sub: 'عروض وتخفيضات', badge: 2 },
         { page: 'packages', href: 'packages.html', icon: 'layers', label: 'الباقات', sub: 'اختر باقة متجرك' },
-        { page: 'profile', href: 'profile.html', icon: 'store', label: 'بروفايل المتجر', sub: 'تعديل المعلومات والصورة' }
+        { page: 'profile', href: 'profile.html', icon: 'store', label: 'بروفايل المتجر', sub: 'تعديل المعلومات والصورة' },
+        { page: 'reviews', href: 'reviews.html', icon: 'star', label: 'التقييمات', sub: 'آراء وتقييمات الزوار' },
+        { page: 'settings', href: 'settings.html', icon: 'settings', label: 'الإعدادات', sub: 'التنبيهات، الخصوصية، وأكثر' }
       ],
       mobileNav: [
         { page: 'dashboard', href: 'dashboard.html', icon: 'layout-grid', label: 'الرئيسية' },
@@ -242,6 +253,7 @@ window.GMStoreTypeConfig = (function () {
       lockedFeatures: STORE_LOCKED_FEATURES,
       pageCopy: {
         profileTitle: 'بيانات المتجر',
+        entityNameLabel: 'اسم المتجر',
         adsSubtitle: 'عروض وتخفيضات ومنتجات جديدة تظهر في صفحة متجرك',
         heroWelcomeText: 'متجرك جاهز لعرض منتجاتك وخدماتك من هنا.'
       },

@@ -2,19 +2,28 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>الإعدادات — سوق غزة</title>
 <script src="auth/auth-api.js"></script>
 <script src="auth/auth-guard.js"></script>
-<link rel="stylesheet" href="../../css/user-dashboard.css">
+<link rel="stylesheet" href="../css/user-dashboard.css">
 </head>
 <body data-page="settings">
+<script>(function(){try{if(localStorage.getItem('gaza-market-dashboard-theme')==='dark'){document.body.classList.add('dark-mode');}}catch(e){}})();</script>
 
-  <div id="sidebar-slot"></div>
+  <div id="topnav-slot"></div>
+
+  <aside class="side-panel">
+    <div id="topbar-slot"></div>
+    <div id="sidebar-slot"></div>
+  </aside>
 
   <div class="app-shell">
     <main class="app-main">
-      <div id="topbar-slot"></div>
+
+      <button class="mobile-menu-btn" data-action="open-sidebar" aria-label="فتح القائمة">
+        <i data-lucide="menu" class="icon"></i>
+      </button>
 
       <div class="app-content">
 
@@ -30,9 +39,9 @@
 
         <div class="grid-2">
           <div class="card card-pad">
-            <div class="card-header"><h3>معلومات المساحة</h3></div>
+            <div class="card-header"><h3 data-store-type-copy="profileTitle">معلومات المساحة</h3></div>
             <div class="field">
-              <label>اسم المساحة</label>
+              <label data-store-type-copy="entityNameLabel">اسم المساحة</label>
               <input type="text" value="متجر كريم">
             </div>
             <div class="field-row">
@@ -47,7 +56,7 @@
             </div>
             <div class="field">
               <label>وصف مختصر</label>
-              <textarea rows="3" placeholder="اكتب وصفاً قصيراً عن مساحتك..."></textarea>
+              <textarea rows="3" placeholder="اكتب وصفاً قصيراً يظهر أعلى صفحتك على سوق غزة..."></textarea>
               <div class="hint">يظهر هذا الوصف أعلى صفحتك العامة في سوق غزة</div>
             </div>
           </div>
@@ -72,11 +81,11 @@
         <div class="section-title">منطقة الخطر</div>
         <div class="card card-pad">
           <div class="list-row">
-            <div><div class="title">إغلاق المساحة مؤقتاً</div><div class="sub">إخفاء مساحتك عن الزوار دون حذف بياناتك</div></div>
+            <div><div class="title">إغلاق الصفحة مؤقتاً</div><div class="sub">إخفاء صفحتك عن الزوار دون حذف بياناتك</div></div>
             <button class="btn btn-ghost btn-sm"><i data-lucide="power" class="icon"></i> إغلاق مؤقت</button>
           </div>
           <div class="list-row">
-            <div><div class="title">حذف المساحة نهائياً</div><div class="sub">لا يمكن التراجع عن هذا الإجراء</div></div>
+            <div><div class="title">حذف الحساب نهائياً</div><div class="sub">لا يمكن التراجع عن هذا الإجراء</div></div>
             <button class="btn btn-danger btn-sm"><i data-lucide="trash-2" class="icon"></i> حذف نهائي</button>
           </div>
         </div>
@@ -85,7 +94,10 @@
     </main>
   </div>
 
+  <div id="mobile-nav-slot"></div>
+
   <script src="https://unpkg.com/lucide@1.45.0/dist/umd/lucide.min.js"></script>
-  <script src="../../js/usere-dashboard.js"></script>
+  <script src="../js/store-type-config.js"></script>
+  <script src="../js/usere-dashboard.js"></script>
 </body>
 </html>

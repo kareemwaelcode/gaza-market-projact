@@ -70,6 +70,11 @@
     return null;
   }
 
+  function getFallbackAvatarLetter() {
+    var config = getStoreTypeConfig();
+    return (config && config.fallbackAvatarLetter) || 'م';
+  }
+
   var STORE_SUBCATEGORY_KEY = 'gm-store-subcategory';
 
   function getTypeLabelWithSubCategory(typeLabel) {
@@ -1199,7 +1204,7 @@
         ppAvatar.textContent = '';
       } else {
         ppAvatar.style.backgroundImage = '';
-        ppAvatar.textContent = (profile.name || 'م').trim().charAt(0) || 'م';
+        ppAvatar.textContent = (profile.name || getFallbackAvatarLetter()).trim().charAt(0) || getFallbackAvatarLetter();
       }
     }
 
@@ -1392,7 +1397,7 @@
         avatarPreview.textContent = '';
       } else {
         avatarPreview.style.backgroundImage = '';
-        avatarPreview.textContent = (profile.name || 'م').trim().charAt(0);
+        avatarPreview.textContent = (profile.name || getFallbackAvatarLetter()).trim().charAt(0);
       }
 
       updatePinDisplay();
