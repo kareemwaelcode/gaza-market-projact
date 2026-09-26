@@ -917,6 +917,20 @@ table.data-table tr:hover td { background: var(--bg-hover); }
 
 .sve-row .switch { order: 2; }
 
+.sve-row-icon {
+  order: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--db-accent-soft);
+  color: var(--db-accent-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.sve-row-icon .icon { width: 17px; height: 17px; }
+
 .sve-row-label {
   order: 1;
   font-size: 14px;

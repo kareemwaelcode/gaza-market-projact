@@ -1600,14 +1600,36 @@
     if (!container) return;
     var services = getCurrentTypeServices();
     container.innerHTML = services.map(function (svc) {
+      var iconHtml = svc.icon
+        ? '<div class="sve-row-icon"><i data-lucide="' + svc.icon + '" class="icon"></i></div>'
+        : '';
       return (
         '<div class="sve-row">' +
+          iconHtml +
           '<div class="switch" id="sve-switch-' + svc.id + '"></div>' +
           '<span class="sve-row-label">' + svc.label + '</span>' +
           '<input type="text" id="sve-details-' + svc.id + '" class="sve-details-input" placeholder="تفاصيل إضافية (اختياري)...">' +
         '</div>'
       );
     }).join('');
+
+    // renderServiceRows() rebuilds these switch elements from scratch every
+    // time the panel opens, so the one-time global wireSwitches() (called
+    // once at page load) never reaches them. Wire click/keyboard toggling
+    // directly here, scoped to this container only.
+    container.querySelectorAll('.switch').forEach(function (el) {
+      el.setAttribute('role', 'switch');
+      el.setAttribute('tabindex', '0');
+      el.addEventListener('click', function () {
+        el.classList.toggle('on');
+      });
+      el.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          el.click();
+        }
+      });
+    });
   }
 
   function initServicesEditPanel() {
@@ -2215,6 +2237,13 @@
   }
 
   var AD_TYPE_LABELS = { activity: 'فعالية', workshop: 'ورشة', job: 'وظيفة', offer: 'عرض' };
+  var DEFAULT_AD_TYPES = ['activity', 'workshop', 'job', 'offer'];
+
+  function getAllowedAdTypes() {
+    var config = getStoreTypeConfig();
+    if (config && Array.isArray(config.adTypes) && config.adTypes.length) return config.adTypes;
+    return DEFAULT_AD_TYPES;
+  }
 
   function getStoredAds() {
     try {
@@ -2319,6 +2348,19 @@
     var selectedType = 'activity';
     var editingId = null;
 
+    function applyAllowedAdTypes() {
+      var allowed = getAllowedAdTypes();
+      if (typeGroup) {
+        typeGroup.querySelectorAll('.seg-btn').forEach(function (btn) {
+          var isAllowed = allowed.indexOf(btn.getAttribute('data-value')) !== -1;
+          btn.style.display = isAllowed ? '' : 'none';
+        });
+      }
+      return allowed;
+    }
+
+    var allowedAdTypes = applyAllowedAdTypes();
+
     function setType(value) {
       selectedType = value;
       if (!typeGroup) return;
@@ -2332,7 +2374,7 @@
       if (detailsInput) detailsInput.value = '';
       if (dateInput) dateInput.value = '';
       if (linkInput) linkInput.value = '';
-      setType('activity');
+      setType(allowedAdTypes[0] || 'activity');
     }
 
     function fillFormFromAd(ad) {
@@ -2340,7 +2382,7 @@
       if (detailsInput) detailsInput.value = ad.details || '';
       if (dateInput) dateInput.value = ad.date || '';
       if (linkInput) linkInput.value = ad.link || '';
-      setType(ad.type || 'activity');
+      setType((ad.type && allowedAdTypes.indexOf(ad.type) !== -1) ? ad.type : (allowedAdTypes[0] || 'activity'));
     }
 
     function open(adToEdit) {

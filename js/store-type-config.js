@@ -8,7 +8,7 @@ window.GMStoreTypeConfig = (function () {
   var PLAN_IDS = ['free', 'paid'];
 
   var FOOD_PLAN_LIMITS = {
-    free: { menuItems: 10, menuCategories: 10, ads: 5 },
+    free: { menuItems: 10, menuCategories: 5, ads: 3 },
     paid: { menuItems: null, menuCategories: null, ads: null }
   };
 
@@ -18,7 +18,7 @@ window.GMStoreTypeConfig = (function () {
   };
 
   var STORE_PLAN_LIMITS = {
-    free: { products: 15, productCategories: 10, ads: 5, services: 10, serviceCategories: 8 },
+    free: { products: 10, productCategories: 8, ads: 3, services: 5, serviceCategories: 8 },
     paid: { products: null, productCategories: null, ads: null, services: null, serviceCategories: null }
   };
 
@@ -132,7 +132,7 @@ window.GMStoreTypeConfig = (function () {
       sidebar: [
         { page: 'dashboard', href: 'dashboard.html', icon: 'layout-grid', label: 'الرئيسية', sub: 'نظرة عامة على نشاطك' },
         { page: 'menu', href: 'menu.html', icon: 'utensils', label: 'المنيو', sub: 'التصنيفات، الأصناف، الأسعار' },
-        { action: 'open-services-edit', href: '#', icon: 'wrench', label: 'الخدمات المتاحة', sub: 'توصيل، جلسات خارجية، وأكثر' },
+        { action: 'open-services-edit', href: '#', icon: 'wrench', label: 'الخدمات المتاحة', sub: 'المكيف، جلسات خارجية، وأكثر' },
         { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', sub: 'فعاليات، عروض، وظائف', badge: 2 },
         { page: 'packages', href: 'packages.html', icon: 'layers', label: 'الباقات', sub: 'اختر باقة نشاطك' },
         { page: 'profile', href: 'profile.html', icon: 'store', label: 'بروفايل النشاط', sub: 'تعديل المعلومات والصورة' },
@@ -146,22 +146,24 @@ window.GMStoreTypeConfig = (function () {
         { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', badge: true }
       ],
       services: [
-        { id: 'delivery', label: 'توصيل مجاني' },
-        { id: 'smoking_area', label: 'منطقة تدخين' },
-        { id: 'outdoor_seating', label: 'جلسات خارجية' },
-        { id: 'parking', label: 'مواقف سيارات' },
-        { id: 'card_payment', label: 'دفع بالبطاقة' }
+        { id: 'ac', label: 'المكيف', icon: 'air-vent' },
+        { id: 'family_section', label: 'قسم خاص للعائلات', icon: 'users' },
+        { id: 'outdoor_seating', label: 'جلسات خارجية', icon: 'armchair' },
+        { id: 'payment_methods', label: 'نقبل الدفع كاش وتطبيق', icon: 'banknote-arrow-up' },
+        { id: 'payment_methods-tow', label: 'نقبل الدفع عبر البطاقة', icon: 'credit-card-check' },
+        { id: 'parking', label: 'موقف سيارات', icon: 'car' }
       ],
       dashboardCards: [
         { page: 'menu', href: 'menu.html', icon: 'utensils', label: 'المنيو', sub: 'التصنيفات والأسعار' },
-        { action: 'open-services-edit', href: '#', icon: 'wrench', label: 'الخدمات المتاحة', sub: 'توصيل، جلسات خارجية' }
+        { action: 'open-services-edit', href: '#', icon: 'wrench', label: 'الخدمات المتاحة', sub: 'المكيف، جلسات خارجية' }
       ],
       limits: FOOD_PLAN_LIMITS,
       lockedFeatures: FOOD_LOCKED_FEATURES,
+      adTypes: ['activity', 'offer'],
       pageCopy: {
         profileTitle: 'بيانات النشاط',
         entityNameLabel: 'اسم النشاط',
-        adsSubtitle: 'فعاليات، عروض، وظائف تظهر في صفحة نشاطك',
+        adsSubtitle: 'عروض وفعاليات تظهر في صفحة نشاطك',
         heroWelcomeText: 'نشاطك جاهز لبدء استقبال طلباتك وخدماتك من هنا.'
       },
       packages: {
@@ -237,7 +239,6 @@ window.GMStoreTypeConfig = (function () {
         { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', badge: true }
       ],
       services: [
-        { id: 'delivery', label: 'توصيل للمنازل' },
         { id: 'installation', label: 'تركيب وتوصيل فني' },
         { id: 'warranty', label: 'ضمان على المنتجات' },
         { id: 'card_payment', label: 'دفع بالبطاقة' },
@@ -269,9 +270,11 @@ window.GMStoreTypeConfig = (function () {
             { label: 'صفحة خاصة بمتجرك على GazaPrice', on: true },
             { label: 'لوحة تحكم لإدارة متجرك', on: true },
             { label: 'إضافة حتى ' + STORE_PLAN_LIMITS.free.products + ' منتج', on: true },
+            { label: 'حتى ' + STORE_PLAN_LIMITS.free.productCategories + ' تصنيفات للمنتجات', on: true },
+            { label: 'حتى ' + STORE_PLAN_LIMITS.free.services + ' خدمات', on: true },
             { label: 'نشر حتى ' + STORE_PLAN_LIMITS.free.ads + ' إعلانات', on: true },
-            { label: 'الخدمات المتاحة الأساسية', on: true },
-            { label: 'منتجات غير محدودة', on: false },
+            { label: 'منتجات وتصنيفات غير محدودة', on: false },
+            { label: 'خدمات غير محدودة', on: false },
             { label: 'إعلانات غير محدودة', on: false },
             { label: 'شارة "مميز" وأولوية الظهور', on: false },
             { label: 'إحصائيات المتجر', on: false },
@@ -293,7 +296,8 @@ window.GMStoreTypeConfig = (function () {
           features: [
             'صفحة خاصة بمتجرك على GazaPrice',
             'لوحة تحكم لإدارة متجرك',
-            'منتجات غير محدودة',
+            'منتجات وتصنيفات غير محدودة',
+            'خدمات غير محدودة',
             'نشر عدد غير محدود من الإعلانات (عروض، تخفيضات، منتجات جديدة)',
             'شارة "مميز" وأولوية الظهور في نتائج البحث',
             'إحصائيات المتجر (مشاهدات الصفحة، مشاهدات المنتجات، تفاعل الإعلانات)',
