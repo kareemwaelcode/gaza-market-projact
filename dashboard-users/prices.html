@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>الأسعار والمنتجات — سوق غزة</title>
+<title>المنتجات والأسعار — سوق غزة</title>
 <script src="auth/auth-api.js"></script>
 <script src="auth/auth-guard.js"></script>
 <link rel="stylesheet" href="../css/user-dashboard.css">
@@ -29,85 +29,82 @@
 
         <div class="page-head">
           <div>
-            <div class="breadcrumb">سوق غزة <span class="sep">/</span> <span class="current">الأسعار والمنتجات</span></div>
-            <div class="page-title">الأسعار والمنتجات</div>
+            <div class="breadcrumb">سوق غزة <span class="sep">/</span> <span class="current">المنتجات والأسعار</span></div>
+            <div class="page-title">المنتجات والأسعار</div>
+            <div class="page-subtitle" id="product-usage-counter" style="display:none;"></div>
           </div>
           <div class="page-actions">
-            <button class="btn btn-ghost"><i data-lucide="upload" class="icon"></i> استيراد قائمة</button>
-            <button class="btn btn-primary"><i data-lucide="plus" class="icon"></i> إضافة صنف</button>
+            <button type="button" class="btn btn-ghost" data-action="open-product-category-panel">
+              <i data-lucide="folder-plus" class="icon"></i> التصنيفات
+              <span class="btn-count" id="product-cat-btn-count">0</span>
+            </button>
+            <button type="button" class="btn btn-primary" data-action="open-product-item-add">
+              <i data-lucide="plus" class="icon"></i> إضافة منتج
+            </button>
           </div>
         </div>
 
         <div class="stat-grid">
           <div class="card stat-card">
             <div class="icon-wrap brand"><i data-lucide="layers" class="icon"></i></div>
-            <div><div class="value">1</div><div class="label">إجمالي الأصناف</div></div>
+            <div><div class="value" id="product-stat-total">0</div><div class="label">إجمالي المنتجات</div></div>
           </div>
           <div class="card stat-card">
             <div class="icon-wrap blue"><i data-lucide="badge-check" class="icon"></i></div>
-            <div><div class="value">1</div><div class="label">أصناف منشورة</div></div>
+            <div><div class="value" id="product-stat-available">0</div><div class="label">منتجات متوفرة</div></div>
           </div>
           <div class="card stat-card">
-            <div class="icon-wrap amber"><i data-lucide="clock" class="icon"></i></div>
-            <div><div class="value">0</div><div class="label">بانتظار المراجعة</div></div>
+            <div class="icon-wrap amber"><i data-lucide="folder" class="icon"></i></div>
+            <div><div class="value" id="product-stat-categories">0</div><div class="label">التصنيفات</div></div>
           </div>
           <div class="card stat-card">
-            <div class="icon-wrap red"><i data-lucide="trending-down" class="icon"></i></div>
-            <div><div class="value">0</div><div class="label">أسعار منخفضة عن السوق</div></div>
+            <div class="icon-wrap red"><i data-lucide="ban" class="icon"></i></div>
+            <div><div class="value" id="product-stat-unavailable">0</div><div class="label">منتجات غير متوفرة حالياً</div></div>
           </div>
         </div>
 
-        <div class="card card-pad">
-          <div class="card-header">
-            <div>
-              <h3>قائمة الأصناف</h3>
-              <div class="sub">الأسعار التي يراها الزوار عند مقارنة متجرك بالمتاجر القريبة</div>
+        <div id="product-data-wrap" style="display:none;">
+          <div class="card card-pad">
+            <div class="card-header menu-card-header">
+              <div>
+                <h3>قائمة المنتجات</h3>
+                <div class="sub">المنتجات والأسعار التي يراها الزوار عند تصفح متجرك</div>
+              </div>
+              <div class="menu-search">
+                <input type="search" id="product-search-input" placeholder="ابحث عن منتج...">
+                <i data-lucide="search" class="icon"></i>
+              </div>
             </div>
-            <div class="topbar-search" style="display:block;max-width:240px;">
-              <input type="search" placeholder="ابحث عن صنف...">
-              <i data-lucide="search" class="icon"></i>
+
+            <div class="table-wrap">
+              <table class="data-table menu-table">
+                <thead>
+                  <tr>
+                    <th>المنتج</th>
+                    <th>التصنيف</th>
+                    <th>السعر</th>
+                    <th>الحالة</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="product-table-body"></tbody>
+              </table>
             </div>
           </div>
+        </div>
 
-          <div class="table-wrap">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>الصنف</th>
-                  <th>الفئة</th>
-                  <th>السعر</th>
-                  <th>مقارنة بالسوق</th>
-                  <th>الحالة</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>بيض بلدي — طبق 30</td>
-                  <td>مواد غذائية</td>
-                  <td class="mono">35 ₪</td>
-                  <td><span class="badge green">أقل بـ 5%</span></td>
-                  <td><span class="badge green">منشور</span></td>
-                  <td>
-                    <button class="icon-btn" aria-label="تعديل"><i data-lucide="pencil" class="icon"></i></button>
-                    <button class="icon-btn" aria-label="حذف"><i data-lucide="trash-2" class="icon"></i></button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div class="empty-state" style="display:none;">
-            <i data-lucide="tag" class="icon"></i>
-            <div class="title">لا توجد أصناف بعد</div>
-            <div class="sub">أضف أول صنف ليظهر ضمن مقارنة الأسعار في سوق غزة</div>
-          </div>
+        <div class="card card-pad empty-state" id="product-empty-state">
+          <i data-lucide="shopping-bag" class="icon"></i>
+          <div class="title">لا توجد منتجات بعد</div>
+          <div class="sub">أضف أول منتج بمتجرك ليظهر للزوار</div>
         </div>
 
       </div>
     </main>
   </div>
 
+  <div id="product-category-slot"></div>
+  <div id="product-item-edit-slot"></div>
   <div id="mobile-nav-slot"></div>
 
   <script src="https://unpkg.com/lucide@1.45.0/dist/umd/lucide.min.js"></script>

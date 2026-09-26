@@ -11,6 +11,8 @@
   var ADS_STORAGE_KEY = 'gmDashboardAds';
   var MENU_CATEGORIES_STORAGE_KEY = 'gmDashboardMenuCategories';
   var MENU_ITEMS_STORAGE_KEY = 'gmDashboardMenuItems';
+  var PRODUCT_CATEGORIES_STORAGE_KEY = 'gmDashboardProductCategories';
+  var PRODUCT_ITEMS_STORAGE_KEY = 'gmDashboardProductItems';
 
   var PUBLIC_BASE_URL = 'https://gazaprice.com';
 
@@ -600,6 +602,8 @@
   var LIMIT_NOUNS = {
     menuItems: 'أصناف',
     menuCategories: 'تصنيفات',
+    products: 'منتجات',
+    productCategories: 'تصنيفات',
     ads: 'إعلانات'
   };
 
@@ -3066,6 +3070,594 @@
     });
   }
 
+  // ---------------------------------------------------------------------
+  // Store products (categories + items) — same architecture as the menu
+  // system above, adapted for store-type activities (grocery, pharmacy,
+  // clothing...). Kept as a parallel set of functions (not a shared one)
+  // so the menu logic above stays untouched, per project scope rules.
+  // ---------------------------------------------------------------------
+
+  function getStoredProductCategories() {
+    try {
+      var raw = localStorage.getItem(PRODUCT_CATEGORIES_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (err) {
+      return [];
+    }
+  }
+
+  function setStoredProductCategories(list) {
+    try {
+      localStorage.setItem(PRODUCT_CATEGORIES_STORAGE_KEY, JSON.stringify(list));
+    } catch (err) {}
+  }
+
+  function getStoredProductItems() {
+    try {
+      var raw = localStorage.getItem(PRODUCT_ITEMS_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (err) {
+      return [];
+    }
+  }
+
+  function setStoredProductItems(list) {
+    try {
+      localStorage.setItem(PRODUCT_ITEMS_STORAGE_KEY, JSON.stringify(list));
+    } catch (err) {}
+  }
+
+  function generateProductCategoryId() {
+    return 'pc_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
+
+  function generateProductItemId() {
+    return 'pi_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
+
+  function findProductCategoryById(id) {
+    var list = getStoredProductCategories();
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].id === id) return list[i];
+    }
+    return null;
+  }
+
+  function findProductItemById(id) {
+    var list = getStoredProductItems();
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].id === id) return list[i];
+    }
+    return null;
+  }
+
+  function productCategoryLabel(categoryId) {
+    var cat = categoryId ? findProductCategoryById(categoryId) : null;
+    return cat ? cat.name : 'بدون تصنيف';
+  }
+
+  function countItemsInProductCategory(categoryId) {
+    return getStoredProductItems().filter(function (it) { return it.categoryId === categoryId; }).length;
+  }
+
+  var productEditingCategoryId = null;
+
+  function renderProductCategoryList() {
+    var list = document.getElementById('pcp-list');
+    var empty = document.getElementById('pcp-empty');
+    if (!list) return;
+
+    var categories = getStoredProductCategories();
+
+    if (!categories.length) {
+      list.innerHTML = '';
+      if (empty) empty.style.display = '';
+      bootIcons();
+      return;
+    }
+    if (empty) empty.style.display = 'none';
+
+    list.innerHTML = categories.map(function (cat) {
+      var itemsCount = countItemsInProductCategory(cat.id);
+
+      if (cat.id === productEditingCategoryId) {
+        return (
+          '<div class="list-row" data-id="' + cat.id + '">' +
+            '<input type="text" id="pcp-rename-' + cat.id + '" value="' + escapeHtml(cat.name) + '" style="flex:1;">' +
+            '<div class="flex gap-8">' +
+              '<button type="button" class="icon-btn" data-action="save-product-category" data-id="' + cat.id + '" aria-label="حفظ"><i data-lucide="check" class="icon"></i></button>' +
+              '<button type="button" class="icon-btn" data-action="cancel-edit-product-category" aria-label="إلغاء"><i data-lucide="x" class="icon"></i></button>' +
+            '</div>' +
+          '</div>'
+        );
+      }
+
+      return (
+        '<div class="list-row" data-id="' + cat.id + '">' +
+          '<div class="title">' + escapeHtml(cat.name) + '</div>' +
+          '<div class="flex gap-8">' +
+            '<span class="badge gray">' + itemsCount + ' منتج</span>' +
+            '<button type="button" class="icon-btn" data-action="edit-product-category" data-id="' + cat.id + '" aria-label="تعديل"><i data-lucide="pencil" class="icon"></i></button>' +
+            '<button type="button" class="icon-btn" data-action="delete-product-category" data-id="' + cat.id + '" aria-label="حذف"><i data-lucide="trash-2" class="icon"></i></button>' +
+          '</div>' +
+        '</div>'
+      );
+    }).join('');
+
+    bootIcons();
+  }
+
+  function renderProductCategorySelectOptions() {
+    var select = document.getElementById('pie-category');
+    if (!select) return;
+    var current = select.value;
+    var categories = getStoredProductCategories();
+
+    select.innerHTML = '<option value="">بدون تصنيف</option>' + categories.map(function (cat) {
+      return '<option value="' + cat.id + '">' + escapeHtml(cat.name) + '</option>';
+    }).join('');
+
+    if (categories.some(function (c) { return c.id === current; })) select.value = current;
+  }
+
+  function initProductCategoryPanel() {
+    var panel = document.getElementById('pcp-panel');
+    var scrim = document.getElementById('pcp-scrim');
+    if (!panel) return;
+
+    var newNameInput = document.getElementById('pcp-new-name');
+    var addBtn = document.getElementById('pcp-add-btn');
+
+    function open() {
+      closeSidebarDrawerIfNeeded();
+      closeMobileMoreSheet();
+      productEditingCategoryId = null;
+      renderProductCategoryList();
+
+      panel.classList.add('open');
+      if (scrim) scrim.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      bootIcons();
+      if (newNameInput) { newNameInput.value = ''; newNameInput.focus(); }
+    }
+
+    function close() {
+      panel.classList.remove('open');
+      if (scrim) scrim.classList.remove('open');
+      document.body.style.overflow = '';
+      productEditingCategoryId = null;
+    }
+
+    function addCategory() {
+      var name = newNameInput ? newNameInput.value.trim() : '';
+      if (!name) { if (newNameInput) newNameInput.focus(); return; }
+
+      var list = getStoredProductCategories();
+      if (!guardPlanLimit('productCategories', list.length)) return;
+      list.push({ id: generateProductCategoryId(), name: name, createdAt: Date.now() });
+      setStoredProductCategories(list);
+
+      if (newNameInput) newNameInput.value = '';
+      renderProductCategoryList();
+      renderProductCategorySelectOptions();
+      renderProductsPage();
+      showToast('تمت إضافة التصنيف', { icon: 'folder-plus' });
+    }
+
+    if (addBtn) addBtn.addEventListener('click', addCategory);
+    if (newNameInput) {
+      newNameInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); addCategory(); }
+      });
+    }
+
+    document.addEventListener('click', function (e) {
+      var openTrigger = e.target.closest && e.target.closest('[data-action="open-product-category-panel"]');
+      if (openTrigger) { e.preventDefault(); open(); return; }
+
+      var closeTrigger = e.target.closest && e.target.closest('[data-action="close-product-category-panel"]');
+      if (closeTrigger) { close(); return; }
+
+      var editTrigger = e.target.closest && e.target.closest('[data-action="edit-product-category"]');
+      if (editTrigger) {
+        productEditingCategoryId = editTrigger.getAttribute('data-id');
+        renderProductCategoryList();
+        var input = document.getElementById('pcp-rename-' + productEditingCategoryId);
+        if (input) { input.focus(); input.select(); }
+        return;
+      }
+
+      var cancelTrigger = e.target.closest && e.target.closest('[data-action="cancel-edit-product-category"]');
+      if (cancelTrigger) { productEditingCategoryId = null; renderProductCategoryList(); return; }
+
+      var saveTrigger = e.target.closest && e.target.closest('[data-action="save-product-category"]');
+      if (saveTrigger) {
+        var id = saveTrigger.getAttribute('data-id');
+        var input2 = document.getElementById('pcp-rename-' + id);
+        var newName = input2 ? input2.value.trim() : '';
+        if (!newName) { if (input2) input2.focus(); return; }
+
+        var list2 = getStoredProductCategories();
+        for (var i = 0; i < list2.length; i++) {
+          if (list2[i].id === id) { list2[i].name = newName; break; }
+        }
+        setStoredProductCategories(list2);
+
+        productEditingCategoryId = null;
+        renderProductCategoryList();
+        renderProductCategorySelectOptions();
+        renderProductsPage();
+        return;
+      }
+
+      var delTrigger = e.target.closest && e.target.closest('[data-action="delete-product-category"]');
+      if (delTrigger) {
+        var delId = delTrigger.getAttribute('data-id');
+        var cat = findProductCategoryById(delId);
+        var itemsCount = countItemsInProductCategory(delId);
+        var message = itemsCount > 0
+          ? 'سيتم حذف التصنيف «' + escapeHtml(cat ? cat.name : '') + '»، و' + itemsCount + ' منتج بداخله هيرجعوا «بدون تصنيف»'
+          : 'سيتم حذف التصنيف «' + escapeHtml(cat ? cat.name : '') + '» نهائياً';
+
+        openConfirmModal({
+          icon: 'trash-2',
+          danger: true,
+          title: 'حذف التصنيف؟',
+          message: message,
+          confirmLabel: 'حذف',
+          cancelLabel: 'إلغاء',
+          onConfirm: function () {
+            var remaining = getStoredProductCategories().filter(function (c) { return c.id !== delId; });
+            setStoredProductCategories(remaining);
+
+            var items = getStoredProductItems();
+            var touched = false;
+            items.forEach(function (it) {
+              if (it.categoryId === delId) { it.categoryId = ''; touched = true; }
+            });
+            if (touched) setStoredProductItems(items);
+
+            renderProductCategoryList();
+            renderProductCategorySelectOptions();
+            renderProductsPage();
+            showToast('تم حذف التصنيف', { icon: 'trash-2', danger: true });
+          }
+        });
+        return;
+      }
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && panel.classList.contains('open')) close();
+    });
+  }
+
+  function buildProductStatusBadge(item) {
+    return item.available !== false
+      ? '<span class="badge green">متاح</span>'
+      : '<span class="badge gray">غير متاح</span>';
+  }
+
+  var productSearchTerm = '';
+
+  function renderProductsPage() {
+    var tbody = document.getElementById('product-table-body');
+    var dataWrap = document.getElementById('product-data-wrap');
+    var emptyState = document.getElementById('product-empty-state');
+    if (!tbody) return;
+
+    var items = getStoredProductItems();
+    var categories = getStoredProductCategories();
+
+    var totalEl = document.getElementById('product-stat-total');
+    var availableEl = document.getElementById('product-stat-available');
+    var categoriesEl = document.getElementById('product-stat-categories');
+    var unavailableEl = document.getElementById('product-stat-unavailable');
+    if (totalEl) totalEl.textContent = items.length;
+    if (availableEl) availableEl.textContent = items.filter(function (it) { return it.available !== false; }).length;
+    if (categoriesEl) categoriesEl.textContent = categories.length;
+    var catBtnCount = document.getElementById('product-cat-btn-count');
+    if (catBtnCount) catBtnCount.textContent = categories.length;
+    if (unavailableEl) unavailableEl.textContent = items.filter(function (it) { return it.available === false; }).length;
+
+    var usageEl = document.getElementById('product-usage-counter');
+    if (usageEl) {
+      var usage = getPlanLimitStatus('products', items.length);
+      if (usage.unlimited) {
+        usageEl.style.display = 'none';
+      } else {
+        usageEl.textContent = usage.used + ' من ' + usage.limit + ' ' + LIMIT_NOUNS.products +
+          (usage.canAdd ? '' : ' — وصلت للحد الأقصى');
+        usageEl.style.display = '';
+      }
+    }
+
+    var term = productSearchTerm.trim().toLowerCase();
+    var visibleItems = term
+      ? items.filter(function (it) {
+          return (it.name || '').toLowerCase().indexOf(term) !== -1 ||
+                 productCategoryLabel(it.categoryId).toLowerCase().indexOf(term) !== -1;
+        })
+      : items;
+
+    if (!visibleItems.length && term && items.length) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--db-text-tertiary);padding:24px;">لا توجد نتائج مطابقة لبحثك</td></tr>';
+    } else {
+      tbody.innerHTML = visibleItems.map(function (item) {
+        var thumb = item.image
+          ? '<img src="' + item.image + '" class="menu-item-thumb" alt="">'
+          : '<span class="menu-item-thumb" style="display:inline-flex;align-items:center;justify-content:center;"><i data-lucide="package" class="icon"></i></span>';
+
+        var priceValue = (item.price !== '' && item.price != null && !isNaN(Number(item.price)))
+          ? Number(item.price).toFixed(2)
+          : null;
+        var priceHtml = priceValue !== null
+          ? '<span class="menu-price"><b>' + priceValue + '</b><i>₪</i></span>'
+          : '<span class="menu-price menu-price--none"><b>—</b></span>';
+
+        return (
+          '<tr' + (item.available === false ? ' class="is-unavailable"' : '') + '>' +
+            '<td class="menu-td-name" data-label="المنتج"><div class="menu-item-name-cell">' + thumb + '<span>' + escapeHtml(item.name) + '</span></div></td>' +
+            '<td class="menu-td-cat" data-label="التصنيف"><span class="menu-cat-chip">' + escapeHtml(productCategoryLabel(item.categoryId)) + '</span></td>' +
+            '<td class="menu-td-price" data-label="السعر">' + priceHtml + '</td>' +
+            '<td class="menu-td-status" data-label="الحالة">' + buildProductStatusBadge(item) + '</td>' +
+            '<td class="menu-td-actions">' +
+              '<button type="button" class="icon-btn" data-action="toggle-product-item-availability" data-id="' + item.id + '" aria-label="' + (item.available !== false ? 'وضع كغير متاح' : 'وضع كمتاح') + '">' +
+                '<i data-lucide="' + (item.available !== false ? 'eye' : 'eye-off') + '" class="icon"></i>' +
+              '</button>' +
+              '<button type="button" class="icon-btn" data-action="edit-product-item" data-id="' + item.id + '" aria-label="تعديل"><i data-lucide="pencil" class="icon"></i></button>' +
+              '<button type="button" class="icon-btn" data-action="delete-product-item" data-id="' + item.id + '" aria-label="حذف"><i data-lucide="trash-2" class="icon"></i></button>' +
+            '</td>' +
+          '</tr>'
+        );
+      }).join('');
+    }
+
+    if (dataWrap && emptyState) {
+      var hasItems = items.length > 0;
+      dataWrap.style.display = hasItems ? '' : 'none';
+      emptyState.style.display = hasItems ? 'none' : '';
+    }
+
+    bootIcons();
+  }
+
+  window.renderProductsPage = renderProductsPage;
+
+  function initProductSearch() {
+    var input = document.getElementById('product-search-input');
+    if (!input) return;
+    input.addEventListener('input', function () {
+      productSearchTerm = input.value || '';
+      renderProductsPage();
+    });
+  }
+
+  function initProductItemEditPanel() {
+    var panel = document.getElementById('pie-panel');
+    var scrim = document.getElementById('pie-scrim');
+    if (!panel) return;
+
+    var titleEl = document.getElementById('pie-title');
+    var nameInput = document.getElementById('pie-name');
+    var categorySelect = document.getElementById('pie-category');
+    var priceInput = document.getElementById('pie-price');
+    var statusGroup = document.getElementById('pie-status-group');
+    var imageInput = document.getElementById('pie-image-input');
+    var uploadBtn = document.getElementById('pie-upload-btn');
+    var removeImageBtn = document.getElementById('pie-remove-image-btn');
+    var preview = document.getElementById('pie-image-preview');
+    var saveBtn = document.getElementById('pie-save-btn');
+
+    var editingId = null;
+    var selectedStatus = 'available';
+    var pendingImage = null;
+
+    function setStatus(value) {
+      selectedStatus = value;
+      if (!statusGroup) return;
+      statusGroup.querySelectorAll('.seg-btn').forEach(function (btn) {
+        btn.classList.toggle('active', btn.getAttribute('data-value') === value);
+      });
+    }
+
+    function setPreview(imageUrl) {
+      pendingImage = imageUrl || null;
+      if (!preview) return;
+      if (pendingImage) {
+        preview.style.backgroundImage = 'url(' + pendingImage + ')';
+        preview.innerHTML = '';
+        if (removeImageBtn) removeImageBtn.style.display = '';
+      } else {
+        preview.style.backgroundImage = '';
+        preview.innerHTML = '<i data-lucide="package" class="icon"></i>';
+        if (removeImageBtn) removeImageBtn.style.display = 'none';
+        bootIcons();
+      }
+    }
+
+    function resetForm() {
+      if (nameInput) nameInput.value = '';
+      if (priceInput) priceInput.value = '';
+      if (categorySelect) categorySelect.value = '';
+      setStatus('available');
+      setPreview(null);
+    }
+
+    function fillFormFromItem(item) {
+      if (nameInput) nameInput.value = item.name || '';
+      if (priceInput) priceInput.value = item.price != null ? item.price : '';
+      if (categorySelect) categorySelect.value = item.categoryId || '';
+      setStatus(item.available === false ? 'unavailable' : 'available');
+      setPreview(item.image || null);
+    }
+
+    function open(itemToEdit) {
+      closeSidebarDrawerIfNeeded();
+      closeMobileMoreSheet();
+      renderProductCategorySelectOptions();
+
+      editingId = itemToEdit ? itemToEdit.id : null;
+
+      if (itemToEdit) {
+        fillFormFromItem(itemToEdit);
+        if (titleEl) titleEl.textContent = 'تعديل منتج';
+      } else {
+        resetForm();
+        if (titleEl) titleEl.textContent = 'منتج جديد';
+      }
+
+      panel.classList.add('open');
+      if (scrim) scrim.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      bootIcons();
+      if (nameInput) nameInput.focus();
+    }
+
+    function close() {
+      panel.classList.remove('open');
+      if (scrim) scrim.classList.remove('open');
+      document.body.style.overflow = '';
+      editingId = null;
+    }
+
+    if (uploadBtn && imageInput) {
+      uploadBtn.addEventListener('click', function () { imageInput.click(); });
+    }
+    if (imageInput) {
+      imageInput.addEventListener('change', function () {
+        var file = imageInput.files && imageInput.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function () { setPreview(reader.result); };
+        reader.readAsDataURL(file);
+      });
+    }
+    if (removeImageBtn) {
+      removeImageBtn.addEventListener('click', function () {
+        setPreview(null);
+        if (imageInput) imageInput.value = '';
+      });
+    }
+
+    document.addEventListener('click', function (e) {
+      var openTrigger = e.target.closest && e.target.closest('[data-action="open-product-item-add"]');
+      if (openTrigger) {
+        e.preventDefault();
+        if (guardPlanLimit('products', getStoredProductItems().length)) open(null);
+        return;
+      }
+
+      var editTrigger = e.target.closest && e.target.closest('[data-action="edit-product-item"]');
+      if (editTrigger) {
+        e.preventDefault();
+        var itemToEdit = findProductItemById(editTrigger.getAttribute('data-id'));
+        if (itemToEdit) open(itemToEdit);
+        return;
+      }
+
+      var closeTrigger = e.target.closest && e.target.closest('[data-action="close-product-item-add"]');
+      if (closeTrigger) { close(); return; }
+
+      var segBtn = e.target.closest && e.target.closest('#pie-status-group .seg-btn');
+      if (segBtn) setStatus(segBtn.getAttribute('data-value'));
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && panel.classList.contains('open')) close();
+    });
+
+    if (saveBtn) {
+      saveBtn.addEventListener('click', function () {
+        var name = nameInput ? nameInput.value.trim() : '';
+        if (!name) { if (nameInput) nameInput.focus(); return; }
+
+        var priceRaw = priceInput ? priceInput.value : '';
+        var price = priceRaw !== '' ? Number(priceRaw) : null;
+
+        var list = getStoredProductItems();
+
+        if (!editingId && !guardPlanLimit('products', list.length)) return;
+
+        if (editingId) {
+          for (var i = 0; i < list.length; i++) {
+            if (list[i].id === editingId) {
+              list[i].name = name;
+              list[i].categoryId = categorySelect ? categorySelect.value : '';
+              list[i].price = price;
+              list[i].available = selectedStatus === 'available';
+              list[i].image = pendingImage;
+              break;
+            }
+          }
+        } else {
+          list.unshift({
+            id: generateProductItemId(),
+            name: name,
+            categoryId: categorySelect ? categorySelect.value : '',
+            price: price,
+            available: selectedStatus === 'available',
+            image: pendingImage,
+            createdAt: Date.now()
+          });
+        }
+
+        setStoredProductItems(list);
+        close();
+        renderProductsPage();
+        showToast(editingId ? 'تم تعديل المنتج' : 'تمت إضافة المنتج', { icon: 'package' });
+      });
+    }
+  }
+
+  function initProductItemActions() {
+    document.addEventListener('click', function (e) {
+      var deleteBtn = e.target.closest && e.target.closest('[data-action="delete-product-item"]');
+      if (deleteBtn) {
+        var idToDelete = deleteBtn.getAttribute('data-id');
+        var itemToDelete = findProductItemById(idToDelete);
+        var nameHtml = itemToDelete ? '<strong>' + escapeHtml(itemToDelete.name) + '</strong>' : 'هذا المنتج';
+
+        openConfirmModal({
+          icon: 'trash-2',
+          danger: true,
+          title: 'حذف المنتج؟',
+          message: 'سيتم حذف «' + nameHtml + '» نهائياً من قائمة منتجاتك',
+          confirmLabel: 'حذف',
+          cancelLabel: 'إلغاء',
+          onConfirm: function () {
+            var remaining = getStoredProductItems().filter(function (it) { return it.id !== idToDelete; });
+            setStoredProductItems(remaining);
+            renderProductsPage();
+            showToast('تم حذف المنتج', { icon: 'trash-2', danger: true });
+          }
+        });
+        return;
+      }
+
+      var toggleBtn = e.target.closest && e.target.closest('[data-action="toggle-product-item-availability"]');
+      if (toggleBtn) {
+        var idToToggle = toggleBtn.getAttribute('data-id');
+        var list = getStoredProductItems();
+        var nowAvailable = true;
+        for (var i = 0; i < list.length; i++) {
+          if (list[i].id === idToToggle) {
+            list[i].available = list[i].available === false;
+            nowAvailable = list[i].available;
+            break;
+          }
+        }
+        setStoredProductItems(list);
+        renderProductsPage();
+        showToast(nowAvailable ? 'المنتج صار متاح' : 'المنتج صار غير متاح', {
+          icon: nowAvailable ? 'eye' : 'eye-off',
+          danger: !nowAvailable
+        });
+        return;
+      }
+    });
+  }
+
   function packagesFeatureLi(text, on) {
     var mark = on
       ? '<span class="pkg-feature-mark" aria-hidden="true"><i data-lucide="check" class="icon"></i></span>'
@@ -3301,6 +3893,8 @@
       loadPartial('#ad-edit-slot', 'ad-edit-panel.html'),
       loadPartial('#menu-category-slot', 'menu-category-panel.html'),
       loadPartial('#menu-item-edit-slot', 'menu-item-edit-panel.html'),
+      loadPartial('#product-category-slot', 'product-category-panel.html'),
+      loadPartial('#product-item-edit-slot', 'product-item-edit-panel.html'),
       loadPartial('#mobile-nav-slot', 'mobile-nav.html')
     ]);
     renderSidebarNav();
@@ -3335,6 +3929,11 @@
     initMenuItemEditPanel();
     initMenuItemActions();
     initMenuSearch();
+    renderProductsPage();
+    initProductCategoryPanel();
+    initProductItemEditPanel();
+    initProductItemActions();
+    initProductSearch();
     initOpenStatusToggle();
     initProfilePageExtras();
     initCopyLinkButtons();

@@ -18,8 +18,8 @@ window.GMStoreTypeConfig = (function () {
   };
 
   var STORE_PLAN_LIMITS = {
-    free: { products: 15, ads: 5 },
-    paid: { products: null, ads: null }
+    free: { products: 15, productCategories: 10, ads: 5 },
+    paid: { products: null, productCategories: null, ads: null }
   };
 
   var STORE_LOCKED_FEATURES = {

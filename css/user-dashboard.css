@@ -725,7 +725,8 @@ html[dir="ltr"] .nav-item:hover .nav-item-chevron { transform: scaleX(-1) transl
 .stat-card .icon-wrap.brand { background: var(--db-accent-soft); color: var(--db-accent-text); }
 .stat-card .icon-wrap.amber { background: var(--db-amber-soft); color: var(--db-amber-text); }
 .stat-card .icon-wrap.blue { background: var(--db-blue-soft); color: var(--db-blue-text); }
-.stat-card .icon-wrap.red { background: var(--db-red-soft); color: var(--db-red-text); }
+.stat-card .icon-wrap.red { background: var(--db-red-soft); color: var(--db-red-text); transition: background 0.15s var(--ease), color 0.15s var(--ease); }
+.stat-card:hover .icon-wrap.red { background: var(--db-red-strong); color: #ffffff; }
 .stat-card .value { font-size: 22px; font-weight: 800; }
 .stat-card .label { font-size: 12.5px; color: var(--db-text-tertiary); }
 .stat-card--raised { background: var(--db-bg-card-raised); border: 1px solid var(--border); }
