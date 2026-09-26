@@ -1,0 +1,44 @@
+<div class="pep-scrim" id="sie-scrim" data-action="close-service-item-add"></div>
+
+<aside class="pep-panel" id="sie-panel">
+  <div class="pep-header">
+    <div>
+      <h3 class="pep-title" id="sie-title">خدمة جديدة</h3>
+      <div class="pep-subtitle">الخدمات التي يراها الزوار عند تصفح متجرك</div>
+    </div>
+    <button type="button" class="icon-btn" data-action="close-service-item-add" aria-label="إغلاق">
+      <i data-lucide="x" class="icon"></i>
+    </button>
+  </div>
+
+  <div class="pep-body">
+
+    <div class="field">
+      <label for="sie-name">اسم الخدمة</label>
+      <input type="text" id="sie-name" placeholder="مثال: توصيل للمنازل">
+    </div>
+
+    <div class="field">
+      <label for="sie-description">الوصف (اختياري)</label>
+      <textarea id="sie-description" rows="3" placeholder="مثال: توصيل مجاني داخل المدينة خلال 24 ساعة"></textarea>
+    </div>
+
+    <div class="field">
+      <label for="sie-category">التصنيف</label>
+      <select id="sie-category">
+        <option value="">بدون تصنيف</option>
+      </select>
+    </div>
+
+    <div class="field" style="margin-bottom:0;">
+      <label for="sie-price">السعر (₪) — اختياري</label>
+      <input type="number" id="sie-price" min="0" step="0.5" placeholder="اتركه فارغاً لو الخدمة مجانية">
+    </div>
+
+  </div>
+
+  <div class="pep-footer">
+    <button type="button" class="btn btn-ghost" data-action="close-service-item-add">إلغاء</button>
+    <button type="button" class="btn btn-primary" id="sie-save-btn">حفظ الخدمة</button>
+  </div>
+</aside>

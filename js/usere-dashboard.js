@@ -13,6 +13,8 @@
   var MENU_ITEMS_STORAGE_KEY = 'gmDashboardMenuItems';
   var PRODUCT_CATEGORIES_STORAGE_KEY = 'gmDashboardProductCategories';
   var PRODUCT_ITEMS_STORAGE_KEY = 'gmDashboardProductItems';
+  var STORE_SERVICE_CATEGORIES_STORAGE_KEY = 'gmDashboardStoreServiceCategories';
+  var STORE_SERVICE_ITEMS_STORAGE_KEY = 'gmDashboardStoreServiceItems';
 
   var PUBLIC_BASE_URL = 'https://gazaprice.com';
 
@@ -604,7 +606,9 @@
     menuCategories: 'تصنيفات',
     products: 'منتجات',
     productCategories: 'تصنيفات',
-    ads: 'إعلانات'
+    ads: 'إعلانات',
+    services: 'خدمات',
+    serviceCategories: 'تصنيفات'
   };
 
   var LOCKED_FEATURE_LABELS = {
@@ -3658,6 +3662,561 @@
     });
   }
 
+  // ---------------------------------------------------------------------
+  // Store services (categories + items) — same architecture as the store
+  // products system above, adapted for the "services.html" page (name,
+  // optional description, optional price, no image/availability toggle).
+  // Kept as a parallel set of functions so the products logic above stays
+  // untouched, per project scope rules.
+  // ---------------------------------------------------------------------
+
+  var SERVICE_SUGGESTION_ICONS = {
+    delivery: 'truck',
+    installation: 'wrench',
+    warranty: 'shield-check',
+    card_payment: 'credit-card',
+    gift_wrap: 'package-check',
+    exchange_return: 'rotate-ccw'
+  };
+
+  function getStoredServiceCategories() {
+    try {
+      var raw = localStorage.getItem(STORE_SERVICE_CATEGORIES_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (err) {
+      return [];
+    }
+  }
+
+  function setStoredServiceCategories(list) {
+    try {
+      localStorage.setItem(STORE_SERVICE_CATEGORIES_STORAGE_KEY, JSON.stringify(list));
+    } catch (err) {}
+  }
+
+  function getStoredServiceItems() {
+    try {
+      var raw = localStorage.getItem(STORE_SERVICE_ITEMS_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (err) {
+      return [];
+    }
+  }
+
+  function setStoredServiceItems(list) {
+    try {
+      localStorage.setItem(STORE_SERVICE_ITEMS_STORAGE_KEY, JSON.stringify(list));
+    } catch (err) {}
+  }
+
+  function generateServiceCategoryId() {
+    return 'svcc_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
+
+  function generateServiceItemId() {
+    return 'svci_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
+
+  function findServiceCategoryById(id) {
+    var list = getStoredServiceCategories();
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].id === id) return list[i];
+    }
+    return null;
+  }
+
+  function findServiceItemById(id) {
+    var list = getStoredServiceItems();
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].id === id) return list[i];
+    }
+    return null;
+  }
+
+  function serviceCategoryLabel(categoryId) {
+    var cat = categoryId ? findServiceCategoryById(categoryId) : null;
+    return cat ? cat.name : 'بدون تصنيف';
+  }
+
+  function countItemsInServiceCategory(categoryId) {
+    return getStoredServiceItems().filter(function (it) { return it.categoryId === categoryId; }).length;
+  }
+
+  var serviceEditingCategoryId = null;
+
+  function renderServiceCategoryList() {
+    var list = document.getElementById('scp-list');
+    var empty = document.getElementById('scp-empty');
+    if (!list) return;
+
+    var categories = getStoredServiceCategories();
+
+    if (!categories.length) {
+      list.innerHTML = '';
+      if (empty) empty.style.display = '';
+      bootIcons();
+      return;
+    }
+    if (empty) empty.style.display = 'none';
+
+    list.innerHTML = categories.map(function (cat) {
+      var itemsCount = countItemsInServiceCategory(cat.id);
+
+      if (cat.id === serviceEditingCategoryId) {
+        return (
+          '<div class="list-row" data-id="' + cat.id + '">' +
+            '<input type="text" id="scp-rename-' + cat.id + '" value="' + escapeHtml(cat.name) + '" style="flex:1;">' +
+            '<div class="flex gap-8">' +
+              '<button type="button" class="icon-btn" data-action="save-service-category" data-id="' + cat.id + '" aria-label="حفظ"><i data-lucide="check" class="icon"></i></button>' +
+              '<button type="button" class="icon-btn" data-action="cancel-edit-service-category" aria-label="إلغاء"><i data-lucide="x" class="icon"></i></button>' +
+            '</div>' +
+          '</div>'
+        );
+      }
+
+      return (
+        '<div class="list-row" data-id="' + cat.id + '">' +
+          '<div class="title">' + escapeHtml(cat.name) + '</div>' +
+          '<div class="flex gap-8">' +
+            '<span class="badge gray">' + itemsCount + ' خدمة</span>' +
+            '<button type="button" class="icon-btn" data-action="edit-service-category" data-id="' + cat.id + '" aria-label="تعديل"><i data-lucide="pencil" class="icon"></i></button>' +
+            '<button type="button" class="icon-btn" data-action="delete-service-category" data-id="' + cat.id + '" aria-label="حذف"><i data-lucide="trash-2" class="icon"></i></button>' +
+          '</div>' +
+        '</div>'
+      );
+    }).join('');
+
+    bootIcons();
+  }
+
+  function renderServiceCategorySelectOptions() {
+    var select = document.getElementById('sie-category');
+    if (!select) return;
+    var current = select.value;
+    var categories = getStoredServiceCategories();
+
+    select.innerHTML = '<option value="">بدون تصنيف</option>' + categories.map(function (cat) {
+      return '<option value="' + cat.id + '">' + escapeHtml(cat.name) + '</option>';
+    }).join('');
+
+    if (categories.some(function (c) { return c.id === current; })) select.value = current;
+  }
+
+  function initServiceCategoryPanel() {
+    var panel = document.getElementById('scp-panel');
+    var scrim = document.getElementById('scp-scrim');
+    if (!panel) return;
+
+    var newNameInput = document.getElementById('scp-new-name');
+    var addBtn = document.getElementById('scp-add-btn');
+
+    function open() {
+      closeSidebarDrawerIfNeeded();
+      closeMobileMoreSheet();
+      serviceEditingCategoryId = null;
+      renderServiceCategoryList();
+
+      panel.classList.add('open');
+      if (scrim) scrim.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      bootIcons();
+      if (newNameInput) { newNameInput.value = ''; newNameInput.focus(); }
+    }
+
+    function close() {
+      panel.classList.remove('open');
+      if (scrim) scrim.classList.remove('open');
+      document.body.style.overflow = '';
+      serviceEditingCategoryId = null;
+    }
+
+    function addCategory() {
+      var name = newNameInput ? newNameInput.value.trim() : '';
+      if (!name) { if (newNameInput) newNameInput.focus(); return; }
+
+      var list = getStoredServiceCategories();
+      if (!guardPlanLimit('serviceCategories', list.length)) return;
+      list.push({ id: generateServiceCategoryId(), name: name, createdAt: Date.now() });
+      setStoredServiceCategories(list);
+
+      if (newNameInput) newNameInput.value = '';
+      renderServiceCategoryList();
+      renderServiceCategorySelectOptions();
+      renderServicesPage();
+      showToast('تمت إضافة التصنيف', { icon: 'folder-plus' });
+    }
+
+    if (addBtn) addBtn.addEventListener('click', addCategory);
+    if (newNameInput) {
+      newNameInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); addCategory(); }
+      });
+    }
+
+    document.addEventListener('click', function (e) {
+      var openTrigger = e.target.closest && e.target.closest('[data-action="open-service-category-panel"]');
+      if (openTrigger) { e.preventDefault(); open(); return; }
+
+      var closeTrigger = e.target.closest && e.target.closest('[data-action="close-service-category-panel"]');
+      if (closeTrigger) { close(); return; }
+
+      var editTrigger = e.target.closest && e.target.closest('[data-action="edit-service-category"]');
+      if (editTrigger) {
+        serviceEditingCategoryId = editTrigger.getAttribute('data-id');
+        renderServiceCategoryList();
+        var input = document.getElementById('scp-rename-' + serviceEditingCategoryId);
+        if (input) { input.focus(); input.select(); }
+        return;
+      }
+
+      var cancelTrigger = e.target.closest && e.target.closest('[data-action="cancel-edit-service-category"]');
+      if (cancelTrigger) { serviceEditingCategoryId = null; renderServiceCategoryList(); return; }
+
+      var saveTrigger = e.target.closest && e.target.closest('[data-action="save-service-category"]');
+      if (saveTrigger) {
+        var id = saveTrigger.getAttribute('data-id');
+        var input2 = document.getElementById('scp-rename-' + id);
+        var newName = input2 ? input2.value.trim() : '';
+        if (!newName) { if (input2) input2.focus(); return; }
+
+        var list2 = getStoredServiceCategories();
+        for (var i = 0; i < list2.length; i++) {
+          if (list2[i].id === id) { list2[i].name = newName; break; }
+        }
+        setStoredServiceCategories(list2);
+
+        serviceEditingCategoryId = null;
+        renderServiceCategoryList();
+        renderServiceCategorySelectOptions();
+        renderServicesPage();
+        return;
+      }
+
+      var delTrigger = e.target.closest && e.target.closest('[data-action="delete-service-category"]');
+      if (delTrigger) {
+        var delId = delTrigger.getAttribute('data-id');
+        var cat = findServiceCategoryById(delId);
+        var itemsCount = countItemsInServiceCategory(delId);
+        var message = itemsCount > 0
+          ? 'سيتم حذف التصنيف «' + escapeHtml(cat ? cat.name : '') + '»، و' + itemsCount + ' خدمة بداخله هترجع «بدون تصنيف»'
+          : 'سيتم حذف التصنيف «' + escapeHtml(cat ? cat.name : '') + '» نهائياً';
+
+        openConfirmModal({
+          icon: 'trash-2',
+          danger: true,
+          title: 'حذف التصنيف؟',
+          message: message,
+          confirmLabel: 'حذف',
+          cancelLabel: 'إلغاء',
+          onConfirm: function () {
+            var remaining = getStoredServiceCategories().filter(function (c) { return c.id !== delId; });
+            setStoredServiceCategories(remaining);
+
+            var items = getStoredServiceItems();
+            var touched = false;
+            items.forEach(function (it) {
+              if (it.categoryId === delId) { it.categoryId = ''; touched = true; }
+            });
+            if (touched) setStoredServiceItems(items);
+
+            renderServiceCategoryList();
+            renderServiceCategorySelectOptions();
+            renderServicesPage();
+            showToast('تم حذف التصنيف', { icon: 'trash-2', danger: true });
+          }
+        });
+        return;
+      }
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && panel.classList.contains('open')) close();
+    });
+  }
+
+  function renderServiceSuggestions() {
+    var grid = document.getElementById('service-suggestions-grid');
+    var title = document.getElementById('service-suggestions-title');
+    if (!grid) return;
+
+    var existingNames = getStoredServiceItems().map(function (it) {
+      return (it.name || '').trim().toLowerCase();
+    });
+
+    var suggestions = getCurrentTypeServices().filter(function (svc) {
+      return existingNames.indexOf((svc.label || '').trim().toLowerCase()) === -1;
+    });
+
+    if (!suggestions.length) {
+      grid.innerHTML = '';
+      if (title) title.style.display = 'none';
+      return;
+    }
+    if (title) title.style.display = '';
+
+    grid.innerHTML = suggestions.map(function (svc) {
+      var icon = SERVICE_SUGGESTION_ICONS[svc.id] || 'sparkles';
+      return (
+        '<button type="button" class="card quick-card" data-action="add-service-suggestion" data-name="' + escapeHtml(svc.label) + '" ' +
+          'style="width:100%;text-align:right;font:inherit;color:inherit;">' +
+          '<div class="icon-wrap"><i data-lucide="' + icon + '" class="icon"></i></div>' +
+          '<div><div class="title">' + escapeHtml(svc.label) + '</div><div class="sub">اضغط للإضافة</div></div>' +
+        '</button>'
+      );
+    }).join('');
+
+    bootIcons();
+  }
+
+  var serviceSearchTerm = '';
+
+  function renderServicesPage() {
+    var tbody = document.getElementById('service-table-body');
+    var dataWrap = document.getElementById('service-data-wrap');
+    var emptyState = document.getElementById('service-empty-state');
+    if (!tbody) return;
+
+    var items = getStoredServiceItems();
+    var categories = getStoredServiceCategories();
+
+    var totalEl = document.getElementById('service-stat-total');
+    var categoriesEl = document.getElementById('service-stat-categories');
+    if (totalEl) totalEl.textContent = items.length;
+    if (categoriesEl) categoriesEl.textContent = categories.length;
+    var catBtnCount = document.getElementById('service-cat-btn-count');
+    if (catBtnCount) catBtnCount.textContent = categories.length;
+
+    var usageEl = document.getElementById('service-usage-counter');
+    if (usageEl) {
+      var usage = getPlanLimitStatus('services', items.length);
+      if (usage.unlimited) {
+        usageEl.style.display = 'none';
+      } else {
+        usageEl.textContent = usage.used + ' من ' + usage.limit + ' ' + LIMIT_NOUNS.services +
+          (usage.canAdd ? '' : ' — وصلت للحد الأقصى');
+        usageEl.style.display = '';
+      }
+    }
+
+    var term = serviceSearchTerm.trim().toLowerCase();
+    var visibleItems = term
+      ? items.filter(function (it) {
+          return (it.name || '').toLowerCase().indexOf(term) !== -1 ||
+                 (it.description || '').toLowerCase().indexOf(term) !== -1 ||
+                 serviceCategoryLabel(it.categoryId).toLowerCase().indexOf(term) !== -1;
+        })
+      : items;
+
+    if (!visibleItems.length && term && items.length) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--db-text-tertiary);padding:24px;">لا توجد نتائج مطابقة لبحثك</td></tr>';
+    } else {
+      tbody.innerHTML = visibleItems.map(function (item) {
+        var priceValue = (item.price !== '' && item.price != null && !isNaN(Number(item.price)))
+          ? Number(item.price).toFixed(2)
+          : null;
+        var priceHtml = priceValue !== null
+          ? '<span class="menu-price"><b>' + priceValue + '</b><i>₪</i></span>'
+          : '<span class="menu-price menu-price--none"><b>—</b></span>';
+
+        var descHtml = item.description
+          ? '<div class="sub" style="margin-top:2px;">' + escapeHtml(item.description) + '</div>'
+          : '';
+
+        return (
+          '<tr>' +
+            '<td class="menu-td-name" data-label="الخدمة"><div class="menu-item-name-cell"><span>' + escapeHtml(item.name) + '</span></div>' + descHtml + '</td>' +
+            '<td class="menu-td-cat" data-label="التصنيف"><span class="menu-cat-chip">' + escapeHtml(serviceCategoryLabel(item.categoryId)) + '</span></td>' +
+            '<td class="menu-td-price" data-label="السعر">' + priceHtml + '</td>' +
+            '<td class="menu-td-actions">' +
+              '<button type="button" class="icon-btn" data-action="edit-service-item" data-id="' + item.id + '" aria-label="تعديل"><i data-lucide="pencil" class="icon"></i></button>' +
+              '<button type="button" class="icon-btn" data-action="delete-service-item" data-id="' + item.id + '" aria-label="حذف"><i data-lucide="trash-2" class="icon"></i></button>' +
+            '</td>' +
+          '</tr>'
+        );
+      }).join('');
+    }
+
+    if (dataWrap && emptyState) {
+      var hasItems = items.length > 0;
+      dataWrap.style.display = hasItems ? '' : 'none';
+      emptyState.style.display = hasItems ? 'none' : '';
+    }
+
+    renderServiceSuggestions();
+    bootIcons();
+  }
+
+  window.renderServicesPage = renderServicesPage;
+
+  function initServiceSearch() {
+    var input = document.getElementById('service-search-input');
+    if (!input) return;
+    input.addEventListener('input', function () {
+      serviceSearchTerm = input.value || '';
+      renderServicesPage();
+    });
+  }
+
+  function initServiceItemEditPanel() {
+    var panel = document.getElementById('sie-panel');
+    var scrim = document.getElementById('sie-scrim');
+    if (!panel) return;
+
+    var titleEl = document.getElementById('sie-title');
+    var nameInput = document.getElementById('sie-name');
+    var descInput = document.getElementById('sie-description');
+    var categorySelect = document.getElementById('sie-category');
+    var priceInput = document.getElementById('sie-price');
+    var saveBtn = document.getElementById('sie-save-btn');
+
+    var editingId = null;
+
+    function resetForm() {
+      if (nameInput) nameInput.value = '';
+      if (descInput) descInput.value = '';
+      if (priceInput) priceInput.value = '';
+      if (categorySelect) categorySelect.value = '';
+    }
+
+    function fillFormFromItem(item) {
+      if (nameInput) nameInput.value = item.name || '';
+      if (descInput) descInput.value = item.description || '';
+      if (priceInput) priceInput.value = item.price != null ? item.price : '';
+      if (categorySelect) categorySelect.value = item.categoryId || '';
+    }
+
+    function open(itemToEdit) {
+      closeSidebarDrawerIfNeeded();
+      closeMobileMoreSheet();
+      renderServiceCategorySelectOptions();
+
+      editingId = itemToEdit ? itemToEdit.id : null;
+
+      if (itemToEdit) {
+        fillFormFromItem(itemToEdit);
+        if (titleEl) titleEl.textContent = 'تعديل خدمة';
+      } else {
+        resetForm();
+        if (titleEl) titleEl.textContent = 'خدمة جديدة';
+      }
+
+      panel.classList.add('open');
+      if (scrim) scrim.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      bootIcons();
+      if (nameInput) nameInput.focus();
+    }
+
+    function close() {
+      panel.classList.remove('open');
+      if (scrim) scrim.classList.remove('open');
+      document.body.style.overflow = '';
+      editingId = null;
+    }
+
+    document.addEventListener('click', function (e) {
+      var suggestTrigger = e.target.closest && e.target.closest('[data-action="add-service-suggestion"]');
+      if (suggestTrigger) {
+        e.preventDefault();
+        if (guardPlanLimit('services', getStoredServiceItems().length)) {
+          open(null);
+          if (nameInput) nameInput.value = suggestTrigger.getAttribute('data-name') || '';
+        }
+        return;
+      }
+
+      var openTrigger = e.target.closest && e.target.closest('[data-action="open-service-item-add"]');
+      if (openTrigger) {
+        e.preventDefault();
+        if (guardPlanLimit('services', getStoredServiceItems().length)) open(null);
+        return;
+      }
+
+      var editTrigger = e.target.closest && e.target.closest('[data-action="edit-service-item"]');
+      if (editTrigger) {
+        e.preventDefault();
+        var itemToEdit = findServiceItemById(editTrigger.getAttribute('data-id'));
+        if (itemToEdit) open(itemToEdit);
+        return;
+      }
+
+      var closeTrigger = e.target.closest && e.target.closest('[data-action="close-service-item-add"]');
+      if (closeTrigger) { close(); return; }
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && panel.classList.contains('open')) close();
+    });
+
+    if (saveBtn) {
+      saveBtn.addEventListener('click', function () {
+        var name = nameInput ? nameInput.value.trim() : '';
+        if (!name) { if (nameInput) nameInput.focus(); return; }
+
+        var priceRaw = priceInput ? priceInput.value : '';
+        var price = priceRaw !== '' ? Number(priceRaw) : null;
+        var description = descInput ? descInput.value.trim() : '';
+
+        var list = getStoredServiceItems();
+
+        if (!editingId && !guardPlanLimit('services', list.length)) return;
+
+        if (editingId) {
+          for (var i = 0; i < list.length; i++) {
+            if (list[i].id === editingId) {
+              list[i].name = name;
+              list[i].description = description;
+              list[i].categoryId = categorySelect ? categorySelect.value : '';
+              list[i].price = price;
+              break;
+            }
+          }
+        } else {
+          list.unshift({
+            id: generateServiceItemId(),
+            name: name,
+            description: description,
+            categoryId: categorySelect ? categorySelect.value : '',
+            price: price,
+            createdAt: Date.now()
+          });
+        }
+
+        setStoredServiceItems(list);
+        close();
+        renderServicesPage();
+        showToast(editingId ? 'تم تعديل الخدمة' : 'تمت إضافة الخدمة', { icon: 'wrench' });
+      });
+    }
+  }
+
+  function initServiceItemActions() {
+    document.addEventListener('click', function (e) {
+      var deleteBtn = e.target.closest && e.target.closest('[data-action="delete-service-item"]');
+      if (deleteBtn) {
+        var idToDelete = deleteBtn.getAttribute('data-id');
+        var itemToDelete = findServiceItemById(idToDelete);
+        var nameHtml = itemToDelete ? '<strong>' + escapeHtml(itemToDelete.name) + '</strong>' : 'هذه الخدمة';
+
+        openConfirmModal({
+          icon: 'trash-2',
+          danger: true,
+          title: 'حذف الخدمة؟',
+          message: 'سيتم حذف «' + nameHtml + '» نهائياً من قائمة خدماتك',
+          confirmLabel: 'حذف',
+          cancelLabel: 'إلغاء',
+          onConfirm: function () {
+            var remaining = getStoredServiceItems().filter(function (it) { return it.id !== idToDelete; });
+            setStoredServiceItems(remaining);
+            renderServicesPage();
+            showToast('تم حذف الخدمة', { icon: 'trash-2', danger: true });
+          }
+        });
+        return;
+      }
+    });
+  }
+
   function packagesFeatureLi(text, on) {
     var mark = on
       ? '<span class="pkg-feature-mark" aria-hidden="true"><i data-lucide="check" class="icon"></i></span>'
@@ -3895,6 +4454,8 @@
       loadPartial('#menu-item-edit-slot', 'menu-item-edit-panel.html'),
       loadPartial('#product-category-slot', 'product-category-panel.html'),
       loadPartial('#product-item-edit-slot', 'product-item-edit-panel.html'),
+      loadPartial('#service-category-slot', 'service-category-panel.html'),
+      loadPartial('#service-item-edit-slot', 'service-item-edit-panel.html'),
       loadPartial('#mobile-nav-slot', 'mobile-nav.html')
     ]);
     renderSidebarNav();
@@ -3934,6 +4495,11 @@
     initProductItemEditPanel();
     initProductItemActions();
     initProductSearch();
+    renderServicesPage();
+    initServiceCategoryPanel();
+    initServiceItemEditPanel();
+    initServiceItemActions();
+    initServiceSearch();
     initOpenStatusToggle();
     initProfilePageExtras();
     initCopyLinkButtons();
