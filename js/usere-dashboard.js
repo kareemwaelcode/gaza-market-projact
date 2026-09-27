@@ -145,6 +145,42 @@
     nav.innerHTML = itemsHTML + moreBtnHTML;
   }
 
+  function navItemKey(item) {
+    return item.page || item.action || item.href;
+  }
+
+  function renderMobileMore() {
+    var config = getStoreTypeConfig();
+    if (!config || !Array.isArray(config.sidebar)) return;
+    var body = document.querySelector('.mobile-more-body');
+    if (!body) return;
+
+    var logoutRow = body.querySelector('[data-action="logout"]');
+    var logoutHTML = logoutRow ? logoutRow.outerHTML : '';
+
+    var mobileNavKeys = (config.mobileNav || []).map(navItemKey);
+    var moreItems = config.sidebar.filter(function (item) {
+      return mobileNavKeys.indexOf(navItemKey(item)) === -1;
+    });
+
+    var itemsHTML = moreItems.map(function (item) {
+      return (
+        '<a href="' + (item.href || '#') + '" class="mobile-more-row"' + navItemAttrs(item) + '>' +
+          '<div class="mobile-more-row-icon-wrap">' +
+            '<i data-lucide="' + item.icon + '" class="icon"></i>' +
+          '</div>' +
+          '<div class="mobile-more-row-text">' +
+            '<div class="mobile-more-row-title">' + item.label + '</div>' +
+            '<div class="mobile-more-row-sub">' + (item.sub || '') + '</div>' +
+          '</div>' +
+          '<i data-lucide="chevron-left" class="icon mobile-more-chevron"></i>' +
+        '</a>'
+      );
+    }).join('');
+
+    body.innerHTML = itemsHTML + logoutHTML;
+  }
+
   function renderDashboardQuickCards() {
     var config = getStoreTypeConfig();
     if (!config || !Array.isArray(config.dashboardCards)) return;
@@ -4502,6 +4538,7 @@
     ]);
     renderSidebarNav();
     renderMobileNav();
+    renderMobileMore();
     renderDashboardQuickCards();
     applyStoreTypeLabel();
     applyStoreTypePageCopy();

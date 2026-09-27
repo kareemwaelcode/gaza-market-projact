@@ -135,9 +135,7 @@ window.GMStoreTypeConfig = (function () {
         { action: 'open-services-edit', href: '#', icon: 'wrench', label: 'الخدمات المتاحة', sub: 'المكيف، جلسات خارجية، وأكثر' },
         { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', sub: 'فعاليات، عروض، وظائف', badge: 2 },
         { page: 'packages', href: 'packages.html', icon: 'layers', label: 'الباقات', sub: 'اختر باقة نشاطك' },
-        { page: 'profile', href: 'profile.html', icon: 'store', label: 'بروفايل النشاط', sub: 'تعديل المعلومات والصورة' },
-        { page: 'reviews', href: 'reviews.html', icon: 'star', label: 'التقييمات', sub: 'آراء وتقييمات الزوار' },
-        { page: 'settings', href: 'settings.html', icon: 'settings', label: 'الإعدادات', sub: 'التنبيهات، الخصوصية، وأكثر' }
+        { page: 'profile', href: 'profile.html', icon: 'store', label: 'بروفايل النشاط', sub: 'تعديل المعلومات والصورة' }
       ],
       mobileNav: [
         { page: 'dashboard', href: 'dashboard.html', icon: 'layout-grid', label: 'الرئيسية' },
