@@ -15,9 +15,18 @@
     <button type="button" class="ud-topnav-icon-btn" data-action="toggle-theme" aria-label="تبديل الوضع الليلي">
       <i data-lucide="moon" class="icon"></i>
     </button>
-    <button type="button" class="ud-topnav-icon-btn" aria-label="الإشعارات" style="position:relative;">
-      <i data-lucide="bell" class="icon"></i>
-      <span class="notif-dot"></span>
-    </button>
+    <div class="ud-notif-wrap">
+      <button type="button" class="ud-topnav-icon-btn" data-action="toggle-notifications" aria-label="الإشعارات">
+        <i data-lucide="bell" class="icon"></i>
+        <span class="notif-dot" id="notifDot"></span>
+      </button>
+      <div class="notif-panel" id="notifPanel">
+        <div class="notif-panel-header">
+          <span>الإشعارات</span>
+          <button type="button" class="notif-panel-clear" data-action="clear-notifications">مسح الكل</button>
+        </div>
+        <div class="notif-panel-body" id="notifPanelBody"></div>
+      </div>
+    </div>
   </div>
 </header>

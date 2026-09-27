@@ -15,6 +15,8 @@
   var PRODUCT_ITEMS_STORAGE_KEY = 'gmDashboardProductItems';
   var STORE_SERVICE_CATEGORIES_STORAGE_KEY = 'gmDashboardStoreServiceCategories';
   var STORE_SERVICE_ITEMS_STORAGE_KEY = 'gmDashboardStoreServiceItems';
+  var NOTIFICATIONS_STORAGE_KEY = 'gmDashboardNotifications';
+  var NOTIFICATIONS_MAX = 30;
 
   var PUBLIC_BASE_URL = 'https://gazaprice.com';
 
@@ -649,8 +651,7 @@
 
   var LOCKED_FEATURE_LABELS = {
     qrCode: 'كود QR',
-    shareWhatsapp: 'المشاركة عبر واتساب',
-    stats: 'الإحصائيات'
+    shareWhatsapp: 'المشاركة عبر واتساب'
   };
 
   var LOCK_OVERLAY_TEXT = 'متاحة في الباقة المدفوعة';
@@ -2300,6 +2301,142 @@
     return 'ad_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
   }
 
+  function getStoredNotifications() {
+    try {
+      var raw = localStorage.getItem(NOTIFICATIONS_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (err) {
+      return [];
+    }
+  }
+
+  function setStoredNotifications(list) {
+    try {
+      localStorage.setItem(NOTIFICATIONS_STORAGE_KEY, JSON.stringify(list));
+    } catch (err) {}
+  }
+
+  function generateNotificationId() {
+    return 'notif_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
+
+  function addNotification(data) {
+    var list = getStoredNotifications();
+    list.unshift({
+      id: generateNotificationId(),
+      icon: data.icon || 'bell',
+      title: data.title || '',
+      sub: data.sub || '',
+      createdAt: Date.now(),
+      read: false
+    });
+    if (list.length > NOTIFICATIONS_MAX) list = list.slice(0, NOTIFICATIONS_MAX);
+    setStoredNotifications(list);
+    renderNotifications();
+  }
+
+  function formatNotifTime(ts) {
+    var diffSec = Math.max(0, Math.floor((Date.now() - ts) / 1000));
+    if (diffSec < 60) return 'الآن';
+    var diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return 'قبل ' + diffMin + ' دقيقة';
+    var diffHour = Math.floor(diffMin / 60);
+    if (diffHour < 24) return 'قبل ' + diffHour + ' ساعة';
+    var diffDay = Math.floor(diffHour / 24);
+    return 'قبل ' + diffDay + ' يوم';
+  }
+
+  function renderNotifications() {
+    var body = document.getElementById('notifPanelBody');
+    var dot = document.getElementById('notifDot');
+    if (!body) return;
+
+    var list = getStoredNotifications();
+    var hasUnread = list.some(function (n) { return !n.read; });
+    if (dot) dot.classList.toggle('show', hasUnread);
+
+    if (!list.length) {
+      body.innerHTML = '<div class="notif-empty">ما في إشعارات جديدة</div>';
+      return;
+    }
+
+    body.innerHTML = list.map(function (n) {
+      return (
+        '<div class="notif-row' + (n.read ? '' : ' unread') + '">' +
+          '<div class="notif-row-icon-wrap">' +
+            '<i data-lucide="' + n.icon + '" class="icon"></i>' +
+          '</div>' +
+          '<div class="notif-row-text">' +
+            '<div class="notif-row-title">' + escapeHtml(n.title) + '</div>' +
+            (n.sub ? '<div class="notif-row-sub">' + escapeHtml(n.sub) + '</div>' : '') +
+            '<div class="notif-row-time">' + formatNotifTime(n.createdAt) + '</div>' +
+          '</div>' +
+        '</div>'
+      );
+    }).join('');
+    bootIcons();
+  }
+
+  function markAllNotificationsRead() {
+    var list = getStoredNotifications();
+    var changed = false;
+    list.forEach(function (n) {
+      if (!n.read) { n.read = true; changed = true; }
+    });
+    if (changed) {
+      setStoredNotifications(list);
+      var dot = document.getElementById('notifDot');
+      if (dot) dot.classList.remove('show');
+    }
+  }
+
+  function openNotifPanel() {
+    var panel = document.getElementById('notifPanel');
+    if (!panel) return;
+    panel.classList.add('open');
+    setTimeout(markAllNotificationsRead, 900);
+  }
+
+  function closeNotifPanel() {
+    var panel = document.getElementById('notifPanel');
+    if (panel) panel.classList.remove('open');
+  }
+
+  function wireNotifications() {
+    document.addEventListener('click', function (e) {
+      var toggleBtn = e.target.closest && e.target.closest('[data-action="toggle-notifications"]');
+      if (toggleBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        var panel = document.getElementById('notifPanel');
+        if (panel && panel.classList.contains('open')) {
+          closeNotifPanel();
+        } else {
+          openNotifPanel();
+        }
+        return;
+      }
+
+      var clearBtn = e.target.closest && e.target.closest('[data-action="clear-notifications"]');
+      if (clearBtn) {
+        e.preventDefault();
+        setStoredNotifications([]);
+        renderNotifications();
+        return;
+      }
+
+      var panelEl = document.getElementById('notifPanel');
+      var wrapEl = document.querySelector('.ud-notif-wrap');
+      if (panelEl && panelEl.classList.contains('open') && wrapEl && !wrapEl.contains(e.target)) {
+        closeNotifPanel();
+      }
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') closeNotifPanel();
+    });
+  }
+
   function findAdById(id) {
     var list = getStoredAds();
     for (var i = 0; i < list.length; i++) {
@@ -2507,6 +2644,11 @@
             link: linkInput ? linkInput.value.trim() : '',
             hidden: false,
             createdAt: Date.now()
+          });
+          addNotification({
+            icon: 'megaphone',
+            title: 'تمت إضافة إعلان جديد',
+            sub: title
           });
         }
 
@@ -4550,6 +4692,8 @@
     wireThemeToggle();
     wireTopnavAccountLink();
     wireMobileMoreSheet();
+    wireNotifications();
+    renderNotifications();
     initLogoutAction();
     applyProfileToUI(getStoredProfile());
     applyOpenStatusToUI(getStoredOpenStatus());

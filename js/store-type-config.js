@@ -13,7 +13,7 @@ window.GMStoreTypeConfig = (function () {
   };
 
   var FOOD_LOCKED_FEATURES = {
-    free: ['qrCode', 'shareWhatsapp', 'stats'],
+    free: ['qrCode', 'shareWhatsapp'],
     paid: []
   };
 
@@ -23,7 +23,7 @@ window.GMStoreTypeConfig = (function () {
   };
 
   var STORE_LOCKED_FEATURES = {
-    free: ['qrCode', 'shareWhatsapp', 'stats'],
+    free: ['qrCode', 'shareWhatsapp'],
     paid: []
   };
 
@@ -173,7 +173,7 @@ window.GMStoreTypeConfig = (function () {
           desc: 'لوحة تحكم ومعلومات أساسية لنشاطك',
           price: 0,
           features: [
-            { label: 'صفحة خاصة بنشاطك على GazaPrice', on: true },
+            { label: 'صفحة خاصة بنشاطك على GazaMarket', on: true },
             { label: 'لوحة تحكم لإدارة نشاطك', on: true },
             { label: 'المنيو (حتى ' + FOOD_PLAN_LIMITS.free.menuItems + ' أصناف)', on: true },
             { label: 'حتى ' + FOOD_PLAN_LIMITS.free.menuCategories + ' تصنيفات للمنيو', on: true },
