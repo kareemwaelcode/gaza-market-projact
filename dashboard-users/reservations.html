@@ -52,6 +52,14 @@
 
         <div id="res-data-wrap" style="display:none;">
 
+          <div class="search-field">
+            <i data-lucide="search" class="icon"></i>
+            <input type="text" id="res-search-input" placeholder="ابحث باسم الزبون..." autocomplete="off">
+            <button type="button" class="search-clear-btn" id="res-search-clear" aria-label="مسح البحث" style="display:none;">
+              <i data-lucide="x" class="icon"></i>
+            </button>
+          </div>
+
           <div class="card card-pad" id="res-table-card">
             <div class="table-wrap" id="res-table-wrap">
               <table class="data-table">
@@ -71,6 +79,12 @@
           </div>
 
           <div class="sub-cards-wrap" id="res-cards-wrap"></div>
+
+          <div class="card card-pad empty-state" id="res-search-empty" style="display:none;">
+            <i data-lucide="search-x" class="icon"></i>
+            <div class="title">ولا نتيجة مطابقة</div>
+            <div class="sub">جرب اسم تاني أو امسح البحث</div>
+          </div>
 
         </div>
 
