@@ -52,23 +52,28 @@
 
         <div id="res-data-wrap" style="display:none;">
 
-          <div class="search-field">
-            <i data-lucide="search" class="icon"></i>
-            <input type="text" id="res-search-input" placeholder="ابحث باسم الزبون..." autocomplete="off">
-            <button type="button" class="search-clear-btn" id="res-search-clear" aria-label="مسح البحث" style="display:none;">
-              <i data-lucide="x" class="icon"></i>
-            </button>
-          </div>
-
           <div class="card card-pad" id="res-table-card">
+            <div class="card-header res-table-card-header">
+              <div>
+                <h3>طلبات الحجز</h3>
+                <div class="sub">حجوزات الطاولات الواصلة من صفحة نشاطك</div>
+              </div>
+              <div class="search-field res-search-field">
+                <i data-lucide="search" class="icon"></i>
+                <input type="text" id="res-search-input" placeholder="ابحث باسم الزبون..." autocomplete="off">
+                <button type="button" class="search-clear-btn" id="res-search-clear" aria-label="مسح البحث" style="display:none;">
+                  <i data-lucide="x" class="icon"></i>
+                </button>
+              </div>
+            </div>
             <div class="table-wrap" id="res-table-wrap">
               <table class="data-table">
                 <thead>
                   <tr>
-                    <th>الزبون</th>
+                    <th>اسم الزبون</th>
                     <th>الواتساب</th>
                     <th>موعد الحضور</th>
-                    <th>الطاولة</th>
+                    <th>رقم الطاولة</th>
                     <th>الحالة</th>
                     <th>إجراءات</th>
                   </tr>

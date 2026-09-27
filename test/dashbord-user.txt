@@ -5,3 +5,15 @@ kareem2004@@
 git add .
 git commit -m "Update project"
 git push
+
+
+localStorage.setItem('gm-store-type', 'restaurant');
+location.reload();
+
+
+localStorage.setItem('gm-store-type', 'cafe');
+location.reload();
+
+
+localStorage.setItem('gm-store-type', 'restaurant-cafe');
+location.reload();

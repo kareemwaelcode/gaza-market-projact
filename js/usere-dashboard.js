@@ -1187,6 +1187,29 @@
     return null;
   }
 
+  // Public, read-only accessor for tables (id + name + seats + status).
+  // Used to test gmSubmitTableReservation() from the console, and later
+  // by the public store page to build a "choose a table" dropdown.
+  function gmGetTables() {
+    return getStoredTables().map(function (t) {
+      return { id: t.id, name: t.name, seats: t.seats, status: t.status };
+    });
+  }
+
+  window.gmGetTables = gmGetTables;
+
+  // Same as gmGetTables(), but only tables that are currently available
+  // (not marked "occupied"). This is the list the public "احجز طاولاتك"
+  // modal should use to fill its table dropdown, so customers can't pick
+  // an occupied table.
+  function gmGetAvailableTables() {
+    return gmGetTables().filter(function (t) {
+      return t.status !== 'occupied';
+    });
+  }
+
+  window.gmGetAvailableTables = gmGetAvailableTables;
+
   function renderTablesPage() {
     var tbody = document.getElementById('tbl-table-body');
     var cardsWrap = document.getElementById('tbl-cards-wrap');
@@ -1529,6 +1552,12 @@
     var list = getStoredReservations();
     list.unshift(reservation);
     setStoredReservations(list);
+
+    addNotification({
+      icon: 'calendar-check',
+      title: 'وصلك طلب حجز جديد',
+      sub: name
+    });
 
     if (typeof window.renderReservationsPage === 'function') {
       window.renderReservationsPage();

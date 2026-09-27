@@ -116,7 +116,7 @@ window.GMStoreTypeConfig = (function () {
       }
     },
 
-    restaurant: buildFoodTypeConfig('restaurant', 'مطعم'),
+    restaurant: buildFoodTypeConfig('restaurant', 'مطعم', { hasTableBooking: true }),
     cafe: buildFoodTypeConfig('cafe', 'كافيه', { hasTableBooking: true }),
     'restaurant-cafe': buildFoodTypeConfig('restaurant-cafe', 'مطعم وكافيه', { hasTableBooking: true }),
 
