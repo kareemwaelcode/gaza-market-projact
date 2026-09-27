@@ -13,7 +13,7 @@ window.GMStoreTypeConfig = (function () {
   };
 
   var FOOD_LOCKED_FEATURES = {
-    free: ['qrCode', 'shareWhatsapp'],
+    free: ['qrCode', 'shareWhatsapp', 'tables'],
     paid: []
   };
 
@@ -117,32 +117,105 @@ window.GMStoreTypeConfig = (function () {
     },
 
     restaurant: buildFoodTypeConfig('restaurant', 'مطعم'),
-    cafe: buildFoodTypeConfig('cafe', 'كافيه'),
-    'restaurant-cafe': buildFoodTypeConfig('restaurant-cafe', 'مطعم وكافيه'),
+    cafe: buildFoodTypeConfig('cafe', 'كافيه', { hasTableBooking: true }),
+    'restaurant-cafe': buildFoodTypeConfig('restaurant-cafe', 'مطعم وكافيه', { hasTableBooking: true }),
 
     store: buildStoreTypeConfig('store', 'متجر')
 
   };
 
-  function buildFoodTypeConfig(id, label) {
+  function buildFoodTypeConfig(id, label, opts) {
+    opts = opts || {};
+    var hasTableBooking = !!opts.hasTableBooking;
+
+    var sidebar = [
+      { page: 'dashboard', href: 'dashboard.html', icon: 'layout-grid', label: 'الرئيسية', sub: 'نظرة عامة على نشاطك' },
+      { page: 'menu', href: 'menu.html', icon: 'utensils', label: 'المنيو', sub: 'التصنيفات، الأصناف، الأسعار' },
+      { action: 'open-services-edit', href: '#', icon: 'wrench', label: 'الخدمات المتاحة', sub: 'المكيف، جلسات خارجية، وأكثر' }
+    ];
+
+    var mobileNav = [
+      { page: 'dashboard', href: 'dashboard.html', icon: 'layout-grid', label: 'الرئيسية' },
+      { page: 'menu', href: 'menu.html', icon: 'utensils', label: 'المنيو' },
+      { action: 'open-services-edit', href: '#', icon: 'wrench', label: 'الخدمات المتاحة' }
+    ];
+
+    var dashboardCards = [
+      { page: 'menu', href: 'menu.html', icon: 'utensils', label: 'المنيو', sub: 'التصنيفات والأسعار' },
+      { action: 'open-services-edit', href: '#', icon: 'wrench', label: 'الخدمات المتاحة', sub: 'المكيف، جلسات خارجية' }
+    ];
+
+    if (hasTableBooking) {
+      sidebar.push(
+        { page: 'tables', href: 'tables.html', icon: 'armchair', label: 'الطاولات', sub: 'عدد الطاولات وحالتها' },
+        { page: 'reservations', href: 'reservations.html', icon: 'calendar-check', label: 'الحجوزات', sub: 'طلبات حجز الطاولات الواصلة' }
+      );
+      mobileNav.push(
+        { page: 'tables', href: 'tables.html', icon: 'armchair', label: 'الطاولات' },
+        { page: 'reservations', href: 'reservations.html', icon: 'calendar-check', label: 'الحجوزات' }
+      );
+      dashboardCards.push(
+        { page: 'reservations', href: 'reservations.html', icon: 'calendar-check', label: 'الحجوزات', sub: 'طلبات وصلتك أونلاين' },
+        { page: 'tables', href: 'tables.html', icon: 'armchair', label: 'الطاولات', sub: 'إدارة عدد وحالة الطاولات' }
+      );
+    }
+
+    sidebar.push(
+      { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', sub: 'فعاليات، عروض، وظائف', badge: 2 },
+      { page: 'packages', href: 'packages.html', icon: 'layers', label: 'الباقات', sub: 'اختر باقة نشاطك' },
+      { page: 'profile', href: 'profile.html', icon: 'store', label: 'بروفايل النشاط', sub: 'تعديل المعلومات والصورة' }
+    );
+    mobileNav.push(
+      { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', badge: true }
+    );
+
+    var freeFeatures = [
+      { label: 'صفحة خاصة بنشاطك على GazaMarket', on: true },
+      { label: 'لوحة تحكم لإدارة نشاطك', on: true },
+      { label: 'المنيو (حتى ' + FOOD_PLAN_LIMITS.free.menuItems + ' أصناف)', on: true },
+      { label: 'حتى ' + FOOD_PLAN_LIMITS.free.menuCategories + ' تصنيفات للمنيو', on: true },
+      { label: 'نشر حتى ' + FOOD_PLAN_LIMITS.free.ads + ' إعلانات', on: true },
+      { label: 'الخدمات المتاحة الأساسية', on: true },
+      { label: 'منيو غير محدود', on: false },
+      { label: 'إعلانات غير محدودة', on: false }
+    ];
+    if (hasTableBooking) {
+      freeFeatures.push({ label: 'نظام حجز الطاولات', on: false });
+    }
+    freeFeatures.push(
+      { label: 'شارة "مميز" وأولوية الظهور', on: false },
+      { label: 'إحصائيات النشاط', on: false },
+      { label: 'كود QR لصفحة النشاط', on: false },
+      { label: 'المشاركة عبر واتساب', on: false },
+      { label: 'طلب مباشر عبر واتساب', on: false },
+      { label: 'إشعارات فورية', on: false }
+    );
+
+    var paidFeatures = [
+      'صفحة خاصة بنشاطك على GazaPrice',
+      'لوحة تحكم لإدارة نشاطك',
+      'منيو غير محدود (تصنيفات وأصناف بلا حدود)',
+      'نشر عدد غير محدود من الإعلانات (عروض، فعاليات، وظائف)'
+    ];
+    if (hasTableBooking) {
+      paidFeatures.push('نظام حجز الطاولات (تحديد عدد الطاولات واستقبال الحجوزات أونلاين)');
+    }
+    paidFeatures.push(
+      'شارة "مميز" وأولوية الظهور في نتائج البحث',
+      'إحصائيات النشاط (مشاهدات الصفحة، مشاهدات المنيو، تفاعل الإعلانات)',
+      'كود QR لصفحة النشاط',
+      'مشاركة صفحة النشاط مباشرة عبر واتساب',
+      'زر طلب مباشر عبر واتساب من صفحة النشاط',
+      'إشعارات فورية (تنبيهات، تذكير تجديد)'
+    );
+
     return {
       id: id,
       label: label,
       fallbackAvatarLetter: 'ن',
-      sidebar: [
-        { page: 'dashboard', href: 'dashboard.html', icon: 'layout-grid', label: 'الرئيسية', sub: 'نظرة عامة على نشاطك' },
-        { page: 'menu', href: 'menu.html', icon: 'utensils', label: 'المنيو', sub: 'التصنيفات، الأصناف، الأسعار' },
-        { action: 'open-services-edit', href: '#', icon: 'wrench', label: 'الخدمات المتاحة', sub: 'المكيف، جلسات خارجية، وأكثر' },
-        { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', sub: 'فعاليات، عروض، وظائف', badge: 2 },
-        { page: 'packages', href: 'packages.html', icon: 'layers', label: 'الباقات', sub: 'اختر باقة نشاطك' },
-        { page: 'profile', href: 'profile.html', icon: 'store', label: 'بروفايل النشاط', sub: 'تعديل المعلومات والصورة' }
-      ],
-      mobileNav: [
-        { page: 'dashboard', href: 'dashboard.html', icon: 'layout-grid', label: 'الرئيسية' },
-        { page: 'menu', href: 'menu.html', icon: 'utensils', label: 'المنيو' },
-        { action: 'open-services-edit', href: '#', icon: 'wrench', label: 'الخدمات المتاحة' },
-        { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', badge: true }
-      ],
+      hasTableBooking: hasTableBooking,
+      sidebar: sidebar,
+      mobileNav: mobileNav,
       services: [
         { id: 'ac', label: 'المكيف', icon: 'air-vent' },
         { id: 'family_section', label: 'قسم خاص للعائلات', icon: 'users' },
@@ -151,10 +224,7 @@ window.GMStoreTypeConfig = (function () {
         { id: 'payment_methods-tow', label: 'نقبل الدفع عبر البطاقة', icon: 'credit-card-check' },
         { id: 'parking', label: 'موقف سيارات', icon: 'car' }
       ],
-      dashboardCards: [
-        { page: 'menu', href: 'menu.html', icon: 'utensils', label: 'المنيو', sub: 'التصنيفات والأسعار' },
-        { action: 'open-services-edit', href: '#', icon: 'wrench', label: 'الخدمات المتاحة', sub: 'المكيف، جلسات خارجية' }
-      ],
+      dashboardCards: dashboardCards,
       limits: FOOD_PLAN_LIMITS,
       lockedFeatures: FOOD_LOCKED_FEATURES,
       adTypes: ['activity', 'offer'],
@@ -172,22 +242,7 @@ window.GMStoreTypeConfig = (function () {
           name: 'مجاني',
           desc: 'لوحة تحكم ومعلومات أساسية لنشاطك',
           price: 0,
-          features: [
-            { label: 'صفحة خاصة بنشاطك على GazaMarket', on: true },
-            { label: 'لوحة تحكم لإدارة نشاطك', on: true },
-            { label: 'المنيو (حتى ' + FOOD_PLAN_LIMITS.free.menuItems + ' أصناف)', on: true },
-            { label: 'حتى ' + FOOD_PLAN_LIMITS.free.menuCategories + ' تصنيفات للمنيو', on: true },
-            { label: 'نشر حتى ' + FOOD_PLAN_LIMITS.free.ads + ' إعلانات', on: true },
-            { label: 'الخدمات المتاحة الأساسية', on: true },
-            { label: 'منيو غير محدود', on: false },
-            { label: 'إعلانات غير محدودة', on: false },
-            { label: 'شارة "مميز" وأولوية الظهور', on: false },
-            { label: 'إحصائيات النشاط', on: false },
-            { label: 'كود QR لصفحة النشاط', on: false },
-            { label: 'المشاركة عبر واتساب', on: false },
-            { label: 'طلب مباشر عبر واتساب', on: false },
-            { label: 'إشعارات فورية', on: false }
-          ]
+          features: freeFeatures
         },
         paid: {
           id: 'premium',
@@ -198,18 +253,7 @@ window.GMStoreTypeConfig = (function () {
           price: 99,
           buttonLabel: 'اشترك في الباقة المميزة',
           whatsappMessage: 'السلام عليكم، قمت بتحويل مبلغ 99 ₪ لاشتراك الباقة المميزة، وهذا إشعار التحويل.',
-          features: [
-            'صفحة خاصة بنشاطك على GazaPrice',
-            'لوحة تحكم لإدارة نشاطك',
-            'منيو غير محدود (تصنيفات وأصناف بلا حدود)',
-            'نشر عدد غير محدود من الإعلانات (عروض، فعاليات، وظائف)',
-            'شارة "مميز" وأولوية الظهور في نتائج البحث',
-            'إحصائيات النشاط (مشاهدات الصفحة، مشاهدات المنيو، تفاعل الإعلانات)',
-            'كود QR لصفحة النشاط',
-            'مشاركة صفحة النشاط مباشرة عبر واتساب',
-            'زر طلب مباشر عبر واتساب من صفحة النشاط',
-            'إشعارات فورية (تنبيهات، تذكير تجديد)'
-          ]
+          features: paidFeatures
         }
       }
     };

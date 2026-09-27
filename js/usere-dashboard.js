@@ -8,6 +8,8 @@
   var SERVICES_STORAGE_KEY = 'gmDashboardServices';
   var SUBSCRIBERS_STORAGE_KEY = 'gmDashboardSubscribers';
   var SUBSCRIPTION_REQUESTS_STORAGE_KEY = 'gmDashboardSubscriptionRequests';
+  var TABLES_STORAGE_KEY = 'gmDashboardTables';
+  var RESERVATIONS_STORAGE_KEY = 'gmDashboardReservations';
   var ADS_STORAGE_KEY = 'gmDashboardAds';
   var MENU_CATEGORIES_STORAGE_KEY = 'gmDashboardMenuCategories';
   var MENU_ITEMS_STORAGE_KEY = 'gmDashboardMenuItems';
@@ -1147,6 +1149,687 @@
             setStoredSubscriptionRequests(remaining);
             renderSubscriptionRequestsPage();
             showToast('تم رفض الطلب', { icon: 'x', danger: true });
+          }
+        });
+        return;
+      }
+    });
+  }
+
+  // ---------------------------------------------------------------------
+  // Tables (الطاولات)
+  // ---------------------------------------------------------------------
+
+  function getStoredTables() {
+    try {
+      var raw = localStorage.getItem(TABLES_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (err) {
+      return [];
+    }
+  }
+
+  function setStoredTables(list) {
+    try {
+      localStorage.setItem(TABLES_STORAGE_KEY, JSON.stringify(list));
+    } catch (err) {}
+  }
+
+  function generateTableId() {
+    return 'tbl_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
+
+  function findTableById(id) {
+    var list = getStoredTables();
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].id === id) return list[i];
+    }
+    return null;
+  }
+
+  function renderTablesPage() {
+    var tbody = document.getElementById('tbl-table-body');
+    var cardsWrap = document.getElementById('tbl-cards-wrap');
+    var dataWrap = document.getElementById('tbl-data-wrap');
+    var emptyState = document.getElementById('tbl-empty-state');
+    var statTotalEl = document.getElementById('tbl-stat-total');
+    var statAvailableEl = document.getElementById('tbl-stat-available');
+    var statOccupiedEl = document.getElementById('tbl-stat-occupied');
+    if (!tbody) return;
+
+    var list = getStoredTables();
+    var availableCount = 0;
+    var occupiedCount = 0;
+
+    var rowsHtml = '';
+    var cardsHtml = '';
+
+    list.forEach(function (table) {
+      var isOccupied = table.status === 'occupied';
+      if (isOccupied) { occupiedCount++; } else { availableCount++; }
+
+      var statusBadge = isOccupied
+        ? '<span class="badge red"><span>\u25cf</span> مستخدمة</span>'
+        : '<span class="badge green"><span>\u25cf</span> متاحة</span>';
+
+      var seatsLabel = table.seats ? (table.seats + ' كرسي') : '\u2014';
+      var toggleIcon = isOccupied ? 'check-circle' : 'ban';
+      var toggleLabel = isOccupied ? 'وضع كمتاحة' : 'وضع كمستخدمة';
+
+      rowsHtml +=
+        '<tr' + (isOccupied ? ' class="is-unavailable"' : '') + '>' +
+          '<td><div style="font-weight:700;">' + escapeHtml(table.name) + '</div></td>' +
+          '<td>' + seatsLabel + '</td>' +
+          '<td>' + statusBadge + '</td>' +
+          '<td>' +
+            '<div class="flex gap-8">' +
+              '<button type="button" class="icon-btn" data-action="toggle-table-status" data-id="' + table.id + '" aria-label="' + toggleLabel + '" title="' + toggleLabel + '"><i data-lucide="' + toggleIcon + '" class="icon"></i></button>' +
+              '<button type="button" class="icon-btn" data-action="edit-table" data-id="' + table.id + '" data-locked-feature="tables" aria-label="تعديل" title="تعديل"><i data-lucide="pencil" class="icon"></i></button>' +
+              '<button type="button" class="icon-btn" data-action="delete-table" data-id="' + table.id + '" data-locked-feature="tables" aria-label="حذف" title="حذف"><i data-lucide="trash-2" class="icon"></i></button>' +
+            '</div>' +
+          '</td>' +
+        '</tr>';
+
+      cardsHtml +=
+        '<div class="sub-card" data-id="' + table.id + '">' +
+          '<div class="sub-card-top">' +
+            statusBadge +
+            '<div class="sub-card-name">' + escapeHtml(table.name) + '</div>' +
+          '</div>' +
+          '<div class="sub-card-row">عدد الكراسي: ' + seatsLabel + '</div>' +
+          '<div class="sub-card-actions" style="grid-template-columns:repeat(3,1fr);">' +
+            '<button type="button" class="btn btn-sm btn-ghost" data-action="toggle-table-status" data-id="' + table.id + '">' +
+              '<i data-lucide="' + toggleIcon + '" class="icon"></i> ' + (isOccupied ? 'إتاحة' : 'إشغال') +
+            '</button>' +
+            '<button type="button" class="btn btn-sm btn-ghost" data-action="edit-table" data-id="' + table.id + '" data-locked-feature="tables">' +
+              '<i data-lucide="pencil" class="icon"></i> تعديل' +
+            '</button>' +
+            '<button type="button" class="btn btn-sm btn-danger" data-action="delete-table" data-id="' + table.id + '" data-locked-feature="tables">' +
+              '<i data-lucide="trash-2" class="icon"></i> حذف' +
+            '</button>' +
+          '</div>' +
+        '</div>';
+    });
+
+    tbody.innerHTML = rowsHtml;
+    if (cardsWrap) cardsWrap.innerHTML = cardsHtml;
+
+    if (statTotalEl) statTotalEl.textContent = String(list.length);
+    if (statAvailableEl) statAvailableEl.textContent = String(availableCount);
+    if (statOccupiedEl) statOccupiedEl.textContent = String(occupiedCount);
+
+    if (dataWrap && emptyState) {
+      var hasTables = list.length > 0;
+      dataWrap.style.display = hasTables ? '' : 'none';
+      emptyState.style.display = hasTables ? 'none' : '';
+    }
+
+    applyLockedFeaturesToUI();
+    bootIcons();
+  }
+
+  window.renderTablesPage = renderTablesPage;
+
+  function initTableAddPanel() {
+    var panel = document.getElementById('tep-panel');
+    var scrim = document.getElementById('tep-scrim');
+    if (!panel) return;
+
+    var titleEl = document.getElementById('tep-title');
+    var subtitleEl = document.getElementById('tep-subtitle');
+    var modeField = document.getElementById('tep-mode-field');
+    var modeGroup = document.getElementById('tep-mode-group');
+    var singleFields = document.getElementById('tep-single-fields');
+    var bulkFields = document.getElementById('tep-bulk-fields');
+    var nameInput = document.getElementById('tep-name');
+    var seatsInput = document.getElementById('tep-seats');
+    var statusGroup = document.getElementById('tep-status-group');
+    var bulkCountInput = document.getElementById('tep-bulk-count');
+    var bulkSeatsInput = document.getElementById('tep-bulk-seats');
+    var saveBtn = document.getElementById('tep-save-btn');
+    var saveBtnLabel = saveBtn ? saveBtn.innerHTML : '';
+
+    var selectedMode = 'single';
+    var selectedStatus = 'available';
+    var editingId = null;
+
+    function setMode(value) {
+      selectedMode = value;
+      if (modeGroup) {
+        modeGroup.querySelectorAll('.seg-btn').forEach(function (btn) {
+          btn.classList.toggle('active', btn.getAttribute('data-value') === value);
+        });
+      }
+      if (singleFields) singleFields.style.display = value === 'single' ? '' : 'none';
+      if (bulkFields) bulkFields.style.display = value === 'bulk' ? '' : 'none';
+    }
+
+    function setStatus(value) {
+      selectedStatus = value;
+      if (!statusGroup) return;
+      statusGroup.querySelectorAll('.seg-btn').forEach(function (btn) {
+        btn.classList.toggle('active', btn.getAttribute('data-value') === value);
+      });
+    }
+
+    function resetForm() {
+      if (nameInput) nameInput.value = '';
+      if (seatsInput) seatsInput.value = '';
+      if (bulkCountInput) bulkCountInput.value = '';
+      if (bulkSeatsInput) bulkSeatsInput.value = '';
+      setStatus('available');
+      setMode('single');
+    }
+
+    function fillFormFromTable(table) {
+      if (nameInput) nameInput.value = table.name || '';
+      if (seatsInput) seatsInput.value = table.seats != null ? table.seats : '';
+      setStatus(table.status === 'occupied' ? 'occupied' : 'available');
+    }
+
+    function open(tableToEdit) {
+      closeSidebarDrawerIfNeeded();
+      closeMobileMoreSheet();
+
+      editingId = tableToEdit ? tableToEdit.id : null;
+
+      if (tableToEdit) {
+        fillFormFromTable(tableToEdit);
+        setMode('single');
+        if (modeField) modeField.style.display = 'none';
+        if (titleEl) titleEl.textContent = 'تعديل الطاولة';
+        if (subtitleEl) subtitleEl.textContent = 'تحديث بيانات ' + (tableToEdit.name || 'الطاولة');
+        if (saveBtn) saveBtn.innerHTML = '<i data-lucide="check" class="icon"></i> حفظ التعديلات';
+      } else {
+        resetForm();
+        if (modeField) modeField.style.display = '';
+        if (titleEl) titleEl.textContent = 'طاولة جديدة';
+        if (subtitleEl) subtitleEl.textContent = 'أضف طاولة جديدة لنشاطك';
+        if (saveBtn) saveBtn.innerHTML = saveBtnLabel;
+      }
+
+      panel.classList.add('open');
+      if (scrim) scrim.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      bootIcons();
+      if (nameInput && selectedMode === 'single') nameInput.focus();
+    }
+
+    function close() {
+      panel.classList.remove('open');
+      if (scrim) scrim.classList.remove('open');
+      document.body.style.overflow = '';
+      editingId = null;
+    }
+
+    document.addEventListener('click', function (e) {
+      var openTrigger = e.target.closest && e.target.closest('[data-action="open-table-add"]');
+      if (openTrigger) {
+        e.preventDefault();
+        open(null);
+        return;
+      }
+      var editTrigger = e.target.closest && e.target.closest('[data-action="edit-table"]');
+      if (editTrigger) {
+        e.preventDefault();
+        var tableToEdit = findTableById(editTrigger.getAttribute('data-id'));
+        if (tableToEdit) open(tableToEdit);
+        return;
+      }
+      var closeTrigger = e.target.closest && e.target.closest('[data-action="close-table-add"]');
+      if (closeTrigger) {
+        close();
+        return;
+      }
+      var modeBtn = e.target.closest && e.target.closest('#tep-mode-group .seg-btn');
+      if (modeBtn) { setMode(modeBtn.getAttribute('data-value')); return; }
+      var statusBtn = e.target.closest && e.target.closest('#tep-status-group .seg-btn');
+      if (statusBtn) setStatus(statusBtn.getAttribute('data-value'));
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && panel.classList.contains('open')) close();
+    });
+
+    if (saveBtn) {
+      saveBtn.addEventListener('click', function () {
+        var list = getStoredTables();
+
+        if (editingId) {
+          var name = nameInput ? nameInput.value.trim() : '';
+          if (!name) { if (nameInput) nameInput.focus(); return; }
+          var idx = -1;
+          for (var i = 0; i < list.length; i++) {
+            if (list[i].id === editingId) { idx = i; break; }
+          }
+          if (idx !== -1) {
+            list[idx].name = name;
+            list[idx].seats = seatsInput && seatsInput.value !== '' ? Number(seatsInput.value) : null;
+            list[idx].status = selectedStatus;
+          }
+          setStoredTables(list);
+          close();
+          renderTablesPage();
+          showToast('تم حفظ تعديلات الطاولة', { icon: 'check-circle' });
+          return;
+        }
+
+        if (selectedMode === 'bulk') {
+          var count = bulkCountInput ? parseInt(bulkCountInput.value, 10) : 0;
+          if (!count || count < 1) { if (bulkCountInput) bulkCountInput.focus(); return; }
+          var bulkSeats = bulkSeatsInput && bulkSeatsInput.value !== '' ? Number(bulkSeatsInput.value) : null;
+          var startNumber = list.length + 1;
+          for (var n = 0; n < count; n++) {
+            list.push({
+              id: generateTableId(),
+              name: 'طاولة ' + (startNumber + n),
+              seats: bulkSeats,
+              status: 'available'
+            });
+          }
+          setStoredTables(list);
+          close();
+          renderTablesPage();
+          showToast('تمت إضافة ' + count + ' طاولة', { icon: 'check-circle' });
+          return;
+        }
+
+        var singleName = nameInput ? nameInput.value.trim() : '';
+        if (!singleName) { if (nameInput) nameInput.focus(); return; }
+        list.push({
+          id: generateTableId(),
+          name: singleName,
+          seats: seatsInput && seatsInput.value !== '' ? Number(seatsInput.value) : null,
+          status: selectedStatus
+        });
+        setStoredTables(list);
+        close();
+        renderTablesPage();
+        showToast('تمت إضافة الطاولة', { icon: 'check-circle' });
+      });
+    }
+  }
+
+  function initTableActions() {
+    document.addEventListener('click', function (e) {
+      var toggleBtn = e.target.closest && e.target.closest('[data-action="toggle-table-status"]');
+      if (toggleBtn) {
+        var idToToggle = toggleBtn.getAttribute('data-id');
+        var listForToggle = getStoredTables();
+        var nowOccupied = false;
+        for (var i = 0; i < listForToggle.length; i++) {
+          if (listForToggle[i].id === idToToggle) {
+            listForToggle[i].status = listForToggle[i].status === 'occupied' ? 'available' : 'occupied';
+            nowOccupied = listForToggle[i].status === 'occupied';
+            break;
+          }
+        }
+        setStoredTables(listForToggle);
+        renderTablesPage();
+        showToast(nowOccupied ? 'تم وضع الطاولة كمستخدمة' : 'تم وضع الطاولة كمتاحة', {
+          icon: nowOccupied ? 'ban' : 'check-circle',
+          danger: nowOccupied
+        });
+        return;
+      }
+
+      var deleteBtn = e.target.closest && e.target.closest('[data-action="delete-table"]');
+      if (deleteBtn) {
+        var idToDelete = deleteBtn.getAttribute('data-id');
+        var tableToDelete = findTableById(idToDelete);
+        var nameHtml = tableToDelete ? '<strong>' + escapeHtml(tableToDelete.name) + '</strong>' : 'هذه الطاولة';
+
+        openConfirmModal({
+          icon: 'trash-2',
+          danger: true,
+          title: 'حذف الطاولة؟',
+          message: 'سيتم حذف «' + nameHtml + '» نهائياً.',
+          confirmLabel: 'حذف',
+          cancelLabel: 'إلغاء',
+          onConfirm: function () {
+            var listAfterDelete = getStoredTables().filter(function (t) {
+              return t.id !== idToDelete;
+            });
+            setStoredTables(listAfterDelete);
+            renderTablesPage();
+          }
+        });
+        return;
+      }
+    });
+  }
+
+  // ---------------------------------------------------------------------
+  // Reservations (الحجوزات)
+  // ---------------------------------------------------------------------
+
+  function getStoredReservations() {
+    try {
+      var raw = localStorage.getItem(RESERVATIONS_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (err) {
+      return [];
+    }
+  }
+
+  function setStoredReservations(list) {
+    try {
+      localStorage.setItem(RESERVATIONS_STORAGE_KEY, JSON.stringify(list));
+    } catch (err) {}
+  }
+
+  function generateReservationId() {
+    return 'res_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
+
+  function findReservationById(id) {
+    var list = getStoredReservations();
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].id === id) return list[i];
+    }
+    return null;
+  }
+
+  function formatReservationDateTime(value) {
+    try {
+      var d = new Date(value);
+      if (isNaN(d.getTime())) return escapeHtml(String(value));
+      return new Intl.DateTimeFormat('ar', {
+        day: 'numeric',
+        month: 'long',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: GAZA_TZ
+      }).format(d);
+    } catch (err) {
+      return escapeHtml(String(value));
+    }
+  }
+
+  function buildReservationStatusBadge(status) {
+    if (status === 'confirmed') return '<span class="badge green"><span>\u25cf</span> مؤكدة</span>';
+    if (status === 'cancelled') return '<span class="badge gray"><span>\u25cf</span> ملغاة</span>';
+    return '<span class="badge amber"><span>\u25cf</span> قيد الانتظار</span>';
+  }
+
+  function gmSubmitTableReservation(data) {
+    data = data || {};
+    var name = (data.name || '').toString().trim();
+    var whatsapp = (data.whatsapp || '').toString().trim();
+    if (!name) throw new Error('gmSubmitTableReservation: name is required');
+    if (!whatsapp) throw new Error('gmSubmitTableReservation: whatsapp is required');
+
+    var reservation = {
+      id: generateReservationId(),
+      name: name,
+      countryCode: (data.countryCode || '970').toString().trim(),
+      whatsapp: whatsapp,
+      datetime: (data.datetime || '').toString().trim(),
+      peopleCount: data.peopleCount ? Number(data.peopleCount) : null,
+      tableId: data.tableId || null,
+      note: (data.note || '').toString().trim(),
+      status: 'pending',
+      createdAt: Date.now()
+    };
+
+    var list = getStoredReservations();
+    list.unshift(reservation);
+    setStoredReservations(list);
+
+    if (typeof window.renderReservationsPage === 'function') {
+      window.renderReservationsPage();
+    }
+
+    return reservation;
+  }
+
+  window.gmSubmitTableReservation = gmSubmitTableReservation;
+
+  function renderReservationsPage() {
+    var tbody = document.getElementById('res-table-body');
+    var cardsWrap = document.getElementById('res-cards-wrap');
+    var dataWrap = document.getElementById('res-data-wrap');
+    var emptyState = document.getElementById('res-empty-state');
+    var statPendingEl = document.getElementById('res-stat-pending');
+    var statConfirmedEl = document.getElementById('res-stat-confirmed');
+    var statTotalEl = document.getElementById('res-stat-total');
+    if (!tbody) return;
+
+    var list = getStoredReservations();
+    var tables = getStoredTables();
+    var pendingCount = 0;
+    var confirmedCount = 0;
+
+    var rowsHtml = '';
+    var cardsHtml = '';
+
+    list.forEach(function (res) {
+      if (res.status === 'pending') pendingCount++;
+      if (res.status === 'confirmed') confirmedCount++;
+
+      var whatsappDisplay = '+' + (res.countryCode || '970') + res.whatsapp;
+      var avatarLetter = escapeHtml((res.name || '').trim().charAt(0) || '؟');
+      var statusBadge = buildReservationStatusBadge(res.status);
+      var dateLabel = res.datetime ? formatReservationDateTime(res.datetime) : '\u2014';
+      var matchingTables = res.tableId ? tables.filter(function (t) { return t.id === res.tableId; }) : [];
+      var table = matchingTables.length ? matchingTables[0] : null;
+      var tableLabel = table ? escapeHtml(table.name) : (res.tableId ? 'طاولة محذوفة' : 'بدون تحديد');
+      var peopleLine = res.peopleCount ? (res.peopleCount + ' أشخاص') : '';
+
+      var rowActionsHtml = '';
+      var cardActionsHtml = '';
+      if (res.status === 'pending') {
+        rowActionsHtml =
+          '<button type="button" class="btn btn-primary btn-sm" data-action="confirm-reservation" data-id="' + res.id + '">تأكيد</button>' +
+          '<button type="button" class="btn btn-danger btn-sm" data-action="cancel-reservation" data-id="' + res.id + '">إلغاء</button>';
+        cardActionsHtml =
+          '<button type="button" class="btn btn-sm btn-primary" data-action="confirm-reservation" data-id="' + res.id + '">' +
+            '<i data-lucide="check" class="icon"></i> تأكيد' +
+          '</button>' +
+          '<button type="button" class="btn btn-sm btn-danger" data-action="cancel-reservation" data-id="' + res.id + '">' +
+            '<i data-lucide="x" class="icon"></i> إلغاء' +
+          '</button>';
+      } else if (res.status === 'confirmed') {
+        rowActionsHtml =
+          '<button type="button" class="btn btn-danger btn-sm" data-action="cancel-reservation" data-id="' + res.id + '">إلغاء الحجز</button>';
+        cardActionsHtml =
+          '<button type="button" class="btn btn-sm btn-danger" data-action="cancel-reservation" data-id="' + res.id + '">' +
+            '<i data-lucide="x" class="icon"></i> إلغاء الحجز' +
+          '</button>';
+      } else {
+        rowActionsHtml =
+          '<button type="button" class="icon-btn" data-action="delete-reservation" data-id="' + res.id + '" aria-label="حذف" title="حذف"><i data-lucide="trash-2" class="icon"></i></button>';
+        cardActionsHtml =
+          '<button type="button" class="btn btn-sm btn-ghost" data-action="delete-reservation" data-id="' + res.id + '">' +
+            '<i data-lucide="trash-2" class="icon"></i> حذف' +
+          '</button>';
+      }
+
+      rowsHtml +=
+        '<tr>' +
+          '<td><div class="flex gap-12">' +
+              '<div class="avatar">' + avatarLetter + '</div>' +
+              '<div>' +
+                '<div style="font-weight:700;">' + escapeHtml(res.name) + '</div>' +
+                (peopleLine ? '<div class="sub" style="font-size:12px;color:var(--db-text-tertiary);">' + peopleLine + '</div>' : '') +
+              '</div>' +
+            '</div>' +
+          '</td>' +
+          '<td><div class="flex gap-8">' +
+              '<i data-lucide="message-circle" class="icon" style="color:var(--db-text-tertiary);"></i>' +
+              '<span class="mono">' + escapeHtml(whatsappDisplay) + '</span>' +
+            '</div></td>' +
+          '<td class="mono" style="direction:ltr;text-align:right;">' + dateLabel + '</td>' +
+          '<td>' + tableLabel + '</td>' +
+          '<td>' + statusBadge + '</td>' +
+          '<td><div class="flex gap-8">' + rowActionsHtml + '</div></td>' +
+        '</tr>';
+
+      cardsHtml +=
+        '<div class="sub-card" data-id="' + res.id + '">' +
+          '<div class="sub-card-top">' +
+            statusBadge +
+            '<div class="sub-card-name">' + escapeHtml(res.name) + '</div>' +
+          '</div>' +
+          '<div class="sub-card-row mono">' +
+            '<i data-lucide="message-circle" class="icon"></i>' +
+            '<span>' + escapeHtml(whatsappDisplay) + '</span>' +
+          '</div>' +
+          '<div class="sub-card-row">' + dateLabel + ' \u00b7 ' + tableLabel + (peopleLine ? ' \u00b7 ' + peopleLine : '') + '</div>' +
+          (res.note ? '<div class="sub-card-note">' + escapeHtml(res.note) + '</div>' : '') +
+          '<div class="sub-card-actions" style="grid-template-columns:repeat(' + (res.status === 'pending' ? 2 : 1) + ',1fr);">' +
+            cardActionsHtml +
+          '</div>' +
+        '</div>';
+    });
+
+    tbody.innerHTML = rowsHtml;
+    if (cardsWrap) cardsWrap.innerHTML = cardsHtml;
+
+    if (statPendingEl) statPendingEl.textContent = String(pendingCount);
+    if (statConfirmedEl) statConfirmedEl.textContent = String(confirmedCount);
+    if (statTotalEl) statTotalEl.textContent = String(list.length);
+
+    if (dataWrap && emptyState) {
+      var hasReservations = list.length > 0;
+      dataWrap.style.display = hasReservations ? '' : 'none';
+      emptyState.style.display = hasReservations ? 'none' : '';
+    }
+
+    updateReservationsNavBadge(pendingCount);
+
+    bootIcons();
+  }
+
+  window.renderReservationsPage = renderReservationsPage;
+
+  function updateReservationsNavBadge(count) {
+    document.querySelectorAll('.nav-item[data-page="reservations"] .nav-item-badge, .mobile-nav-item[data-page="reservations"] .mobile-nav-badge').forEach(function (el) {
+      el.remove();
+    });
+    if (!count) return;
+
+    var navItem = document.querySelector('.nav-item[data-page="reservations"]');
+    if (navItem) {
+      var badge = document.createElement('span');
+      badge.className = 'nav-item-badge';
+      badge.textContent = String(count);
+      navItem.appendChild(badge);
+    }
+
+    var mobileNavItem = document.querySelector('.mobile-nav-item[data-page="reservations"]');
+    if (mobileNavItem) {
+      var dot = document.createElement('span');
+      dot.className = 'mobile-nav-badge';
+      mobileNavItem.appendChild(dot);
+    }
+  }
+
+  function initReservationActions() {
+    document.addEventListener('click', function (e) {
+      var confirmBtn = e.target.closest && e.target.closest('[data-action="confirm-reservation"]');
+      if (confirmBtn) {
+        var idToConfirm = confirmBtn.getAttribute('data-id');
+        var resToConfirm = findReservationById(idToConfirm);
+        if (!resToConfirm) return;
+
+        openConfirmModal({
+          icon: 'calendar-check',
+          danger: false,
+          title: 'تأكيد الحجز؟',
+          message: 'رح يتم تأكيد حجز «<strong>' + escapeHtml(resToConfirm.name) + '</strong>»' +
+            (resToConfirm.tableId ? ' وتصير الطاولة مستخدمة تلقائياً.' : '.'),
+          confirmLabel: 'تأكيد الحجز',
+          cancelLabel: 'إلغاء',
+          onConfirm: function () {
+            var reservations = getStoredReservations();
+            for (var i = 0; i < reservations.length; i++) {
+              if (reservations[i].id === idToConfirm) {
+                reservations[i].status = 'confirmed';
+                break;
+              }
+            }
+            setStoredReservations(reservations);
+
+            if (resToConfirm.tableId) {
+              var tables = getStoredTables();
+              for (var j = 0; j < tables.length; j++) {
+                if (tables[j].id === resToConfirm.tableId) {
+                  tables[j].status = 'occupied';
+                  break;
+                }
+              }
+              setStoredTables(tables);
+              if (typeof window.renderTablesPage === 'function') window.renderTablesPage();
+            }
+
+            renderReservationsPage();
+            showToast('تم تأكيد الحجز', { icon: 'calendar-check' });
+          }
+        });
+        return;
+      }
+
+      var cancelBtn = e.target.closest && e.target.closest('[data-action="cancel-reservation"]');
+      if (cancelBtn) {
+        var idToCancel = cancelBtn.getAttribute('data-id');
+        var resToCancel = findReservationById(idToCancel);
+        var nameHtml = resToCancel ? '<strong>' + escapeHtml(resToCancel.name) + '</strong>' : 'هذا الحجز';
+        var wasConfirmed = !!(resToCancel && resToCancel.status === 'confirmed');
+
+        openConfirmModal({
+          icon: 'x',
+          danger: true,
+          title: 'إلغاء الحجز؟',
+          message: 'سيتم إلغاء حجز «' + nameHtml + '»' +
+            (wasConfirmed && resToCancel.tableId ? ' وتصير الطاولة متاحة من جديد.' : '.'),
+          confirmLabel: 'إلغاء الحجز',
+          cancelLabel: 'تراجع',
+          onConfirm: function () {
+            var reservations = getStoredReservations();
+            for (var i = 0; i < reservations.length; i++) {
+              if (reservations[i].id === idToCancel) {
+                reservations[i].status = 'cancelled';
+                break;
+              }
+            }
+            setStoredReservations(reservations);
+
+            if (wasConfirmed && resToCancel.tableId) {
+              var tables = getStoredTables();
+              for (var j = 0; j < tables.length; j++) {
+                if (tables[j].id === resToCancel.tableId) {
+                  tables[j].status = 'available';
+                  break;
+                }
+              }
+              setStoredTables(tables);
+              if (typeof window.renderTablesPage === 'function') window.renderTablesPage();
+            }
+
+            renderReservationsPage();
+            showToast('تم إلغاء الحجز', { icon: 'x', danger: true });
+          }
+        });
+        return;
+      }
+
+      var deleteBtn = e.target.closest && e.target.closest('[data-action="delete-reservation"]');
+      if (deleteBtn) {
+        var idToDelete = deleteBtn.getAttribute('data-id');
+        openConfirmModal({
+          icon: 'trash-2',
+          danger: true,
+          title: 'حذف الحجز؟',
+          message: 'سيتم حذف هذا الطلب نهائياً من السجل.',
+          confirmLabel: 'حذف',
+          cancelLabel: 'إلغاء',
+          onConfirm: function () {
+            var remaining = getStoredReservations().filter(function (r) {
+              return r.id !== idToDelete;
+            });
+            setStoredReservations(remaining);
+            renderReservationsPage();
           }
         });
         return;
@@ -4672,6 +5355,7 @@
       loadPartial('#ad-edit-slot', 'ad-edit-panel.html'),
       loadPartial('#menu-category-slot', 'menu-category-panel.html'),
       loadPartial('#menu-item-edit-slot', 'menu-item-edit-panel.html'),
+      loadPartial('#table-edit-slot', 'table-edit-panel.html'),
       loadPartial('#product-category-slot', 'product-category-panel.html'),
       loadPartial('#product-item-edit-slot', 'product-item-edit-panel.html'),
       loadPartial('#service-category-slot', 'service-category-panel.html'),
@@ -4699,6 +5383,8 @@
     applyOpenStatusToUI(getStoredOpenStatus());
     renderSubscribersPage();
     renderSubscriptionRequestsPage();
+    renderTablesPage();
+    renderReservationsPage();
     renderAdsPage();
     initProfileEditPanel();
     initPricesHoursEditPanel();
@@ -4706,6 +5392,9 @@
     initSubscriberAddPanel();
     initSubscriberActions();
     initSubscriptionRequestActions();
+    initTableAddPanel();
+    initTableActions();
+    initReservationActions();
     initAdAddPanel();
     initAdActions();
     renderMenuPage();
