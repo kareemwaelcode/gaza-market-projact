@@ -8,12 +8,12 @@ window.GMStoreTypeConfig = (function () {
   var PLAN_IDS = ['free', 'paid'];
 
   var FOOD_PLAN_LIMITS = {
-    free: { menuItems: 10, menuCategories: 5, ads: 3 },
-    paid: { menuItems: null, menuCategories: null, ads: null }
+    free: { menuItems: 10, menuCategories: 5, ads: 3, tables: 5, reservations: 5 },
+    paid: { menuItems: null, menuCategories: null, ads: null, tables: null, reservations: null }
   };
 
   var FOOD_LOCKED_FEATURES = {
-    free: ['qrCode', 'shareWhatsapp', 'tables'],
+    free: ['qrCode', 'shareWhatsapp'],
     paid: []
   };
 
@@ -26,6 +26,18 @@ window.GMStoreTypeConfig = (function () {
     free: ['qrCode', 'shareWhatsapp'],
     paid: []
   };
+
+  // Types without table booking must not carry table/reservation limits.
+  function omitTableLimits(limits) {
+    var result = {};
+    Object.keys(limits).forEach(function (plan) {
+      result[plan] = {};
+      Object.keys(limits[plan]).forEach(function (key) {
+        if (key !== 'tables' && key !== 'reservations') result[plan][key] = limits[plan][key];
+      });
+    });
+    return result;
+  }
 
   var TYPES = {
 
@@ -116,7 +128,7 @@ window.GMStoreTypeConfig = (function () {
       }
     },
 
-    restaurant: buildFoodTypeConfig('restaurant', 'مطعم', { hasTableBooking: true }),
+    restaurant: buildFoodTypeConfig('restaurant', 'مطعم', { hasTableBooking: false }),
     cafe: buildFoodTypeConfig('cafe', 'كافيه', { hasTableBooking: true }),
     'restaurant-cafe': buildFoodTypeConfig('restaurant-cafe', 'مطعم وكافيه', { hasTableBooking: true }),
 
@@ -175,12 +187,23 @@ window.GMStoreTypeConfig = (function () {
       { label: 'المنيو (حتى ' + FOOD_PLAN_LIMITS.free.menuItems + ' أصناف)', on: true },
       { label: 'حتى ' + FOOD_PLAN_LIMITS.free.menuCategories + ' تصنيفات للمنيو', on: true },
       { label: 'نشر حتى ' + FOOD_PLAN_LIMITS.free.ads + ' إعلانات', on: true },
-      { label: 'الخدمات المتاحة الأساسية', on: true },
-      { label: 'منيو غير محدود', on: false },
-      { label: 'إعلانات غير محدودة', on: false }
+      { label: 'الخدمات المتاحة الأساسية', on: true }
     ];
     if (hasTableBooking) {
-      freeFeatures.push({ label: 'نظام حجز الطاولات', on: false });
+      freeFeatures.push(
+        { label: 'إضافة حتى ' + FOOD_PLAN_LIMITS.free.tables + ' طاولات', on: true },
+        { label: 'استقبال حتى ' + FOOD_PLAN_LIMITS.free.reservations + ' حجوزات', on: true }
+      );
+    }
+    freeFeatures.push(
+      { label: 'منيو غير محدود', on: false },
+      { label: 'إعلانات غير محدودة', on: false }
+    );
+    if (hasTableBooking) {
+      freeFeatures.push(
+        { label: 'طاولات غير محدودة', on: false },
+        { label: 'حجوزات غير محدودة', on: false }
+      );
     }
     freeFeatures.push(
       { label: 'شارة "مميز" وأولوية الظهور', on: false },
@@ -198,7 +221,10 @@ window.GMStoreTypeConfig = (function () {
       'نشر عدد غير محدود من الإعلانات (عروض، فعاليات، وظائف)'
     ];
     if (hasTableBooking) {
-      paidFeatures.push('نظام حجز الطاولات (تحديد عدد الطاولات واستقبال الحجوزات أونلاين)');
+      paidFeatures.push(
+        'طاولات غير محدودة',
+        'استقبال حجوزات غير محدودة أونلاين'
+      );
     }
     paidFeatures.push(
       'شارة "مميز" وأولوية الظهور في نتائج البحث',
@@ -225,7 +251,7 @@ window.GMStoreTypeConfig = (function () {
         { id: 'parking', label: 'موقف سيارات', icon: 'car' }
       ],
       dashboardCards: dashboardCards,
-      limits: FOOD_PLAN_LIMITS,
+      limits: hasTableBooking ? FOOD_PLAN_LIMITS : omitTableLimits(FOOD_PLAN_LIMITS),
       lockedFeatures: FOOD_LOCKED_FEATURES,
       adTypes: ['activity', 'offer'],
       pageCopy: {

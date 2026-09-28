@@ -10,6 +10,7 @@
   var SUBSCRIPTION_REQUESTS_STORAGE_KEY = 'gmDashboardSubscriptionRequests';
   var TABLES_STORAGE_KEY = 'gmDashboardTables';
   var RESERVATIONS_STORAGE_KEY = 'gmDashboardReservations';
+  var RESERVATIONS_CREATED_KEY = 'gmDashboardReservationsCreated';
   var ADS_STORAGE_KEY = 'gmDashboardAds';
   var MENU_CATEGORIES_STORAGE_KEY = 'gmDashboardMenuCategories';
   var MENU_ITEMS_STORAGE_KEY = 'gmDashboardMenuItems';
@@ -648,7 +649,9 @@
     productCategories: 'تصنيفات',
     ads: 'إعلانات',
     services: 'خدمات',
-    serviceCategories: 'تصنيفات'
+    serviceCategories: 'تصنيفات',
+    tables: 'طاولات',
+    reservations: 'حجوزات'
   };
 
   var LOCKED_FEATURE_LABELS = {
@@ -1163,7 +1166,8 @@
   function getStoredTables() {
     try {
       var raw = localStorage.getItem(TABLES_STORAGE_KEY);
-      return raw ? JSON.parse(raw) : [];
+      var parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed : [];
     } catch (err) {
       return [];
     }
@@ -1246,28 +1250,28 @@
           '<td>' + statusBadge + '</td>' +
           '<td>' +
             '<div class="flex gap-8">' +
-              '<button type="button" class="icon-btn" data-action="toggle-table-status" data-id="' + table.id + '" aria-label="' + toggleLabel + '" title="' + toggleLabel + '"><i data-lucide="' + toggleIcon + '" class="icon"></i></button>' +
-              '<button type="button" class="icon-btn" data-action="edit-table" data-id="' + table.id + '" data-locked-feature="tables" aria-label="تعديل" title="تعديل"><i data-lucide="pencil" class="icon"></i></button>' +
-              '<button type="button" class="icon-btn" data-action="delete-table" data-id="' + table.id + '" data-locked-feature="tables" aria-label="حذف" title="حذف"><i data-lucide="trash-2" class="icon"></i></button>' +
+              '<button type="button" class="icon-btn" data-action="toggle-table-status" data-id="' + escapeHtml(table.id) + '" aria-label="' + toggleLabel + '" title="' + toggleLabel + '"><i data-lucide="' + toggleIcon + '" class="icon"></i></button>' +
+              '<button type="button" class="icon-btn" data-action="edit-table" data-id="' + escapeHtml(table.id) + '" aria-label="تعديل" title="تعديل"><i data-lucide="pencil" class="icon"></i></button>' +
+              '<button type="button" class="icon-btn" data-action="delete-table" data-id="' + escapeHtml(table.id) + '" aria-label="حذف" title="حذف"><i data-lucide="trash-2" class="icon"></i></button>' +
             '</div>' +
           '</td>' +
         '</tr>';
 
       cardsHtml +=
-        '<div class="sub-card" data-id="' + table.id + '">' +
+        '<div class="sub-card" data-id="' + escapeHtml(table.id) + '">' +
           '<div class="sub-card-top">' +
             statusBadge +
             '<div class="sub-card-name">' + escapeHtml(table.name) + '</div>' +
           '</div>' +
           '<div class="sub-card-row">عدد الكراسي: ' + seatsLabel + '</div>' +
           '<div class="sub-card-actions" style="grid-template-columns:repeat(3,1fr);">' +
-            '<button type="button" class="btn btn-sm btn-ghost" data-action="toggle-table-status" data-id="' + table.id + '">' +
+            '<button type="button" class="btn btn-sm btn-ghost" data-action="toggle-table-status" data-id="' + escapeHtml(table.id) + '">' +
               '<i data-lucide="' + toggleIcon + '" class="icon"></i> ' + (isOccupied ? 'إتاحة' : 'إشغال') +
             '</button>' +
-            '<button type="button" class="btn btn-sm btn-ghost" data-action="edit-table" data-id="' + table.id + '" data-locked-feature="tables">' +
+            '<button type="button" class="btn btn-sm btn-ghost" data-action="edit-table" data-id="' + escapeHtml(table.id) + '">' +
               '<i data-lucide="pencil" class="icon"></i> تعديل' +
             '</button>' +
-            '<button type="button" class="btn btn-sm btn-danger" data-action="delete-table" data-id="' + table.id + '" data-locked-feature="tables">' +
+            '<button type="button" class="btn btn-sm btn-danger" data-action="delete-table" data-id="' + escapeHtml(table.id) + '">' +
               '<i data-lucide="trash-2" class="icon"></i> حذف' +
             '</button>' +
           '</div>' +
@@ -1281,6 +1285,18 @@
     if (statAvailableEl) statAvailableEl.textContent = String(availableCount);
     if (statOccupiedEl) statOccupiedEl.textContent = String(occupiedCount);
 
+    var tablesUsageEl = document.getElementById('tbl-usage-counter');
+    if (tablesUsageEl) {
+      var tablesUsage = getPlanLimitStatus('tables', list.length);
+      if (tablesUsage.unlimited) {
+        tablesUsageEl.style.display = 'none';
+      } else {
+        tablesUsageEl.textContent = tablesUsage.used + ' من ' + tablesUsage.limit + ' ' + LIMIT_NOUNS.tables +
+          (tablesUsage.canAdd ? '' : ' — وصلت للحد الأقصى');
+        tablesUsageEl.style.display = '';
+      }
+    }
+
     if (dataWrap && emptyState) {
       var hasTables = list.length > 0;
       dataWrap.style.display = hasTables ? '' : 'none';
@@ -1292,6 +1308,11 @@
   }
 
   window.renderTablesPage = renderTablesPage;
+
+  function parseTableSeats(value) {
+    var seats = parseInt(value, 10);
+    return seats >= 1 ? seats : null;
+  }
 
   function initTableAddPanel() {
     var panel = document.getElementById('tep-panel');
@@ -1365,7 +1386,7 @@
       var openTrigger = e.target.closest && e.target.closest('[data-action="open-table-add"]');
       if (openTrigger) {
         e.preventDefault();
-        open(null);
+        if (guardPlanLimit('tables', getStoredTables().length)) open(null);
         return;
       }
       var editTrigger = e.target.closest && e.target.closest('[data-action="edit-table"]');
@@ -1401,7 +1422,7 @@
           }
           if (idx !== -1) {
             list[idx].name = name;
-            list[idx].seats = seatsInput && seatsInput.value !== '' ? Number(seatsInput.value) : null;
+            list[idx].seats = seatsInput ? parseTableSeats(seatsInput.value) : null;
             list[idx].status = selectedStatus;
           }
           setStoredTables(list);
@@ -1413,10 +1434,11 @@
 
         var singleName = nameInput ? nameInput.value.trim() : '';
         if (!singleName) { if (nameInput) nameInput.focus(); return; }
+        if (!guardPlanLimit('tables', list.length)) return;
         list.push({
           id: generateTableId(),
           name: singleName,
-          seats: seatsInput && seatsInput.value !== '' ? Number(seatsInput.value) : null,
+          seats: seatsInput ? parseTableSeats(seatsInput.value) : null,
           status: selectedStatus
         });
         setStoredTables(list);
@@ -1483,7 +1505,8 @@
   function getStoredReservations() {
     try {
       var raw = localStorage.getItem(RESERVATIONS_STORAGE_KEY);
-      return raw ? JSON.parse(raw) : [];
+      var parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed : [];
     } catch (err) {
       return [];
     }
@@ -1529,10 +1552,41 @@
     return '<span class="badge amber"><span>\u25cf</span> قيد الانتظار</span>';
   }
 
+  // Cumulative number of reservations ever received. It is stored separately
+  // from the reservations list, so deleting a reservation does not free a slot.
+  // Math.max with the list length keeps data created before this counter existed.
+  function getReservationsCreatedCount() {
+    var stored = 0;
+    try {
+      stored = parseInt(localStorage.getItem(RESERVATIONS_CREATED_KEY), 10) || 0;
+    } catch (e) { }
+    return Math.max(stored, getStoredReservations().length);
+  }
+
+  function setReservationsCreatedCount(count) {
+    try {
+      localStorage.setItem(RESERVATIONS_CREATED_KEY, String(count));
+    } catch (e) { }
+  }
+
+  // Free plan counts every reservation ever received (pending, confirmed,
+  // cancelled and deleted). The public platform must call this before
+  // showing/sending the booking form.
+  function gmGetReservationLimitStatus() {
+    return getPlanLimitStatus('reservations', getReservationsCreatedCount());
+  }
+
+  window.gmGetReservationLimitStatus = gmGetReservationLimitStatus;
+
   function gmSubmitTableReservation(data) {
     data = data || {};
-    var name = (data.name || '').toString().trim();
-    var whatsapp = (data.whatsapp || '').toString().trim();
+    if (!gmGetReservationLimitStatus().canAdd) {
+      var limitError = new Error('gmSubmitTableReservation: reservation limit reached for the current plan');
+      limitError.code = 'RESERVATION_LIMIT_REACHED';
+      throw limitError;
+    }
+    var name = (data.name || '').toString().trim().slice(0, 80);
+    var whatsapp = (data.whatsapp || '').toString().replace(/\s+/g, '').slice(0, 20);
     if (!name) throw new Error('gmSubmitTableReservation: name is required');
     if (!whatsapp) throw new Error('gmSubmitTableReservation: whatsapp is required');
 
@@ -1542,16 +1596,18 @@
       countryCode: (data.countryCode || '970').toString().trim(),
       whatsapp: whatsapp,
       datetime: (data.datetime || '').toString().trim(),
-      peopleCount: data.peopleCount ? Number(data.peopleCount) : null,
+      peopleCount: parseInt(data.peopleCount, 10) >= 1 ? parseInt(data.peopleCount, 10) : null,
       tableId: data.tableId || null,
-      note: (data.note || '').toString().trim(),
+      note: (data.note || '').toString().trim().slice(0, 300),
       status: 'pending',
       createdAt: Date.now()
     };
 
     var list = getStoredReservations();
+    var createdCount = getReservationsCreatedCount();
     list.unshift(reservation);
     setStoredReservations(list);
+    setReservationsCreatedCount(createdCount + 1);
 
     addNotification({
       icon: 'calendar-check',
@@ -1580,10 +1636,8 @@
     var statPendingEl = document.getElementById('res-stat-pending');
     var statConfirmedEl = document.getElementById('res-stat-confirmed');
     var statTotalEl = document.getElementById('res-stat-total');
-    if (!tbody) return;
 
     var list = getStoredReservations();
-    var tables = getStoredTables();
     var pendingCount = 0;
     var confirmedCount = 0;
 
@@ -1591,6 +1645,13 @@
       if (res.status === 'pending') pendingCount++;
       if (res.status === 'confirmed') confirmedCount++;
     });
+
+    updateReservationsNavBadge(pendingCount);
+
+    if (!tbody) return;
+
+    var tablesById = {};
+    getStoredTables().forEach(function (tb) { tablesById[tb.id] = tb; });
 
     var searchQuery = searchInput ? searchInput.value.trim().toLowerCase() : '';
     if (searchClearBtn) searchClearBtn.style.display = searchQuery ? '' : 'none';
@@ -1607,36 +1668,35 @@
       var avatarLetter = escapeHtml((res.name || '').trim().charAt(0) || '؟');
       var statusBadge = buildReservationStatusBadge(res.status);
       var dateLabel = res.datetime ? formatReservationDateTime(res.datetime) : '\u2014';
-      var matchingTables = res.tableId ? tables.filter(function (t) { return t.id === res.tableId; }) : [];
-      var table = matchingTables.length ? matchingTables[0] : null;
+      var table = res.tableId ? (tablesById[res.tableId] || null) : null;
       var tableLabel = table ? escapeHtml(table.name) : (res.tableId ? 'طاولة محذوفة' : 'بدون تحديد');
-      var peopleLine = res.peopleCount ? (res.peopleCount + ' أشخاص') : '';
+      var peopleLine = res.peopleCount ? (escapeHtml(String(res.peopleCount)) + ' أشخاص') : '';
 
       var rowActionsHtml = '';
       var cardActionsHtml = '';
       if (res.status === 'pending') {
         rowActionsHtml =
-          '<button type="button" class="btn btn-primary btn-sm" data-action="confirm-reservation" data-id="' + res.id + '">تأكيد</button>' +
-          '<button type="button" class="btn btn-danger btn-sm" data-action="cancel-reservation" data-id="' + res.id + '">إلغاء</button>';
+          '<button type="button" class="btn btn-primary btn-sm" data-action="confirm-reservation" data-id="' + escapeHtml(res.id) + '">تأكيد</button>' +
+          '<button type="button" class="btn btn-danger btn-sm" data-action="cancel-reservation" data-id="' + escapeHtml(res.id) + '">إلغاء</button>';
         cardActionsHtml =
-          '<button type="button" class="btn btn-sm btn-primary" data-action="confirm-reservation" data-id="' + res.id + '">' +
+          '<button type="button" class="btn btn-sm btn-primary" data-action="confirm-reservation" data-id="' + escapeHtml(res.id) + '">' +
             '<i data-lucide="check" class="icon"></i> تأكيد' +
           '</button>' +
-          '<button type="button" class="btn btn-sm btn-danger" data-action="cancel-reservation" data-id="' + res.id + '">' +
+          '<button type="button" class="btn btn-sm btn-danger" data-action="cancel-reservation" data-id="' + escapeHtml(res.id) + '">' +
             '<i data-lucide="x" class="icon"></i> إلغاء' +
           '</button>';
       } else if (res.status === 'confirmed') {
         rowActionsHtml =
-          '<button type="button" class="btn btn-danger btn-sm" data-action="cancel-reservation" data-id="' + res.id + '">إلغاء الحجز</button>';
+          '<button type="button" class="btn btn-danger btn-sm" data-action="cancel-reservation" data-id="' + escapeHtml(res.id) + '">إلغاء الحجز</button>';
         cardActionsHtml =
-          '<button type="button" class="btn btn-sm btn-danger" data-action="cancel-reservation" data-id="' + res.id + '">' +
+          '<button type="button" class="btn btn-sm btn-danger" data-action="cancel-reservation" data-id="' + escapeHtml(res.id) + '">' +
             '<i data-lucide="x" class="icon"></i> إلغاء الحجز' +
           '</button>';
       } else {
         rowActionsHtml =
-          '<button type="button" class="icon-btn" data-action="delete-reservation" data-id="' + res.id + '" aria-label="حذف" title="حذف"><i data-lucide="trash-2" class="icon"></i></button>';
+          '<button type="button" class="icon-btn" data-action="delete-reservation" data-id="' + escapeHtml(res.id) + '" aria-label="حذف" title="حذف"><i data-lucide="trash-2" class="icon"></i></button>';
         cardActionsHtml =
-          '<button type="button" class="btn btn-sm btn-ghost" data-action="delete-reservation" data-id="' + res.id + '">' +
+          '<button type="button" class="btn btn-sm btn-ghost" data-action="delete-reservation" data-id="' + escapeHtml(res.id) + '">' +
             '<i data-lucide="trash-2" class="icon"></i> حذف' +
           '</button>';
       }
@@ -1662,7 +1722,7 @@
         '</tr>';
 
       cardsHtml +=
-        '<div class="sub-card" data-id="' + res.id + '">' +
+        '<div class="sub-card" data-id="' + escapeHtml(res.id) + '">' +
           '<div class="sub-card-top">' +
             statusBadge +
             '<div class="sub-card-name">' + escapeHtml(res.name) + '</div>' +
@@ -1686,6 +1746,18 @@
     if (statConfirmedEl) statConfirmedEl.textContent = String(confirmedCount);
     if (statTotalEl) statTotalEl.textContent = String(list.length);
 
+    var reservationsUsageEl = document.getElementById('res-usage-counter');
+    if (reservationsUsageEl) {
+      var reservationsUsage = gmGetReservationLimitStatus();
+      if (reservationsUsage.unlimited) {
+        reservationsUsageEl.style.display = 'none';
+      } else {
+        reservationsUsageEl.textContent = reservationsUsage.used + ' من ' + reservationsUsage.limit + ' ' + LIMIT_NOUNS.reservations +
+          (reservationsUsage.canAdd ? '' : ' — وصلت للحد الأقصى');
+        reservationsUsageEl.style.display = '';
+      }
+    }
+
     if (dataWrap && emptyState) {
       var hasReservations = list.length > 0;
       dataWrap.style.display = hasReservations ? '' : 'none';
@@ -1700,8 +1772,6 @@
     } else if (searchEmptyState) {
       searchEmptyState.style.display = 'none';
     }
-
-    updateReservationsNavBadge(pendingCount);
 
     bootIcons();
   }
