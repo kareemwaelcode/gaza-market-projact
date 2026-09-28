@@ -28,12 +28,13 @@ window.GMStoreTypeConfig = (function () {
   var STORE_BASE_FREE_LIMITS = { products: 10, productCategories: 8, ads: 3 };
 
   var STORE_VARIANTS = {
-    general: { key: 'general', freeLimits: {}, hasDiscounts: false, hasAppointments: false, hiddenServices: [] },
+    general: { key: 'general', freeLimits: {}, hasDiscounts: false, hasAppointments: false, hasProducts: true, hiddenServices: [] },
     grocery: {
       key: 'grocery',
       freeLimits: { products: 15, productCategories: 5 },
       hasDiscounts: false,
       hasAppointments: false,
+      hasProducts: true,
       hiddenServices: [],
       serviceIds: ['cash_payment', 'card_payment', 'warranty', 'exchange_return'],
       adTypes: ['offer', 'job'],
@@ -44,6 +45,7 @@ window.GMStoreTypeConfig = (function () {
       freeLimits: { discountedProducts: 5 },
       hasDiscounts: true,
       hasAppointments: false,
+      hasProducts: true,
       hasWhatsappOrder: true,
       hiddenServices: ['gift_wrap'],
       serviceIds: ['cash_payment', 'warranty', 'exchange_return', 'size_exchange', 'alteration', 'whatsapp_order', 'card_payment'],
@@ -52,13 +54,15 @@ window.GMStoreTypeConfig = (function () {
     },
     pharmacy: {
       key: 'pharmacy',
-      freeLimits: {},
+      freeLimits: { products: 15, productCategories: 5 },
       hasDiscounts: false,
       hasAppointments: false,
-      hasWhatsappOrder: true,
+      hasProducts: true,
       hiddenServices: [],
-      serviceIds: ['delivery', 'night_duty', 'prescription_order', 'cash_payment', 'card_payment', 'whatsapp_order'],
-      servicesNavSub: 'توصيل، مناوبة ليلية، وصفات طبية',
+      serviceIds: ['night_duty', 'prescription_order', 'health_check', 'injections', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'مناوبة ليلية، وصفات طبية، قياس ضغط وسكر',
+      productFields: ['prescription'],
+      suggestedCategories: ['أدوية بدون وصفة', 'مسكنات وبرد', 'فيتامينات ومكملات', 'عناية بالبشرة', 'عناية بالشعر', 'أم وطفل', 'إسعافات أولية'],
       adTypes: ['offer', 'job'],
       adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
     },
@@ -67,9 +71,12 @@ window.GMStoreTypeConfig = (function () {
       freeLimits: {},
       hasDiscounts: false,
       hasAppointments: false,
+      hasProducts: true,
       hiddenServices: [],
-      serviceIds: ['delivery', 'installation', 'device_rental', 'warranty', 'exchange_return', 'cash_payment', 'card_payment'],
-      servicesNavSub: 'توصيل، تركيب، تأجير أجهزة، ضمان',
+      serviceIds: ['installation', 'device_rental', 'device_maintenance', 'warranty', 'exchange_return', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'تركيب، تأجير أجهزة، صيانة، ضمان',
+      productFields: ['saleType'],
+      suggestedCategories: ['أجهزة قياس', 'كراسي متحركة ومشايات', 'عكازات وجبائر', 'مستهلكات طبية', 'فرشات وأسرّة طبية', 'أجهزة تنفس وأكسجين'],
       adTypes: ['offer', 'job'],
       adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
     },
@@ -78,13 +85,28 @@ window.GMStoreTypeConfig = (function () {
       freeLimits: {},
       hasDiscounts: false,
       hasAppointments: false,
+      hasProducts: true,
       hiddenServices: [],
-      serviceIds: ['eye_exam', 'lens_fitting', 'warranty', 'exchange_return', 'cash_payment', 'card_payment'],
-      servicesNavSub: 'فحص نظر، تركيب عدسات، ضمان',
+      serviceIds: ['eye_exam', 'lens_fitting', 'glasses_repair', 'warranty', 'exchange_return', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'فحص نظر، تركيب عدسات، صيانة نظارات',
+      productFields: ['brand'],
+      suggestedCategories: ['نظارات طبية', 'نظارات شمسية', 'عدسات طبية', 'عدسات لاصقة', 'سوائل ومنظفات', 'إكسسوارات'],
       adTypes: ['offer', 'job'],
       adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
     },
-    clinic: { key: 'clinic', freeLimits: { appointments: 5 }, hasDiscounts: false, hasAppointments: true, hiddenServices: [] }
+    clinic: {
+      key: 'clinic',
+      freeLimits: { appointments: 5 },
+      hasDiscounts: false,
+      hasAppointments: true,
+      hasProducts: false,
+      hiddenServices: [],
+      serviceIds: ['consultation', 'lab_tests', 'xray', 'vaccinations', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'كشفية، تحاليل، أشعة، تطعيمات',
+      heroWelcomeText: 'عيادتك جاهزة لاستقبال المواعيد وعرض خدماتك من هنا.',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    }
   };
 
   var STORE_SUBCATEGORY_VARIANT = {
@@ -130,13 +152,16 @@ window.GMStoreTypeConfig = (function () {
   };
 
   var CLOTHING_ONLY_SERVICE_IDS = ['size_exchange', 'alteration', 'whatsapp_order'];
-  var HEALTH_ONLY_SERVICE_IDS = ['delivery', 'night_duty', 'prescription_order', 'device_rental', 'eye_exam', 'lens_fitting'];
+  var HEALTH_ONLY_SERVICE_IDS = ['delivery', 'night_duty', 'prescription_order', 'device_rental', 'eye_exam', 'lens_fitting', 'health_check', 'injections', 'device_maintenance', 'glasses_repair', 'consultation', 'lab_tests', 'xray', 'vaccinations'];
 
   var storeConfigCache = {};
 
   function buildStoreLimits(variant) {
     var free = {};
-    Object.keys(STORE_BASE_FREE_LIMITS).forEach(function (key) { free[key] = STORE_BASE_FREE_LIMITS[key]; });
+    Object.keys(STORE_BASE_FREE_LIMITS).forEach(function (key) {
+      if (variant.hasProducts === false && (key === 'products' || key === 'productCategories')) return;
+      free[key] = STORE_BASE_FREE_LIMITS[key];
+    });
     Object.keys(variant.freeLimits).forEach(function (key) { free[key] = variant.freeLimits[key]; });
     var paid = {};
     Object.keys(free).forEach(function (key) { paid[key] = null; });
@@ -416,7 +441,15 @@ window.GMStoreTypeConfig = (function () {
       { id: 'prescription_order', label: 'استقبال الوصفات الطبية', icon: 'file-text' },
       { id: 'device_rental', label: 'تأجير أجهزة طبية', icon: 'calendar-clock' },
       { id: 'eye_exam', label: 'فحص نظر', icon: 'eye' },
-      { id: 'lens_fitting', label: 'تركيب عدسات', icon: 'glasses' }
+      { id: 'lens_fitting', label: 'تركيب عدسات', icon: 'glasses' },
+      { id: 'health_check', label: 'قياس ضغط وسكر', icon: 'heart-pulse' },
+      { id: 'injections', label: 'حقن وتضميد', icon: 'syringe' },
+      { id: 'device_maintenance', label: 'صيانة أجهزة طبية', icon: 'settings' },
+      { id: 'glasses_repair', label: 'صيانة وتعديل النظارات', icon: 'hammer' },
+      { id: 'consultation', label: 'كشفية', icon: 'stethoscope' },
+      { id: 'lab_tests', label: 'تحاليل مخبرية', icon: 'flask-conical' },
+      { id: 'xray', label: 'أشعة', icon: 'scan' },
+      { id: 'vaccinations', label: 'تطعيمات', icon: 'shield-plus' }
     ];
 
     var services;
@@ -439,14 +472,22 @@ window.GMStoreTypeConfig = (function () {
       ? 'نشر عدد غير محدود من الإعلانات (عروض، وظائف)'
       : 'نشر عدد غير محدود من الإعلانات (عروض، تخفيضات، منتجات جديدة)';
 
+    var hasProducts = variant.hasProducts !== false;
+
     var freeFeatures = [
       { label: 'صفحة خاصة بمتجرك على GazaPrice', on: true },
-      { label: 'لوحة تحكم لإدارة متجرك', on: true },
-      { label: 'إضافة حتى ' + free.products + ' منتج', on: true },
-      { label: 'حتى ' + free.productCategories + ' تصنيفات للمنتجات', on: true },
+      { label: 'لوحة تحكم لإدارة متجرك', on: true }
+    ];
+    if (hasProducts) {
+      freeFeatures.push(
+        { label: 'إضافة حتى ' + free.products + ' منتج', on: true },
+        { label: 'حتى ' + free.productCategories + ' تصنيفات للمنتجات', on: true }
+      );
+    }
+    freeFeatures.push(
       { label: 'الخدمات المتاحة', on: true },
       { label: freeAdsLabel, on: true }
-    ];
+    );
     if (variant.hasDiscounts) {
       freeFeatures.push({ label: 'تفعيل الخصم لحتى ' + free.discountedProducts + ' منتجات', on: true });
     }
@@ -457,10 +498,12 @@ window.GMStoreTypeConfig = (function () {
       freeFeatures.push({ label: 'الطلب عبر واتساب', on: false });
     }
     freeFeatures.push(
-      { label: 'إشعارات لوحة التحكم', on: true },
-      { label: 'منتجات وتصنيفات غير محدودة', on: false },
-      { label: 'إعلانات غير محدودة', on: false }
+      { label: 'إشعارات لوحة التحكم', on: true }
     );
+    if (hasProducts) {
+      freeFeatures.push({ label: 'منتجات وتصنيفات غير محدودة', on: false });
+    }
+    freeFeatures.push({ label: 'إعلانات غير محدودة', on: false });
     if (variant.hasDiscounts) {
       freeFeatures.push({ label: 'خصم غير محدود على المنتجات', on: false });
     }
@@ -484,10 +527,12 @@ window.GMStoreTypeConfig = (function () {
 
     var paidFeatures = [
       'صفحة خاصة بمتجرك على GazaPrice',
-      'لوحة تحكم لإدارة متجرك',
-      'منتجات وتصنيفات غير محدودة',
-      paidAdsLabel
+      'لوحة تحكم لإدارة متجرك'
     ];
+    if (hasProducts) {
+      paidFeatures.push('منتجات وتصنيفات غير محدودة');
+    }
+    paidFeatures.push(paidAdsLabel);
     if (variant.hasDiscounts) {
       paidFeatures.push('تفعيل الخصم على عدد غير محدود من المنتجات');
     }
@@ -506,33 +551,49 @@ window.GMStoreTypeConfig = (function () {
       'إشعارات فورية (تنبيهات، تذكير تجديد)'
     );
 
+    var sidebar = [
+      { page: 'dashboard', href: 'dashboard.html', icon: 'layout-grid', label: 'الرئيسية', sub: 'نظرة عامة على متجرك' }
+    ];
+    var mobileNav = [
+      { page: 'dashboard', href: 'dashboard.html', icon: 'layout-grid', label: 'الرئيسية' }
+    ];
+    var dashboardCards = [];
+
+    if (hasProducts) {
+      sidebar.push({ page: 'prices', href: 'prices.html', icon: 'shopping-bag', label: 'المنتجات والأسعار', sub: 'الأصناف، الأسعار، التوفر' });
+      mobileNav.push({ page: 'prices', href: 'prices.html', icon: 'shopping-bag', label: 'المنتجات' });
+      dashboardCards.push({ page: 'prices', href: 'prices.html', icon: 'shopping-bag', label: 'المنتجات والأسعار', sub: 'الأصناف والتوفر' });
+    }
+
+    sidebar.push(
+      { action: 'open-services-edit', href: '#', icon: 'wrench', label: 'الخدمات المتاحة', sub: servicesNavSub },
+      { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', sub: adsNavSub, badge: 2 },
+      { page: 'packages', href: 'packages.html', icon: 'layers', label: 'الباقات', sub: 'اختر باقة متجرك' },
+      { page: 'profile', href: 'profile.html', icon: 'store', label: 'بروفايل المتجر', sub: 'تعديل المعلومات والصورة' }
+    );
+    mobileNav.push(
+      { action: 'open-services-edit', href: '#', icon: 'wrench', label: 'الخدمات المتاحة' },
+      { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', badge: true }
+    );
+    dashboardCards.push(
+      { action: 'open-services-edit', href: '#', icon: 'wrench', label: 'الخدمات المتاحة', sub: servicesNavSub },
+      { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', sub: adsNavSub }
+    );
+
     return {
       id: id,
       label: label,
       variant: variant.key,
       hasDiscounts: variant.hasDiscounts,
       hasAppointments: variant.hasAppointments,
+      hasProducts: hasProducts,
+      productFields: variant.productFields || [],
+      suggestedCategories: variant.suggestedCategories || [],
       fallbackAvatarLetter: 'م',
-      sidebar: [
-        { page: 'dashboard', href: 'dashboard.html', icon: 'layout-grid', label: 'الرئيسية', sub: 'نظرة عامة على متجرك' },
-        { page: 'prices', href: 'prices.html', icon: 'shopping-bag', label: 'المنتجات والأسعار', sub: 'الأصناف، الأسعار، التوفر' },
-        { action: 'open-services-edit', href: '#', icon: 'wrench', label: 'الخدمات المتاحة', sub: servicesNavSub },
-        { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', sub: adsNavSub, badge: 2 },
-        { page: 'packages', href: 'packages.html', icon: 'layers', label: 'الباقات', sub: 'اختر باقة متجرك' },
-        { page: 'profile', href: 'profile.html', icon: 'store', label: 'بروفايل المتجر', sub: 'تعديل المعلومات والصورة' }
-      ],
-      mobileNav: [
-        { page: 'dashboard', href: 'dashboard.html', icon: 'layout-grid', label: 'الرئيسية' },
-        { page: 'prices', href: 'prices.html', icon: 'shopping-bag', label: 'المنتجات' },
-        { action: 'open-services-edit', href: '#', icon: 'wrench', label: 'الخدمات المتاحة' },
-        { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', badge: true }
-      ],
+      sidebar: sidebar,
+      mobileNav: mobileNav,
       services: services,
-      dashboardCards: [
-        { page: 'prices', href: 'prices.html', icon: 'shopping-bag', label: 'المنتجات والأسعار', sub: 'الأصناف والتوفر' },
-        { action: 'open-services-edit', href: '#', icon: 'wrench', label: 'الخدمات المتاحة', sub: servicesNavSub },
-        { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', sub: adsNavSub }
-      ],
+      dashboardCards: dashboardCards,
       limits: limits,
       lockedFeatures: STORE_LOCKED_FEATURES,
       adTypes: variant.adTypes,
@@ -541,7 +602,7 @@ window.GMStoreTypeConfig = (function () {
         profileTitle: 'بيانات المتجر',
         entityNameLabel: 'اسم المتجر',
         adsSubtitle: adsSubtitle,
-        heroWelcomeText: 'متجرك جاهز لعرض منتجاتك وخدماتك من هنا.'
+        heroWelcomeText: variant.heroWelcomeText || 'متجرك جاهز لعرض منتجاتك وخدماتك من هنا.'
       },
       packages: {
         pageSubtitle: 'اختر باقة متجرك',
