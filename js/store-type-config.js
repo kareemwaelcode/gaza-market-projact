@@ -25,11 +25,20 @@ window.GMStoreTypeConfig = (function () {
   var SUBCATEGORY_ID_KEY = 'gm-store-subcategory-id';
   var SUBCATEGORY_LABEL_KEY = 'gm-store-subcategory';
 
-  var STORE_BASE_FREE_LIMITS = { products: 10, productCategories: 8, ads: 3, services: 5, serviceCategories: 8 };
+  var STORE_BASE_FREE_LIMITS = { products: 10, productCategories: 8, ads: 3 };
 
   var STORE_VARIANTS = {
     general: { key: 'general', freeLimits: {}, hasDiscounts: false, hasAppointments: false, hiddenServices: [] },
-    grocery: { key: 'grocery', freeLimits: { products: 15 }, hasDiscounts: false, hasAppointments: false, hiddenServices: [] },
+    grocery: {
+      key: 'grocery',
+      freeLimits: { products: 15, productCategories: 5 },
+      hasDiscounts: false,
+      hasAppointments: false,
+      hiddenServices: [],
+      serviceIds: ['cash_payment', 'card_payment', 'warranty', 'exchange_return'],
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
     clothing: { key: 'clothing', freeLimits: { discountedProducts: 5 }, hasDiscounts: true, hasAppointments: false, hiddenServices: ['gift_wrap'] },
     clinic: { key: 'clinic', freeLimits: { appointments: 5 }, hasDiscounts: false, hasAppointments: true, hiddenServices: [] }
   };
@@ -112,9 +121,7 @@ window.GMStoreTypeConfig = (function () {
         { page: 'subscription-requests', href: 'subscription-requests.html', icon: 'thumbs-up', label: 'طلبات الاشتراك', sub: 'طلبات وصلتك أونلاين للموافقة' },
         { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', sub: 'فعاليات، ورش، وظائف، عروض', badge: 2 },
         { page: 'packages', href: 'packages.html', icon: 'layers', label: 'الباقات', sub: 'اختر باقة مساحتك' },
-        { page: 'profile', href: 'profile.html', icon: 'store', label: 'بروفايل المساحة', sub: 'تعديل المعلومات والصورة' },
-        { page: 'reviews', href: 'reviews.html', icon: 'star', label: 'التقييمات', sub: 'آراء وتقييمات الزوار' },
-        { page: 'settings', href: 'settings.html', icon: 'settings', label: 'الإعدادات', sub: 'التنبيهات، الخصوصية، وأكثر' }
+        { page: 'profile', href: 'profile.html', icon: 'store', label: 'بروفايل المساحة', sub: 'تعديل المعلومات والصورة' }
       ],
       mobileNav: [
         { page: 'dashboard', href: 'dashboard.html', icon: 'layout-grid', label: 'الرئيسية' },
@@ -347,23 +354,39 @@ window.GMStoreTypeConfig = (function () {
     var limits = buildStoreLimits(variant);
     var free = limits.free;
 
-    var services = [
-      { id: 'installation', label: 'تركيب فني' },
-      { id: 'warranty', label: 'ضمان على المنتجات' },
-      { id: 'card_payment', label: 'دفع بالبطاقة' },
-      { id: 'gift_wrap', label: 'تغليف هدايا' },
-      { id: 'exchange_return', label: 'استبدال واسترجاع' }
-    ].filter(function (service) {
-      return variant.hiddenServices.indexOf(service.id) === -1;
-    });
+    var serviceCatalog = [
+      { id: 'installation', label: 'تركيب فني', icon: 'wrench' },
+      { id: 'cash_payment', label: 'نقبل الدفع كاش وتطبيق', icon: 'banknote-arrow-up' },
+      { id: 'card_payment', label: 'دفع بالبطاقة', icon: 'credit-card' },
+      { id: 'warranty', label: 'ضمان على المنتجات', icon: 'shield-check' },
+      { id: 'gift_wrap', label: 'تغليف هدايا', icon: 'gift' },
+      { id: 'exchange_return', label: 'استبدال واسترجاع', icon: 'repeat' }
+    ];
+
+    var services;
+    if (Array.isArray(variant.serviceIds)) {
+      services = variant.serviceIds.map(function (serviceId) {
+        return serviceCatalog.filter(function (service) { return service.id === serviceId; })[0];
+      }).filter(Boolean);
+    } else {
+      services = serviceCatalog.filter(function (service) {
+        return service.id !== 'cash_payment' && variant.hiddenServices.indexOf(service.id) === -1;
+      });
+    }
+
+    var hasOfferJobAds = Array.isArray(variant.adTypes);
+    var freeAdsLabel = 'نشر حتى ' + free.ads + ' إعلانات' + (hasOfferJobAds ? ' (عروض ووظائف)' : '');
+    var paidAdsLabel = hasOfferJobAds
+      ? 'نشر عدد غير محدود من الإعلانات (عروض، وظائف)'
+      : 'نشر عدد غير محدود من الإعلانات (عروض، تخفيضات، منتجات جديدة)';
 
     var freeFeatures = [
       { label: 'صفحة خاصة بمتجرك على GazaPrice', on: true },
       { label: 'لوحة تحكم لإدارة متجرك', on: true },
       { label: 'إضافة حتى ' + free.products + ' منتج', on: true },
       { label: 'حتى ' + free.productCategories + ' تصنيفات للمنتجات', on: true },
-      { label: 'حتى ' + free.services + ' خدمات', on: true },
-      { label: 'نشر حتى ' + free.ads + ' إعلانات', on: true }
+      { label: 'الخدمات المتاحة', on: true },
+      { label: freeAdsLabel, on: true }
     ];
     if (variant.hasDiscounts) {
       freeFeatures.push({ label: 'تفعيل الخصم لحتى ' + free.discountedProducts + ' منتجات', on: true });
@@ -374,7 +397,6 @@ window.GMStoreTypeConfig = (function () {
     freeFeatures.push(
       { label: 'إشعارات لوحة التحكم', on: true },
       { label: 'منتجات وتصنيفات غير محدودة', on: false },
-      { label: 'خدمات غير محدودة', on: false },
       { label: 'إعلانات غير محدودة', on: false }
     );
     if (variant.hasDiscounts) {
@@ -392,12 +414,16 @@ window.GMStoreTypeConfig = (function () {
       { label: 'إشعارات فورية', on: false }
     );
 
+    var adsNavSub = hasOfferJobAds ? 'عروض ووظائف' : 'عروض وتخفيضات';
+    var adsSubtitle = hasOfferJobAds
+      ? 'عروض ووظائف تظهر في صفحة متجرك'
+      : 'عروض وتخفيضات ومنتجات جديدة تظهر في صفحة متجرك';
+
     var paidFeatures = [
       'صفحة خاصة بمتجرك على GazaPrice',
       'لوحة تحكم لإدارة متجرك',
       'منتجات وتصنيفات غير محدودة',
-      'خدمات غير محدودة',
-      'نشر عدد غير محدود من الإعلانات (عروض، تخفيضات، منتجات جديدة)'
+      paidAdsLabel
     ];
     if (variant.hasDiscounts) {
       paidFeatures.push('تفعيل الخصم على عدد غير محدود من المنتجات');
@@ -424,31 +450,31 @@ window.GMStoreTypeConfig = (function () {
       sidebar: [
         { page: 'dashboard', href: 'dashboard.html', icon: 'layout-grid', label: 'الرئيسية', sub: 'نظرة عامة على متجرك' },
         { page: 'prices', href: 'prices.html', icon: 'shopping-bag', label: 'المنتجات والأسعار', sub: 'الأصناف، الأسعار، التوفر' },
-        { page: 'services', href: 'services.html', icon: 'wrench', label: 'الخدمات', sub: 'تركيب، ضمان، استبدال' },
-        { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', sub: 'عروض وتخفيضات', badge: 2 },
+        { action: 'open-services-edit', href: '#', icon: 'wrench', label: 'الخدمات المتاحة', sub: 'تركيب، ضمان، استبدال' },
+        { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', sub: adsNavSub, badge: 2 },
         { page: 'packages', href: 'packages.html', icon: 'layers', label: 'الباقات', sub: 'اختر باقة متجرك' },
-        { page: 'profile', href: 'profile.html', icon: 'store', label: 'بروفايل المتجر', sub: 'تعديل المعلومات والصورة' },
-        { page: 'reviews', href: 'reviews.html', icon: 'star', label: 'التقييمات', sub: 'آراء وتقييمات الزوار' },
-        { page: 'settings', href: 'settings.html', icon: 'settings', label: 'الإعدادات', sub: 'التنبيهات، الخصوصية، وأكثر' }
+        { page: 'profile', href: 'profile.html', icon: 'store', label: 'بروفايل المتجر', sub: 'تعديل المعلومات والصورة' }
       ],
       mobileNav: [
         { page: 'dashboard', href: 'dashboard.html', icon: 'layout-grid', label: 'الرئيسية' },
         { page: 'prices', href: 'prices.html', icon: 'shopping-bag', label: 'المنتجات' },
-        { page: 'services', href: 'services.html', icon: 'wrench', label: 'الخدمات' },
+        { action: 'open-services-edit', href: '#', icon: 'wrench', label: 'الخدمات المتاحة' },
         { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', badge: true }
       ],
       services: services,
       dashboardCards: [
         { page: 'prices', href: 'prices.html', icon: 'shopping-bag', label: 'المنتجات والأسعار', sub: 'الأصناف والتوفر' },
-        { page: 'services', href: 'services.html', icon: 'wrench', label: 'الخدمات', sub: 'تركيب، ضمان' },
-        { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', sub: 'عروض وتخفيضات' }
+        { action: 'open-services-edit', href: '#', icon: 'wrench', label: 'الخدمات المتاحة', sub: 'تركيب، ضمان' },
+        { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', sub: adsNavSub }
       ],
       limits: limits,
       lockedFeatures: STORE_LOCKED_FEATURES,
+      adTypes: variant.adTypes,
+      adOptions: variant.adOptions,
       pageCopy: {
         profileTitle: 'بيانات المتجر',
         entityNameLabel: 'اسم المتجر',
-        adsSubtitle: 'عروض وتخفيضات ومنتجات جديدة تظهر في صفحة متجرك',
+        adsSubtitle: adsSubtitle,
         heroWelcomeText: 'متجرك جاهز لعرض منتجاتك وخدماتك من هنا.'
       },
       packages: {

@@ -2424,15 +2424,16 @@
     if (!container) return;
     var services = getCurrentTypeServices();
     container.innerHTML = services.map(function (svc) {
+      var locked = svc.id === 'card_payment' && isFeatureLockedForPlan('cardPayment');
       var iconHtml = svc.icon
         ? '<div class="sve-row-icon"><i data-lucide="' + svc.icon + '" class="icon"></i></div>'
         : '';
       return (
         '<div class="sve-row">' +
           iconHtml +
-          '<div class="switch" id="sve-switch-' + svc.id + '"></div>' +
-          '<span class="sve-row-label">' + svc.label + '</span>' +
-          '<input type="text" id="sve-details-' + svc.id + '" class="sve-details-input" placeholder="تفاصيل إضافية (اختياري)...">' +
+          '<div class="switch" id="sve-switch-' + svc.id + '"' + (locked ? ' data-locked-feature="cardPayment"' : '') + '></div>' +
+          '<span class="sve-row-label">' + svc.label + (locked ? ' <i data-lucide="lock" class="icon" style="width:14px;height:14px;vertical-align:middle;"></i>' : '') + '</span>' +
+          '<input type="text" id="sve-details-' + svc.id + '" class="sve-details-input" placeholder="' + (locked ? LOCK_OVERLAY_TEXT : 'تفاصيل إضافية (اختياري)...') + '"' + (locked ? ' disabled' : '') + '>' +
         '</div>'
       );
     }).join('');
@@ -2470,9 +2471,11 @@
         var switchEl = document.getElementById('sve-switch-' + svc.id);
         var detailsInput = document.getElementById('sve-details-' + svc.id);
         var entry = data[svc.id] || {};
-        if (switchEl) switchEl.classList.toggle('on', !!entry.enabled);
-        if (detailsInput) detailsInput.value = entry.details || '';
+        var lockedSvc = svc.id === 'card_payment' && isFeatureLockedForPlan('cardPayment');
+        if (switchEl) switchEl.classList.toggle('on', !lockedSvc && !!entry.enabled);
+        if (detailsInput) detailsInput.value = lockedSvc ? '' : (entry.details || '');
       });
+      applyLockedFeaturesToUI();
       bootIcons();
 
       panel.classList.add('open');
@@ -3065,6 +3068,17 @@
     return DEFAULT_AD_TYPES;
   }
 
+  function getAdOptions() {
+    var config = getStoreTypeConfig();
+    return (config && config.adOptions) || {};
+  }
+
+  function formatAdPrice(value) {
+    var n = Number(value);
+    if (!isFinite(n)) return '';
+    return String(Math.round(n * 100) / 100) + ' ₪';
+  }
+
   function getStoredAds() {
     try {
       var raw = localStorage.getItem(ADS_STORAGE_KEY);
@@ -3243,6 +3257,33 @@
       : '<span class="badge green"><span>\u25cf</span> ظاهر</span>';
   }
 
+  function checkAdExpiryNotifications() {
+    if (!getAdOptions().expiryNotice) return;
+    var list = getStoredAds();
+    var today = parseISODate(getTodayISODate()).getTime();
+    var changed = false;
+    list.forEach(function (ad) {
+      if (ad.type !== 'offer' || !ad.date || ad.expiryNotified) return;
+      if (parseISODate(ad.date).getTime() >= today) return;
+      ad.expiryNotified = true;
+      changed = true;
+      addNotification({
+        icon: 'calendar-x',
+        title: 'انتهى موعد العرض',
+        sub: ad.title
+      });
+    });
+    if (changed) setStoredAds(list);
+  }
+
+  function buildAdOfferPriceHtml(ad) {
+    if (ad.type !== 'offer' || ad.priceBefore == null || ad.priceAfter == null) return '';
+    return '<div style="font-size:13px;font-weight:700;">' +
+      '<span style="text-decoration:line-through;color:var(--db-text-tertiary);font-weight:400;">' + escapeHtml(formatAdPrice(ad.priceBefore)) + '</span>' +
+      ' ← ' + escapeHtml(formatAdPrice(ad.priceAfter)) +
+    '</div>';
+  }
+
   function renderAdsPage() {
     var tbody = document.getElementById('ads-table-body');
     var dataWrap = document.getElementById('ads-data-wrap');
@@ -3259,6 +3300,7 @@
         '<tr>' +
           '<td>' +
             '<div style="font-weight:700;">' + escapeHtml(ad.title) + '</div>' +
+            buildAdOfferPriceHtml(ad) +
             (ad.details ? '<div class="sub" style="font-size:12px;color:var(--db-text-tertiary);">' + escapeHtml(ad.details) + '</div>' : '') +
             (ad.link ? '<div><a href="' + escapeHtml(ad.link) + '" target="_blank" rel="noopener" class="mono" style="font-size:12px;">' + escapeHtml(ad.link) + '</a></div>' : '') +
           '</td>' +
@@ -3299,6 +3341,12 @@
     var detailsInput = document.getElementById('ade-details');
     var dateInput = document.getElementById('ade-date');
     var linkInput = document.getElementById('ade-link');
+    var offerFields = document.getElementById('ade-offer-fields');
+    var priceBeforeInput = document.getElementById('ade-price-before');
+    var priceAfterInput = document.getElementById('ade-price-after');
+    var linkField = document.getElementById('ade-link-field');
+    var linkLabel = document.getElementById('ade-link-label');
+    var dateLabel = document.getElementById('ade-date-label');
     var saveBtn = document.getElementById('ade-save-btn');
 
     var selectedType = 'activity';
@@ -3317,8 +3365,19 @@
 
     var allowedAdTypes = applyAllowedAdTypes();
 
+    function applyTypeFields() {
+      var opts = getAdOptions();
+      var showPrices = !!opts.offerPrices && selectedType === 'offer';
+      var showLink = !opts.linkOnlyForJob || selectedType === 'job';
+      if (offerFields) offerFields.style.display = showPrices ? '' : 'none';
+      if (linkField) linkField.style.display = showLink ? '' : 'none';
+      if (linkLabel) linkLabel.textContent = (opts.linkOnlyForJob && selectedType === 'job') ? 'رابط فورم التقديم — اختياري' : 'رابط — اختياري';
+      if (dateLabel) dateLabel.textContent = showPrices ? 'تاريخ انتهاء العرض — اختياري' : 'التاريخ — اختياري';
+    }
+
     function setType(value) {
       selectedType = value;
+      applyTypeFields();
       if (!typeGroup) return;
       typeGroup.querySelectorAll('.seg-btn').forEach(function (btn) {
         btn.classList.toggle('active', btn.getAttribute('data-value') === value);
@@ -3330,6 +3389,8 @@
       if (detailsInput) detailsInput.value = '';
       if (dateInput) dateInput.value = '';
       if (linkInput) linkInput.value = '';
+      if (priceBeforeInput) priceBeforeInput.value = '';
+      if (priceAfterInput) priceAfterInput.value = '';
       setType(allowedAdTypes[0] || 'activity');
     }
 
@@ -3338,6 +3399,8 @@
       if (detailsInput) detailsInput.value = ad.details || '';
       if (dateInput) dateInput.value = ad.date || '';
       if (linkInput) linkInput.value = ad.link || '';
+      if (priceBeforeInput) priceBeforeInput.value = ad.priceBefore == null ? '' : ad.priceBefore;
+      if (priceAfterInput) priceAfterInput.value = ad.priceAfter == null ? '' : ad.priceAfter;
       setType((ad.type && allowedAdTypes.indexOf(ad.type) !== -1) ? ad.type : (allowedAdTypes[0] || 'activity'));
     }
 
@@ -3401,6 +3464,23 @@
         var title = titleInput ? titleInput.value.trim() : '';
         if (!title) { if (titleInput) titleInput.focus(); return; }
 
+        var opts = getAdOptions();
+        var withPrices = !!opts.offerPrices && selectedType === 'offer';
+        var priceBefore = null;
+        var priceAfter = null;
+        if (withPrices) {
+          priceBefore = priceBeforeInput && priceBeforeInput.value !== '' ? Number(priceBeforeInput.value) : null;
+          priceAfter = priceAfterInput && priceAfterInput.value !== '' ? Number(priceAfterInput.value) : null;
+          if (priceBefore == null || !isFinite(priceBefore) || priceBefore < 0) { if (priceBeforeInput) priceBeforeInput.focus(); return; }
+          if (priceAfter == null || !isFinite(priceAfter) || priceAfter < 0) { if (priceAfterInput) priceAfterInput.focus(); return; }
+          if (priceAfter >= priceBefore) {
+            showToast('السعر بعد العرض لازم يكون أقل من السعر قبله', { icon: 'circle-alert', danger: true });
+            if (priceAfterInput) priceAfterInput.focus();
+            return;
+          }
+        }
+        var linkValue = (linkInput && (!opts.linkOnlyForJob || selectedType === 'job')) ? linkInput.value.trim() : '';
+
         var list = getStoredAds();
 
         if (!editingId && !guardPlanLimit('ads', list.length)) return;
@@ -3414,8 +3494,12 @@
             list[idx].type = selectedType;
             list[idx].title = title;
             list[idx].details = detailsInput ? detailsInput.value.trim() : '';
-            list[idx].date = dateInput ? dateInput.value : '';
-            list[idx].link = linkInput ? linkInput.value.trim() : '';
+            var newDate = dateInput ? dateInput.value : '';
+            if (list[idx].date !== newDate) list[idx].expiryNotified = false;
+            list[idx].date = newDate;
+            list[idx].link = linkValue;
+            list[idx].priceBefore = priceBefore;
+            list[idx].priceAfter = priceAfter;
           }
         } else {
           list.unshift({
@@ -3424,7 +3508,9 @@
             title: title,
             details: detailsInput ? detailsInput.value.trim() : '',
             date: dateInput ? dateInput.value : '',
-            link: linkInput ? linkInput.value.trim() : '',
+            link: linkValue,
+            priceBefore: priceBefore,
+            priceAfter: priceAfter,
             hidden: false,
             createdAt: Date.now()
           });
@@ -3436,6 +3522,18 @@
         }
 
         setStoredAds(list);
+
+        if (!editingId && opts.limitNotice) {
+          var usage = getPlanLimitStatus('ads', list.length);
+          if (!usage.unlimited && usage.used >= usage.limit) {
+            addNotification({
+              icon: 'triangle-alert',
+              title: 'وصلت للحد الأقصى للإعلانات المجانية (' + usage.limit + ')',
+              sub: 'اشترك بالباقة المدفوعة لنشر إعلانات أكثر'
+            });
+          }
+        }
+
         close();
         renderAdsPage();
       });
@@ -5548,6 +5646,7 @@
     wireMobileMoreSheet();
     wireNotifications();
     renderNotifications();
+    checkAdExpiryNotifications();
     initLogoutAction();
     applyProfileToUI(getStoredProfile());
     applyOpenStatusToUI(getStoredOpenStatus());

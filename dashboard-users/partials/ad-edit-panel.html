@@ -33,13 +33,25 @@
       <textarea id="ade-details" placeholder="تفاصيل الإعلان"></textarea>
     </div>
 
+    <div id="ade-offer-fields" style="display:none;">
+      <div class="field">
+        <label for="ade-price-before">السعر قبل العرض</label>
+        <input type="number" id="ade-price-before" min="0" step="any" inputmode="decimal" placeholder="5">
+      </div>
+
+      <div class="field">
+        <label for="ade-price-after">السعر بعد العرض</label>
+        <input type="number" id="ade-price-after" min="0" step="any" inputmode="decimal" placeholder="2">
+      </div>
+    </div>
+
     <div class="field">
-      <label for="ade-date">التاريخ — اختياري</label>
+      <label for="ade-date" id="ade-date-label">التاريخ — اختياري</label>
       <input type="date" id="ade-date">
     </div>
 
-    <div class="field" style="margin-bottom:0;">
-      <label for="ade-link">رابط — اختياري</label>
+    <div class="field" id="ade-link-field" style="margin-bottom:0;">
+      <label for="ade-link" id="ade-link-label">رابط — اختياري</label>
       <input type="url" id="ade-link" placeholder="https://...">
     </div>
 
