@@ -1989,7 +1989,19 @@
     row.appendChild(icon);
   }
 
+  function applyProfileSubText(profile) {
+    var typeConfig = getStoreTypeConfig();
+    var typeLabel = typeConfig ? typeConfig.label : 'مساحة عمل';
+    var regionText = (profile && profile.regionLabel) || 'لم تحدد المنطقة بعد';
+    var text = regionText + ' · ' + getTypeLabelWithSubCategory(typeLabel);
+    var topbarSub = document.getElementById('profile-sub-text');
+    if (topbarSub) topbarSub.textContent = text;
+    var pageSub = document.getElementById('profile-page-sub');
+    if (pageSub) pageSub.textContent = text;
+  }
+
   function applyProfileToUI(profile) {
+    applyProfileSubText(profile);
     if (!profile) return;
 
     var heroName = document.getElementById('hero-user-name');
@@ -1997,13 +2009,6 @@
 
     var profileName = document.getElementById('profile-name-text');
     if (profileName && profile.name) profileName.textContent = profile.name;
-
-    var profileSub = document.getElementById('profile-sub-text');
-    if (profileSub && profile.regionLabel) {
-      var topbarTypeConfig = getStoreTypeConfig();
-      var topbarTypeLabel = topbarTypeConfig ? topbarTypeConfig.label : 'مساحة عمل';
-      profileSub.textContent = profile.regionLabel + ' · ' + getTypeLabelWithSubCategory(topbarTypeLabel);
-    }
 
     var avatarLetter = document.getElementById('profile-avatar-letter');
     if (avatarLetter) {
@@ -2059,13 +2064,6 @@
 
     var ppName = document.getElementById('profile-page-name');
     if (ppName) ppName.textContent = profile.name || 'مساحتي';
-
-    var ppSub = document.getElementById('profile-page-sub');
-    if (ppSub) {
-      var profilePageTypeConfig = getStoreTypeConfig();
-      var profilePageTypeLabel = profilePageTypeConfig ? profilePageTypeConfig.label : 'مساحة عمل';
-      ppSub.textContent = (profile.regionLabel || 'لم تحدد المنطقة بعد') + ' · ' + getTypeLabelWithSubCategory(profilePageTypeLabel);
-    }
 
     var ppAddress = document.getElementById('profile-address-value');
     if (ppAddress) ppAddress.textContent = profile.address || '—';
