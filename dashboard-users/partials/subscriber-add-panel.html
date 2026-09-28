@@ -21,9 +21,10 @@
     <div class="field">
       <label for="sap-whatsapp">رقم الواتساب</label>
       <div class="phone-input-row">
-        <select id="sap-country-code">
-          <option value="970" selected>+970</option>
-        </select>
+        <button type="button" class="phone-cc-toggle" id="sap-country-code" data-value="970" aria-label="مفتاح الدولة +970 — اضغط للتبديل" title="اضغط للتبديل بين 970 و 972">
+          <span class="phone-cc-text" dir="ltr">+970</span>
+          <i data-lucide="arrow-left-right" class="icon"></i>
+        </button>
         <input type="tel" id="sap-whatsapp" placeholder="059xxxxxxxx" inputmode="numeric">
       </div>
     </div>

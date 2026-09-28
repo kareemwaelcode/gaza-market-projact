@@ -18,7 +18,7 @@ window.GMStoreTypeConfig = (function () {
   };
 
   var STORE_LOCKED_FEATURES = {
-    free: ['qrCode', 'shareWhatsapp', 'cardPayment'],
+    free: ['qrCode', 'shareWhatsapp', 'cardPayment', 'whatsappOrder'],
     paid: []
   };
 
@@ -39,7 +39,17 @@ window.GMStoreTypeConfig = (function () {
       adTypes: ['offer', 'job'],
       adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
     },
-    clothing: { key: 'clothing', freeLimits: { discountedProducts: 5 }, hasDiscounts: true, hasAppointments: false, hiddenServices: ['gift_wrap'] },
+    clothing: {
+      key: 'clothing',
+      freeLimits: { discountedProducts: 5 },
+      hasDiscounts: true,
+      hasAppointments: false,
+      hasWhatsappOrder: true,
+      hiddenServices: ['gift_wrap'],
+      serviceIds: ['cash_payment', 'warranty', 'exchange_return', 'size_exchange', 'alteration', 'whatsapp_order', 'card_payment'],
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
     clinic: { key: 'clinic', freeLimits: { appointments: 5 }, hasDiscounts: false, hasAppointments: true, hiddenServices: [] }
   };
 
@@ -84,6 +94,8 @@ window.GMStoreTypeConfig = (function () {
     'إكسسوارات': 'Accessories',
     'خياطة': 'Tailoring'
   };
+
+  var CLOTHING_ONLY_SERVICE_IDS = ['size_exchange', 'alteration', 'whatsapp_order'];
 
   var storeConfigCache = {};
 
@@ -360,7 +372,10 @@ window.GMStoreTypeConfig = (function () {
       { id: 'card_payment', label: 'دفع بالبطاقة', icon: 'credit-card' },
       { id: 'warranty', label: 'ضمان على المنتجات', icon: 'shield-check' },
       { id: 'gift_wrap', label: 'تغليف هدايا', icon: 'gift' },
-      { id: 'exchange_return', label: 'استبدال واسترجاع', icon: 'repeat' }
+      { id: 'exchange_return', label: 'استبدال واسترجاع', icon: 'repeat' },
+      { id: 'size_exchange', label: 'تبديل المقاسات', icon: 'ruler' },
+      { id: 'alteration', label: 'تعديل المقاس / الخياطة', icon: 'scissors' },
+      { id: 'whatsapp_order', label: 'الطلب عبر واتساب', icon: 'message-circle' }
     ];
 
     var services;
@@ -370,7 +385,9 @@ window.GMStoreTypeConfig = (function () {
       }).filter(Boolean);
     } else {
       services = serviceCatalog.filter(function (service) {
-        return service.id !== 'cash_payment' && variant.hiddenServices.indexOf(service.id) === -1;
+        return service.id !== 'cash_payment' &&
+          CLOTHING_ONLY_SERVICE_IDS.indexOf(service.id) === -1 &&
+          variant.hiddenServices.indexOf(service.id) === -1;
       });
     }
 
@@ -393,6 +410,9 @@ window.GMStoreTypeConfig = (function () {
     }
     if (variant.hasAppointments) {
       freeFeatures.push({ label: 'استقبال حتى ' + free.appointments + ' حجوزات مواعيد', on: true });
+    }
+    if (variant.hasWhatsappOrder) {
+      freeFeatures.push({ label: 'الطلب عبر واتساب', on: false });
     }
     freeFeatures.push(
       { label: 'إشعارات لوحة التحكم', on: true },
@@ -430,6 +450,9 @@ window.GMStoreTypeConfig = (function () {
     }
     if (variant.hasAppointments) {
       paidFeatures.push('استقبال حجوزات مواعيد غير محدودة أونلاين');
+    }
+    if (variant.hasWhatsappOrder) {
+      paidFeatures.push('استقبال طلبات الزباين عبر واتساب');
     }
     paidFeatures.push(
       'شارة "مميز" وأولوية الظهور في نتائج البحث',

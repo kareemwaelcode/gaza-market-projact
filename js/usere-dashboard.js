@@ -658,8 +658,23 @@
   var LOCKED_FEATURE_LABELS = {
     qrCode: 'كود QR',
     shareWhatsapp: 'المشاركة عبر واتساب',
-    cardPayment: 'إظهار الدفع بالبطاقة للزوار'
+    cardPayment: 'إظهار الدفع بالبطاقة للزوار',
+    whatsappOrder: 'استقبال الطلبات عبر واتساب'
   };
+
+  var SERVICE_LOCKED_FEATURE = {
+    card_payment: 'cardPayment',
+    whatsapp_order: 'whatsappOrder'
+  };
+
+  function getServiceLockedFeatureKey(serviceId) {
+    return SERVICE_LOCKED_FEATURE[serviceId] || null;
+  }
+
+  function isServiceLocked(serviceId) {
+    var featureKey = getServiceLockedFeatureKey(serviceId);
+    return !!featureKey && isFeatureLockedForPlan(featureKey);
+  }
 
   var LOCK_OVERLAY_TEXT = 'متاحة في الباقة المدفوعة';
 
@@ -828,7 +843,7 @@
 
   function getStoredProfile() {
     try {
-      var raw = localStorage.getItem(PROFILE_STORAGE_KEY);
+      var raw = localStorage.getItem(scopedKey(PROFILE_STORAGE_KEY));
       return raw ? JSON.parse(raw) : null;
     } catch (err) {
       return null;
@@ -837,7 +852,7 @@
 
   function setStoredProfile(profile) {
     try {
-      localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile));
+      localStorage.setItem(scopedKey(PROFILE_STORAGE_KEY), JSON.stringify(profile));
     } catch (err) {}
   }
 
@@ -878,7 +893,7 @@
 
   function getStoredOpenStatus() {
     try {
-      var v = localStorage.getItem(OPEN_STORAGE_KEY);
+      var v = localStorage.getItem(scopedKey(OPEN_STORAGE_KEY));
       if (v === null) return true;
       return v === 'true';
     } catch (err) {
@@ -888,13 +903,13 @@
 
   function setStoredOpenStatus(isOpen) {
     try {
-      localStorage.setItem(OPEN_STORAGE_KEY, isOpen ? 'true' : 'false');
+      localStorage.setItem(scopedKey(OPEN_STORAGE_KEY), isOpen ? 'true' : 'false');
     } catch (err) {}
   }
 
   function getStoredPricesHours() {
     try {
-      var raw = localStorage.getItem(PRICES_HOURS_STORAGE_KEY);
+      var raw = localStorage.getItem(scopedKey(PRICES_HOURS_STORAGE_KEY));
       return raw ? JSON.parse(raw) : null;
     } catch (err) {
       return null;
@@ -903,13 +918,13 @@
 
   function setStoredPricesHours(data) {
     try {
-      localStorage.setItem(PRICES_HOURS_STORAGE_KEY, JSON.stringify(data));
+      localStorage.setItem(scopedKey(PRICES_HOURS_STORAGE_KEY), JSON.stringify(data));
     } catch (err) {}
   }
 
   function getStoredServices() {
     try {
-      var raw = localStorage.getItem(SERVICES_STORAGE_KEY);
+      var raw = localStorage.getItem(scopedKey(SERVICES_STORAGE_KEY));
       return raw ? JSON.parse(raw) : null;
     } catch (err) {
       return null;
@@ -918,13 +933,13 @@
 
   function setStoredServices(data) {
     try {
-      localStorage.setItem(SERVICES_STORAGE_KEY, JSON.stringify(data));
+      localStorage.setItem(scopedKey(SERVICES_STORAGE_KEY), JSON.stringify(data));
     } catch (err) {}
   }
 
   function getStoredSubscribers() {
     try {
-      var raw = localStorage.getItem(SUBSCRIBERS_STORAGE_KEY);
+      var raw = localStorage.getItem(scopedKey(SUBSCRIBERS_STORAGE_KEY));
       return raw ? JSON.parse(raw) : [];
     } catch (err) {
       return [];
@@ -933,7 +948,7 @@
 
   function setStoredSubscribers(list) {
     try {
-      localStorage.setItem(SUBSCRIBERS_STORAGE_KEY, JSON.stringify(list));
+      localStorage.setItem(scopedKey(SUBSCRIBERS_STORAGE_KEY), JSON.stringify(list));
     } catch (err) {}
   }
 
@@ -943,7 +958,7 @@
 
   function getStoredSubscriptionRequests() {
     try {
-      var raw = localStorage.getItem(SUBSCRIPTION_REQUESTS_STORAGE_KEY);
+      var raw = localStorage.getItem(scopedKey(SUBSCRIPTION_REQUESTS_STORAGE_KEY));
       return raw ? JSON.parse(raw) : [];
     } catch (err) {
       return [];
@@ -952,7 +967,7 @@
 
   function setStoredSubscriptionRequests(list) {
     try {
-      localStorage.setItem(SUBSCRIPTION_REQUESTS_STORAGE_KEY, JSON.stringify(list));
+      localStorage.setItem(scopedKey(SUBSCRIPTION_REQUESTS_STORAGE_KEY), JSON.stringify(list));
     } catch (err) {}
   }
 
@@ -1195,7 +1210,7 @@
 
   function getStoredTables() {
     try {
-      var raw = localStorage.getItem(TABLES_STORAGE_KEY);
+      var raw = localStorage.getItem(scopedKey(TABLES_STORAGE_KEY));
       var parsed = raw ? JSON.parse(raw) : [];
       return Array.isArray(parsed) ? parsed : [];
     } catch (err) {
@@ -1205,7 +1220,7 @@
 
   function setStoredTables(list) {
     try {
-      localStorage.setItem(TABLES_STORAGE_KEY, JSON.stringify(list));
+      localStorage.setItem(scopedKey(TABLES_STORAGE_KEY), JSON.stringify(list));
     } catch (err) {}
   }
 
@@ -1523,7 +1538,7 @@
 
   function getStoredReservations() {
     try {
-      var raw = localStorage.getItem(RESERVATIONS_STORAGE_KEY);
+      var raw = localStorage.getItem(scopedKey(RESERVATIONS_STORAGE_KEY));
       var parsed = raw ? JSON.parse(raw) : [];
       return Array.isArray(parsed) ? parsed : [];
     } catch (err) {
@@ -1533,7 +1548,7 @@
 
   function setStoredReservations(list) {
     try {
-      localStorage.setItem(RESERVATIONS_STORAGE_KEY, JSON.stringify(list));
+      localStorage.setItem(scopedKey(RESERVATIONS_STORAGE_KEY), JSON.stringify(list));
     } catch (err) {}
   }
 
@@ -1574,14 +1589,14 @@
   function getReservationsCreatedCount() {
     var stored = 0;
     try {
-      stored = parseInt(localStorage.getItem(RESERVATIONS_CREATED_KEY), 10) || 0;
+      stored = parseInt(localStorage.getItem(scopedKey(RESERVATIONS_CREATED_KEY)), 10) || 0;
     } catch (e) { }
     return Math.max(stored, getStoredReservations().length);
   }
 
   function setReservationsCreatedCount(count) {
     try {
-      localStorage.setItem(RESERVATIONS_CREATED_KEY, String(count));
+      localStorage.setItem(scopedKey(RESERVATIONS_CREATED_KEY), String(count));
     } catch (e) { }
   }
 
@@ -2424,14 +2439,15 @@
     if (!container) return;
     var services = getCurrentTypeServices();
     container.innerHTML = services.map(function (svc) {
-      var locked = svc.id === 'card_payment' && isFeatureLockedForPlan('cardPayment');
+      var lockedKey = getServiceLockedFeatureKey(svc.id);
+      var locked = isServiceLocked(svc.id);
       var iconHtml = svc.icon
         ? '<div class="sve-row-icon"><i data-lucide="' + svc.icon + '" class="icon"></i></div>'
         : '';
       return (
         '<div class="sve-row">' +
           iconHtml +
-          '<div class="switch" id="sve-switch-' + svc.id + '"' + (locked ? ' data-locked-feature="cardPayment"' : '') + '></div>' +
+          '<div class="switch" id="sve-switch-' + svc.id + '"' + (locked ? ' data-locked-feature="' + lockedKey + '"' : '') + '></div>' +
           '<span class="sve-row-label">' + svc.label + (locked ? ' <i data-lucide="lock" class="icon" style="width:14px;height:14px;vertical-align:middle;"></i>' : '') + '</span>' +
           '<input type="text" id="sve-details-' + svc.id + '" class="sve-details-input" placeholder="' + (locked ? LOCK_OVERLAY_TEXT : 'تفاصيل إضافية (اختياري)...') + '"' + (locked ? ' disabled' : '') + '>' +
         '</div>'
@@ -2471,7 +2487,7 @@
         var switchEl = document.getElementById('sve-switch-' + svc.id);
         var detailsInput = document.getElementById('sve-details-' + svc.id);
         var entry = data[svc.id] || {};
-        var lockedSvc = svc.id === 'card_payment' && isFeatureLockedForPlan('cardPayment');
+        var lockedSvc = isServiceLocked(svc.id);
         if (switchEl) switchEl.classList.toggle('on', !lockedSvc && !!entry.enabled);
         if (detailsInput) detailsInput.value = lockedSvc ? '' : (entry.details || '');
       });
@@ -2845,7 +2861,8 @@
     var subtitleEl = document.getElementById('sap-subtitle');
     var nameInput = document.getElementById('sap-name');
     var whatsappInput = document.getElementById('sap-whatsapp');
-    var countryCodeSelect = document.getElementById('sap-country-code');
+    var countryCodeBtn = document.getElementById('sap-country-code');
+    var countryCodeLabel = countryCodeBtn ? countryCodeBtn.querySelector('.phone-cc-text') : null;
     var durationGroup = document.getElementById('sap-duration-group');
     var amountInput = document.getElementById('sap-amount');
     var startDateInput = document.getElementById('sap-start-date');
@@ -2855,6 +2872,25 @@
 
     var selectedDuration = 'month';
     var editingId = null;
+
+    function getCountryCode() {
+      return (countryCodeBtn && countryCodeBtn.getAttribute('data-value')) || '970';
+    }
+
+    function setCountryCode(value) {
+      if (!countryCodeBtn) return;
+      var code = String(value || '970');
+      countryCodeBtn.setAttribute('data-value', code);
+      if (countryCodeLabel) countryCodeLabel.textContent = '+' + code;
+      countryCodeBtn.setAttribute('aria-label', 'مفتاح الدولة +' + code + ' — اضغط للتبديل');
+    }
+
+    if (countryCodeBtn) {
+      countryCodeBtn.addEventListener('click', function () {
+        setCountryCode(getCountryCode() === '970' ? '972' : '970');
+        if (whatsappInput) whatsappInput.focus();
+      });
+    }
 
     function setDuration(value) {
       selectedDuration = value;
@@ -2867,7 +2903,7 @@
     function resetForm() {
       if (nameInput) nameInput.value = '';
       if (whatsappInput) whatsappInput.value = '';
-      if (countryCodeSelect) countryCodeSelect.value = '970';
+      setCountryCode('970');
       if (amountInput) amountInput.value = '';
       if (noteInput) noteInput.value = '';
       if (startDateInput) startDateInput.value = getTodayISODate();
@@ -2877,7 +2913,7 @@
     function fillFormFromSubscriber(sub) {
       if (nameInput) nameInput.value = sub.name || '';
       if (whatsappInput) whatsappInput.value = sub.whatsapp || '';
-      if (countryCodeSelect) countryCodeSelect.value = sub.countryCode || '970';
+      setCountryCode(sub.countryCode || '970');
       if (amountInput) amountInput.value = sub.amount != null ? sub.amount : '';
       if (noteInput) noteInput.value = sub.note || '';
       if (startDateInput) startDateInput.value = sub.startDate || getTodayISODate();
@@ -2960,7 +2996,7 @@
           }
           if (idx !== -1) {
             list[idx].name = name;
-            list[idx].countryCode = countryCodeSelect ? countryCodeSelect.value : '970';
+            list[idx].countryCode = getCountryCode();
             list[idx].whatsapp = whatsapp;
             list[idx].duration = selectedDuration;
             list[idx].amount = amountInput && amountInput.value !== '' ? Number(amountInput.value) : 0;
@@ -2971,7 +3007,7 @@
           var subscriber = {
             id: generateSubscriberId(),
             name: name,
-            countryCode: countryCodeSelect ? countryCodeSelect.value : '970',
+            countryCode: getCountryCode(),
             whatsapp: whatsapp,
             duration: selectedDuration,
             amount: amountInput && amountInput.value !== '' ? Number(amountInput.value) : 0,
@@ -3079,10 +3115,35 @@
     return String(Math.round(n * 100) / 100) + ' ₪';
   }
 
+  function getStorageScope() {
+    var scope = 'default';
+    var config = getStoreTypeConfig();
+    if (config && config.id) {
+      scope = config.id;
+      if (config.id === 'store') {
+        var subId = null;
+        if (window.GMStoreTypeConfig && typeof window.GMStoreTypeConfig.getStoreSubcategoryId === 'function') {
+          subId = window.GMStoreTypeConfig.getStoreSubcategoryId();
+        }
+        scope += ':' + (subId || 'general');
+      }
+    }
+    return scope;
+  }
+
+  function scopedKey(baseKey) {
+    return baseKey + ':' + getStorageScope();
+  }
+
+  function getAdsStorageKey() {
+    return scopedKey(ADS_STORAGE_KEY);
+  }
+
   function getStoredAds() {
     try {
-      var raw = localStorage.getItem(ADS_STORAGE_KEY);
-      return raw ? JSON.parse(raw) : [];
+      var raw = localStorage.getItem(getAdsStorageKey());
+      var parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed : [];
     } catch (err) {
       return [];
     }
@@ -3090,7 +3151,7 @@
 
   function setStoredAds(list) {
     try {
-      localStorage.setItem(ADS_STORAGE_KEY, JSON.stringify(list));
+      localStorage.setItem(getAdsStorageKey(), JSON.stringify(list));
     } catch (err) {}
   }
 
@@ -3100,7 +3161,7 @@
 
   function getStoredNotifications() {
     try {
-      var raw = localStorage.getItem(NOTIFICATIONS_STORAGE_KEY);
+      var raw = localStorage.getItem(scopedKey(NOTIFICATIONS_STORAGE_KEY));
       return raw ? JSON.parse(raw) : [];
     } catch (err) {
       return [];
@@ -3109,7 +3170,7 @@
 
   function setStoredNotifications(list) {
     try {
-      localStorage.setItem(NOTIFICATIONS_STORAGE_KEY, JSON.stringify(list));
+      localStorage.setItem(scopedKey(NOTIFICATIONS_STORAGE_KEY), JSON.stringify(list));
     } catch (err) {}
   }
 
@@ -3592,7 +3653,7 @@
 
   function getStoredMenuCategories() {
     try {
-      var raw = localStorage.getItem(MENU_CATEGORIES_STORAGE_KEY);
+      var raw = localStorage.getItem(scopedKey(MENU_CATEGORIES_STORAGE_KEY));
       return raw ? JSON.parse(raw) : [];
     } catch (err) {
       return [];
@@ -3601,13 +3662,13 @@
 
   function setStoredMenuCategories(list) {
     try {
-      localStorage.setItem(MENU_CATEGORIES_STORAGE_KEY, JSON.stringify(list));
+      localStorage.setItem(scopedKey(MENU_CATEGORIES_STORAGE_KEY), JSON.stringify(list));
     } catch (err) {}
   }
 
   function getStoredMenuItems() {
     try {
-      var raw = localStorage.getItem(MENU_ITEMS_STORAGE_KEY);
+      var raw = localStorage.getItem(scopedKey(MENU_ITEMS_STORAGE_KEY));
       return raw ? JSON.parse(raw) : [];
     } catch (err) {
       return [];
@@ -3616,7 +3677,7 @@
 
   function setStoredMenuItems(list) {
     try {
-      localStorage.setItem(MENU_ITEMS_STORAGE_KEY, JSON.stringify(list));
+      localStorage.setItem(scopedKey(MENU_ITEMS_STORAGE_KEY), JSON.stringify(list));
     } catch (err) {}
   }
 
@@ -4175,7 +4236,7 @@
 
   function getStoredProductCategories() {
     try {
-      var raw = localStorage.getItem(PRODUCT_CATEGORIES_STORAGE_KEY);
+      var raw = localStorage.getItem(scopedKey(PRODUCT_CATEGORIES_STORAGE_KEY));
       return raw ? JSON.parse(raw) : [];
     } catch (err) {
       return [];
@@ -4184,13 +4245,13 @@
 
   function setStoredProductCategories(list) {
     try {
-      localStorage.setItem(PRODUCT_CATEGORIES_STORAGE_KEY, JSON.stringify(list));
+      localStorage.setItem(scopedKey(PRODUCT_CATEGORIES_STORAGE_KEY), JSON.stringify(list));
     } catch (err) {}
   }
 
   function getStoredProductItems() {
     try {
-      var raw = localStorage.getItem(PRODUCT_ITEMS_STORAGE_KEY);
+      var raw = localStorage.getItem(scopedKey(PRODUCT_ITEMS_STORAGE_KEY));
       return raw ? JSON.parse(raw) : [];
     } catch (err) {
       return [];
@@ -4199,7 +4260,7 @@
 
   function setStoredProductItems(list) {
     try {
-      localStorage.setItem(PRODUCT_ITEMS_STORAGE_KEY, JSON.stringify(list));
+      localStorage.setItem(scopedKey(PRODUCT_ITEMS_STORAGE_KEY), JSON.stringify(list));
       return true;
     } catch (err) {
       return false;
@@ -4834,12 +4895,15 @@
     warranty: 'shield-check',
     card_payment: 'credit-card',
     gift_wrap: 'package-check',
-    exchange_return: 'rotate-ccw'
+    exchange_return: 'rotate-ccw',
+    size_exchange: 'ruler',
+    alteration: 'scissors',
+    whatsapp_order: 'message-circle'
   };
 
   function getStoredServiceCategories() {
     try {
-      var raw = localStorage.getItem(STORE_SERVICE_CATEGORIES_STORAGE_KEY);
+      var raw = localStorage.getItem(scopedKey(STORE_SERVICE_CATEGORIES_STORAGE_KEY));
       return raw ? JSON.parse(raw) : [];
     } catch (err) {
       return [];
@@ -4848,13 +4912,13 @@
 
   function setStoredServiceCategories(list) {
     try {
-      localStorage.setItem(STORE_SERVICE_CATEGORIES_STORAGE_KEY, JSON.stringify(list));
+      localStorage.setItem(scopedKey(STORE_SERVICE_CATEGORIES_STORAGE_KEY), JSON.stringify(list));
     } catch (err) {}
   }
 
   function getStoredServiceItems() {
     try {
-      var raw = localStorage.getItem(STORE_SERVICE_ITEMS_STORAGE_KEY);
+      var raw = localStorage.getItem(scopedKey(STORE_SERVICE_ITEMS_STORAGE_KEY));
       return raw ? JSON.parse(raw) : [];
     } catch (err) {
       return [];
@@ -4863,7 +4927,7 @@
 
   function setStoredServiceItems(list) {
     try {
-      localStorage.setItem(STORE_SERVICE_ITEMS_STORAGE_KEY, JSON.stringify(list));
+      localStorage.setItem(scopedKey(STORE_SERVICE_ITEMS_STORAGE_KEY), JSON.stringify(list));
     } catch (err) {}
   }
 
@@ -5096,6 +5160,20 @@
     return /دفع.{0,8}بطاق|visa|فيزا|mastercard|ماستر/i.test(name || '');
   }
 
+  function isWhatsappOrderServiceName(name) {
+    var hasWhatsappOrderService = getCurrentTypeServices().some(function (svc) {
+      return svc.id === 'whatsapp_order';
+    });
+    if (!hasWhatsappOrderService) return false;
+    return /(طلب|اطلب).{0,12}(واتس|وتس|whatsapp)|(واتس|وتس|whatsapp).{0,12}طلب/i.test(name || '');
+  }
+
+  function getLockedFeatureForServiceName(name) {
+    if (isCardPaymentServiceName(name)) return 'cardPayment';
+    if (isWhatsappOrderServiceName(name)) return 'whatsappOrder';
+    return null;
+  }
+
   function renderServiceSuggestions() {
     var grid = document.getElementById('service-suggestions-grid');
     var title = document.getElementById('service-suggestions-title');
@@ -5117,10 +5195,10 @@
     if (title) title.style.display = '';
 
     grid.innerHTML = suggestions.map(function (svc) {
-      var isCardPayment = svc.id === 'card_payment';
-      var isLocked = isCardPayment && isFeatureLockedForPlan('cardPayment');
+      var lockedFeatureKey = getServiceLockedFeatureKey(svc.id);
+      var isLocked = isServiceLocked(svc.id);
       var icon = isLocked ? 'lock' : (SERVICE_SUGGESTION_ICONS[svc.id] || 'sparkles');
-      var lockAttr = isCardPayment ? ' data-locked-feature="cardPayment"' : '';
+      var lockAttr = lockedFeatureKey ? ' data-locked-feature="' + lockedFeatureKey + '"' : '';
       return (
         '<button type="button" class="card quick-card" data-action="add-service-suggestion" data-name="' + escapeHtml(svc.label) + '"' + lockAttr + ' ' +
           'style="width:100%;text-align:right;font:inherit;color:inherit;">' +
@@ -5323,8 +5401,9 @@
         var price = priceRaw !== '' ? Number(priceRaw) : null;
         var description = descInput ? descInput.value.trim() : '';
 
-        if (isFeatureLockedForPlan('cardPayment') && isCardPaymentServiceName(name)) {
-          openUpgradeModal({ featureKey: 'cardPayment' });
+        var lockedFeatureForName = getLockedFeatureForServiceName(name);
+        if (lockedFeatureForName && isFeatureLockedForPlan(lockedFeatureForName)) {
+          openUpgradeModal({ featureKey: lockedFeatureForName });
           return;
         }
 

@@ -5411,3 +5411,75 @@ table.menu-table tr.is-unavailable .menu-price { opacity: 0.55; }
   .menu-item-name-cell span { overflow-wrap: anywhere; }
   .menu-cat-chip { max-width: 100%; }
 }
+
+/* ==========================================================================
+   Action icon buttons: colored in ALL store types (workspace, food, store)
+   edit = blue | delete/cancel = red | toggle = amber | save = green
+   ========================================================================== */
+.icon-btn[data-action^="edit-"] { color: var(--db-blue-text); }
+.icon-btn[data-action^="delete-"],
+.icon-btn[data-action^="cancel-edit-"] { color: var(--db-red-text); }
+.icon-btn[data-action^="toggle-"]:not([data-action="toggle-theme"]):not([data-action="toggle-notifications"]):not([data-action="toggle-open"]) { color: var(--db-amber-text); }
+.icon-btn[data-action^="save-"] { color: var(--db-accent-text); }
+
+.icon-btn[data-action^="edit-"]:hover {
+  background: var(--db-blue-soft);
+  color: var(--db-blue-text);
+  border-color: var(--db-accent-soft-border);
+}
+.icon-btn[data-action^="delete-"]:hover,
+.icon-btn[data-action^="cancel-edit-"]:hover {
+  background: var(--db-red-soft);
+  color: var(--db-red-text);
+  border-color: rgba(217, 48, 37, 0.3);
+}
+.icon-btn[data-action^="toggle-"]:not([data-action="toggle-theme"]):not([data-action="toggle-notifications"]):not([data-action="toggle-open"]):hover {
+  background: var(--db-amber-soft);
+  color: var(--db-amber-text);
+  border-color: rgba(185, 138, 18, 0.3);
+}
+.icon-btn[data-action^="save-"]:hover {
+  background: var(--db-accent-soft);
+  color: var(--db-accent-text);
+  border-color: var(--db-accent-soft-border);
+}
+
+/* ==========================================================================
+   Subscriber panel: country-code toggle (970 <-> 972) instead of a dropdown
+   ========================================================================== */
+.field .phone-input-row { align-items: stretch; }
+.field .phone-input-row input { min-width: 0; }
+
+.phone-cc-toggle {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 88px;
+  min-height: 42px;
+  padding: 0 12px;
+  background: var(--db-bg-card-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s var(--ease), border-color 0.15s var(--ease), transform 0.1s var(--ease);
+}
+.phone-cc-toggle:hover { border-color: var(--db-border-strong); background: var(--bg-hover); }
+.phone-cc-toggle:active { transform: scale(0.97); }
+.phone-cc-toggle:focus-visible { outline: none; border-color: var(--db-accent-soft-border); box-shadow: 0 0 0 2px var(--db-accent-soft); }
+.phone-cc-toggle .phone-cc-text { unicode-bidi: isolate; letter-spacing: 0.2px; }
+.phone-cc-toggle .icon { width: 14px; height: 14px; color: var(--db-text-tertiary); }
+
+@media (max-width: 520px) {
+  .phone-cc-toggle { min-width: 80px; min-height: 46px; font-size: 16px; }
+}
+@media (max-width: 360px) {
+  .field .phone-input-row { gap: 6px; }
+  .phone-cc-toggle { min-width: 72px; padding: 0 8px; gap: 4px; }
+  .phone-cc-toggle .icon { width: 12px; height: 12px; }
+}
