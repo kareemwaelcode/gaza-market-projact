@@ -6,14 +6,14 @@ git add .
 git commit -m "Update project"
 git push
 
-
+مطعم
 localStorage.setItem('gm-store-type', 'restaurant');
 location.reload();
 
-
+كفي
 localStorage.setItem('gm-store-type', 'cafe');
 location.reload();
 
-
+كفي ومطعم
 localStorage.setItem('gm-store-type', 'restaurant-cafe');
 location.reload();

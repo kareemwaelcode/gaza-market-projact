@@ -17,17 +17,76 @@ window.GMStoreTypeConfig = (function () {
     paid: []
   };
 
-  var STORE_PLAN_LIMITS = {
-    free: { products: 10, productCategories: 8, ads: 3, services: 5, serviceCategories: 8 },
-    paid: { products: null, productCategories: null, ads: null, services: null, serviceCategories: null }
-  };
-
   var STORE_LOCKED_FEATURES = {
-    free: ['qrCode', 'shareWhatsapp'],
+    free: ['qrCode', 'shareWhatsapp', 'cardPayment'],
     paid: []
   };
 
-  // Types without table booking must not carry table/reservation limits.
+  var SUBCATEGORY_ID_KEY = 'gm-store-subcategory-id';
+  var SUBCATEGORY_LABEL_KEY = 'gm-store-subcategory';
+
+  var STORE_BASE_FREE_LIMITS = { products: 10, productCategories: 8, ads: 3, services: 5, serviceCategories: 8 };
+
+  var STORE_VARIANTS = {
+    general: { key: 'general', freeLimits: {}, hasDiscounts: false, hasAppointments: false, hiddenServices: [] },
+    grocery: { key: 'grocery', freeLimits: { products: 15 }, hasDiscounts: false, hasAppointments: false, hiddenServices: [] },
+    clothing: { key: 'clothing', freeLimits: { discountedProducts: 5 }, hasDiscounts: true, hasAppointments: false, hiddenServices: ['gift_wrap'] },
+    clinic: { key: 'clinic', freeLimits: { appointments: 5 }, hasDiscounts: false, hasAppointments: true, hiddenServices: [] }
+  };
+
+  var STORE_SUBCATEGORY_VARIANT = {
+    'General Grocery': 'grocery',
+    'Supermarket': 'grocery',
+    'Vegetables & Fruits': 'grocery',
+    'Meat': 'grocery',
+    'Fish': 'grocery',
+    'Bakery': 'grocery',
+    'Sweets & Pastries': 'grocery',
+    'Spices & Herbs': 'grocery',
+    'Pharmacy': 'general',
+    'Clinic & Medicine': 'clinic',
+    'Medical Supplies': 'general',
+    'Optics': 'general',
+    "Men's Clothing": 'clothing',
+    "Women's Clothing": 'clothing',
+    "Kids' Clothing": 'clothing',
+    'Shoes': 'clothing',
+    'Accessories': 'clothing',
+    'Tailoring': 'clothing'
+  };
+
+  var STORE_SUBCATEGORY_AR_TO_ID = {
+    'بقالة عامة': 'General Grocery',
+    'سوبرماركت': 'Supermarket',
+    'خضار وفواكه': 'Vegetables & Fruits',
+    'لحوم': 'Meat',
+    'أسماك': 'Fish',
+    'مخبز': 'Bakery',
+    'حلويات ومعجنات': 'Sweets & Pastries',
+    'بهارات وأعشاب': 'Spices & Herbs',
+    'صيدلية': 'Pharmacy',
+    'عيادة وطب': 'Clinic & Medicine',
+    'مستلزمات طبية': 'Medical Supplies',
+    'بصريات': 'Optics',
+    'ملابس رجالية': "Men's Clothing",
+    'ملابس نسائية': "Women's Clothing",
+    'ملابس أطفال': "Kids' Clothing",
+    'أحذية': 'Shoes',
+    'إكسسوارات': 'Accessories',
+    'خياطة': 'Tailoring'
+  };
+
+  var storeConfigCache = {};
+
+  function buildStoreLimits(variant) {
+    var free = {};
+    Object.keys(STORE_BASE_FREE_LIMITS).forEach(function (key) { free[key] = STORE_BASE_FREE_LIMITS[key]; });
+    Object.keys(variant.freeLimits).forEach(function (key) { free[key] = variant.freeLimits[key]; });
+    var paid = {};
+    Object.keys(free).forEach(function (key) { paid[key] = null; });
+    return { free: free, paid: paid };
+  }
+
   function omitTableLimits(limits) {
     var result = {};
     Object.keys(limits).forEach(function (plan) {
@@ -132,7 +191,7 @@ window.GMStoreTypeConfig = (function () {
     cafe: buildFoodTypeConfig('cafe', 'كافيه', { hasTableBooking: true }),
     'restaurant-cafe': buildFoodTypeConfig('restaurant-cafe', 'مطعم وكافيه', { hasTableBooking: true }),
 
-    store: buildStoreTypeConfig('store', 'متجر')
+    store: buildStoreTypeConfig('store', 'متجر', STORE_VARIANTS.general)
 
   };
 
@@ -187,7 +246,8 @@ window.GMStoreTypeConfig = (function () {
       { label: 'المنيو (حتى ' + FOOD_PLAN_LIMITS.free.menuItems + ' أصناف)', on: true },
       { label: 'حتى ' + FOOD_PLAN_LIMITS.free.menuCategories + ' تصنيفات للمنيو', on: true },
       { label: 'نشر حتى ' + FOOD_PLAN_LIMITS.free.ads + ' إعلانات', on: true },
-      { label: 'الخدمات المتاحة الأساسية', on: true }
+      { label: 'الخدمات المتاحة الأساسية', on: true },
+      { label: 'إشعارات لوحة التحكم', on: true }
     ];
     if (hasTableBooking) {
       freeFeatures.push(
@@ -210,7 +270,6 @@ window.GMStoreTypeConfig = (function () {
       { label: 'إحصائيات النشاط', on: false },
       { label: 'كود QR لصفحة النشاط', on: false },
       { label: 'المشاركة عبر واتساب', on: false },
-      { label: 'طلب مباشر عبر واتساب', on: false },
       { label: 'إشعارات فورية', on: false }
     );
 
@@ -231,7 +290,6 @@ window.GMStoreTypeConfig = (function () {
       'إحصائيات النشاط (مشاهدات الصفحة، مشاهدات المنيو، تفاعل الإعلانات)',
       'كود QR لصفحة النشاط',
       'مشاركة صفحة النشاط مباشرة عبر واتساب',
-      'زر طلب مباشر عبر واتساب من صفحة النشاط',
       'إشعارات فورية (تنبيهات، تذكير تجديد)'
     );
 
@@ -285,15 +343,88 @@ window.GMStoreTypeConfig = (function () {
     };
   }
 
-  function buildStoreTypeConfig(id, label) {
+  function buildStoreTypeConfig(id, label, variant) {
+    var limits = buildStoreLimits(variant);
+    var free = limits.free;
+
+    var services = [
+      { id: 'installation', label: 'تركيب فني' },
+      { id: 'warranty', label: 'ضمان على المنتجات' },
+      { id: 'card_payment', label: 'دفع بالبطاقة' },
+      { id: 'gift_wrap', label: 'تغليف هدايا' },
+      { id: 'exchange_return', label: 'استبدال واسترجاع' }
+    ].filter(function (service) {
+      return variant.hiddenServices.indexOf(service.id) === -1;
+    });
+
+    var freeFeatures = [
+      { label: 'صفحة خاصة بمتجرك على GazaPrice', on: true },
+      { label: 'لوحة تحكم لإدارة متجرك', on: true },
+      { label: 'إضافة حتى ' + free.products + ' منتج', on: true },
+      { label: 'حتى ' + free.productCategories + ' تصنيفات للمنتجات', on: true },
+      { label: 'حتى ' + free.services + ' خدمات', on: true },
+      { label: 'نشر حتى ' + free.ads + ' إعلانات', on: true }
+    ];
+    if (variant.hasDiscounts) {
+      freeFeatures.push({ label: 'تفعيل الخصم لحتى ' + free.discountedProducts + ' منتجات', on: true });
+    }
+    if (variant.hasAppointments) {
+      freeFeatures.push({ label: 'استقبال حتى ' + free.appointments + ' حجوزات مواعيد', on: true });
+    }
+    freeFeatures.push(
+      { label: 'إشعارات لوحة التحكم', on: true },
+      { label: 'منتجات وتصنيفات غير محدودة', on: false },
+      { label: 'خدمات غير محدودة', on: false },
+      { label: 'إعلانات غير محدودة', on: false }
+    );
+    if (variant.hasDiscounts) {
+      freeFeatures.push({ label: 'خصم غير محدود على المنتجات', on: false });
+    }
+    if (variant.hasAppointments) {
+      freeFeatures.push({ label: 'حجوزات مواعيد غير محدودة', on: false });
+    }
+    freeFeatures.push(
+      { label: 'شارة "مميز" وأولوية الظهور', on: false },
+      { label: 'إحصائيات المتجر', on: false },
+      { label: 'كود QR لصفحة المتجر', on: false },
+      { label: 'المشاركة عبر واتساب', on: false },
+      { label: 'إظهار الدفع بالبطاقة للزوار', on: false },
+      { label: 'إشعارات فورية', on: false }
+    );
+
+    var paidFeatures = [
+      'صفحة خاصة بمتجرك على GazaPrice',
+      'لوحة تحكم لإدارة متجرك',
+      'منتجات وتصنيفات غير محدودة',
+      'خدمات غير محدودة',
+      'نشر عدد غير محدود من الإعلانات (عروض، تخفيضات، منتجات جديدة)'
+    ];
+    if (variant.hasDiscounts) {
+      paidFeatures.push('تفعيل الخصم على عدد غير محدود من المنتجات');
+    }
+    if (variant.hasAppointments) {
+      paidFeatures.push('استقبال حجوزات مواعيد غير محدودة أونلاين');
+    }
+    paidFeatures.push(
+      'شارة "مميز" وأولوية الظهور في نتائج البحث',
+      'إحصائيات المتجر (مشاهدات الصفحة، مشاهدات المنتجات، تفاعل الإعلانات)',
+      'كود QR لصفحة المتجر',
+      'مشاركة صفحة المتجر مباشرة عبر واتساب',
+      'إظهار الدفع بالبطاقة للزوار في صفحة المتجر',
+      'إشعارات فورية (تنبيهات، تذكير تجديد)'
+    );
+
     return {
       id: id,
       label: label,
+      variant: variant.key,
+      hasDiscounts: variant.hasDiscounts,
+      hasAppointments: variant.hasAppointments,
       fallbackAvatarLetter: 'م',
       sidebar: [
         { page: 'dashboard', href: 'dashboard.html', icon: 'layout-grid', label: 'الرئيسية', sub: 'نظرة عامة على متجرك' },
         { page: 'prices', href: 'prices.html', icon: 'shopping-bag', label: 'المنتجات والأسعار', sub: 'الأصناف، الأسعار، التوفر' },
-        { page: 'services', href: 'services.html', icon: 'wrench', label: 'الخدمات', sub: 'توصيل، تركيب، صيانة' },
+        { page: 'services', href: 'services.html', icon: 'wrench', label: 'الخدمات', sub: 'تركيب، ضمان، استبدال' },
         { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', sub: 'عروض وتخفيضات', badge: 2 },
         { page: 'packages', href: 'packages.html', icon: 'layers', label: 'الباقات', sub: 'اختر باقة متجرك' },
         { page: 'profile', href: 'profile.html', icon: 'store', label: 'بروفايل المتجر', sub: 'تعديل المعلومات والصورة' },
@@ -306,19 +437,13 @@ window.GMStoreTypeConfig = (function () {
         { page: 'services', href: 'services.html', icon: 'wrench', label: 'الخدمات' },
         { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', badge: true }
       ],
-      services: [
-        { id: 'installation', label: 'تركيب وتوصيل فني' },
-        { id: 'warranty', label: 'ضمان على المنتجات' },
-        { id: 'card_payment', label: 'دفع بالبطاقة' },
-        { id: 'gift_wrap', label: 'تغليف هدايا' },
-        { id: 'exchange_return', label: 'استبدال واسترجاع' }
-      ],
+      services: services,
       dashboardCards: [
         { page: 'prices', href: 'prices.html', icon: 'shopping-bag', label: 'المنتجات والأسعار', sub: 'الأصناف والتوفر' },
-        { page: 'services', href: 'services.html', icon: 'wrench', label: 'الخدمات', sub: 'توصيل، تركيب' },
+        { page: 'services', href: 'services.html', icon: 'wrench', label: 'الخدمات', sub: 'تركيب، ضمان' },
         { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', sub: 'عروض وتخفيضات' }
       ],
-      limits: STORE_PLAN_LIMITS,
+      limits: limits,
       lockedFeatures: STORE_LOCKED_FEATURES,
       pageCopy: {
         profileTitle: 'بيانات المتجر',
@@ -334,23 +459,7 @@ window.GMStoreTypeConfig = (function () {
           name: 'مجاني',
           desc: 'لوحة تحكم ومعلومات أساسية لمتجرك',
           price: 0,
-          features: [
-            { label: 'صفحة خاصة بمتجرك على GazaPrice', on: true },
-            { label: 'لوحة تحكم لإدارة متجرك', on: true },
-            { label: 'إضافة حتى ' + STORE_PLAN_LIMITS.free.products + ' منتج', on: true },
-            { label: 'حتى ' + STORE_PLAN_LIMITS.free.productCategories + ' تصنيفات للمنتجات', on: true },
-            { label: 'حتى ' + STORE_PLAN_LIMITS.free.services + ' خدمات', on: true },
-            { label: 'نشر حتى ' + STORE_PLAN_LIMITS.free.ads + ' إعلانات', on: true },
-            { label: 'منتجات وتصنيفات غير محدودة', on: false },
-            { label: 'خدمات غير محدودة', on: false },
-            { label: 'إعلانات غير محدودة', on: false },
-            { label: 'شارة "مميز" وأولوية الظهور', on: false },
-            { label: 'إحصائيات المتجر', on: false },
-            { label: 'كود QR لصفحة المتجر', on: false },
-            { label: 'المشاركة عبر واتساب', on: false },
-            { label: 'طلب مباشر عبر واتساب', on: false },
-            { label: 'إشعارات فورية', on: false }
-          ]
+          features: freeFeatures
         },
         paid: {
           id: 'premium',
@@ -361,22 +470,36 @@ window.GMStoreTypeConfig = (function () {
           price: 99,
           buttonLabel: 'اشترك في الباقة المميزة',
           whatsappMessage: 'السلام عليكم، قمت بتحويل مبلغ 99 ₪ لاشتراك الباقة المميزة، وهذا إشعار التحويل.',
-          features: [
-            'صفحة خاصة بمتجرك على GazaPrice',
-            'لوحة تحكم لإدارة متجرك',
-            'منتجات وتصنيفات غير محدودة',
-            'خدمات غير محدودة',
-            'نشر عدد غير محدود من الإعلانات (عروض، تخفيضات، منتجات جديدة)',
-            'شارة "مميز" وأولوية الظهور في نتائج البحث',
-            'إحصائيات المتجر (مشاهدات الصفحة، مشاهدات المنتجات، تفاعل الإعلانات)',
-            'كود QR لصفحة المتجر',
-            'مشاركة صفحة المتجر مباشرة عبر واتساب',
-            'زر طلب مباشر عبر واتساب من صفحة المتجر',
-            'إشعارات فورية (تنبيهات، تذكير تجديد)'
-          ]
+          features: paidFeatures
         }
       }
     };
+  }
+
+  function getStoreSubcategoryId() {
+    try {
+      var storedId = window.localStorage.getItem(SUBCATEGORY_ID_KEY);
+      if (storedId && STORE_SUBCATEGORY_VARIANT[storedId]) return storedId;
+      var storedLabel = window.localStorage.getItem(SUBCATEGORY_LABEL_KEY);
+      if (storedLabel) {
+        if (STORE_SUBCATEGORY_VARIANT[storedLabel]) return storedLabel;
+        if (STORE_SUBCATEGORY_AR_TO_ID[storedLabel]) return STORE_SUBCATEGORY_AR_TO_ID[storedLabel];
+      }
+    } catch (e) { }
+    return null;
+  }
+
+  function getStoreVariantKey() {
+    var subcategoryId = getStoreSubcategoryId();
+    return (subcategoryId && STORE_SUBCATEGORY_VARIANT[subcategoryId]) || 'general';
+  }
+
+  function getStoreConfig() {
+    var key = getStoreVariantKey();
+    if (!storeConfigCache[key]) {
+      storeConfigCache[key] = buildStoreTypeConfig('store', 'متجر', STORE_VARIANTS[key] || STORE_VARIANTS.general);
+    }
+    return storeConfigCache[key];
   }
 
   function getCurrentType() {
@@ -395,6 +518,7 @@ window.GMStoreTypeConfig = (function () {
 
   function getConfig(typeId) {
     var id = typeId || getCurrentType();
+    if (id === 'store') return getStoreConfig();
     return TYPES[id] || TYPES[DEFAULT_TYPE];
   }
 
@@ -443,10 +567,12 @@ window.GMStoreTypeConfig = (function () {
   return {
     STORAGE_KEY: STORAGE_KEY,
     PLAN_STORAGE_KEY: PLAN_STORAGE_KEY,
+    SUBCATEGORY_ID_KEY: SUBCATEGORY_ID_KEY,
     DEFAULT_TYPE: DEFAULT_TYPE,
     DEFAULT_PLAN: DEFAULT_PLAN,
     TYPES: TYPES,
     getCurrentType: getCurrentType,
+    getStoreSubcategoryId: getStoreSubcategoryId,
     setCurrentType: setCurrentType,
     getCurrentPlan: getCurrentPlan,
     setCurrentPlan: setCurrentPlan,

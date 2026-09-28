@@ -45,6 +45,19 @@
       <input type="number" id="pie-price" min="0" step="0.5" placeholder="0">
     </div>
 
+    <div class="field" id="pie-size-field" style="display:none;">
+      <label for="pie-size">المقاس / النمرة</label>
+      <input type="text" id="pie-size" maxlength="20" placeholder="مثال: 42 أو M">
+    </div>
+
+    <div class="field" id="pie-discount-field" style="display:none;">
+      <label>الخصم</label>
+      <div class="seg-group" id="pie-discount-group">
+        <button type="button" class="seg-btn active" data-value="none">بدون خصم</button>
+        <button type="button" class="seg-btn" data-value="discount">عليه خصم</button>
+      </div>
+    </div>
+
     <div class="field" style="margin-bottom:0;">
       <label>الحالة</label>
       <div class="seg-group" id="pie-status-group">

@@ -321,10 +321,9 @@
     }
   }
 
-  // Temporary source for the dashboard (js/store-type-config.js) until the
-  // backend + admin-approval flow exists. See SKILL.md "Registration Flow".
   const DASHBOARD_TYPE_KEY = "gm-store-type";
   const DASHBOARD_SUBCAT_KEY = "gm-store-subcategory";
+  const DASHBOARD_SUBCAT_ID_KEY = "gm-store-subcategory-id";
 
   function persistTypeForDashboard() {
     try {
@@ -336,12 +335,12 @@
             ? i18n.tagLabel(state.storeSubCat)
             : state.storeSubCat;
         localStorage.setItem(DASHBOARD_SUBCAT_KEY, subLabel);
+        localStorage.setItem(DASHBOARD_SUBCAT_ID_KEY, state.storeSubCat);
       } else {
         localStorage.removeItem(DASHBOARD_SUBCAT_KEY);
+        localStorage.removeItem(DASHBOARD_SUBCAT_ID_KEY);
       }
-    } catch (e) {
-      /* localStorage unavailable (private mode, etc.) — ignore silently */
-    }
+    } catch (e) {}
   }
 
   function initStep4() {
@@ -404,7 +403,6 @@
 
   function init() {
     initTheme();
-    // initModalCleanup();
     initStep1();
     initStep2();
     initStep3();
@@ -421,13 +419,12 @@
 
 })();
 
-// loading
 (function(){
   const bar = document.getElementById('gmLoaderBar');
   const pct = document.getElementById('gmLoaderPct');
   const statusEl = document.getElementById('gmLoaderText');
   const loader = document.getElementById('gmLoader');
-  const app = document.getElementById('gmApp'); // ⚠️ تأكد إنه هاد العنصر موجود بالـ HTML
+  const app = document.getElementById('gmApp');
 
   const steps = [
     [15, 'Loading stores'],
@@ -442,7 +439,7 @@
     if(i >= steps.length){
       setTimeout(()=>{
         if (loader) loader.classList.add('gm-leave');
-        if (app) app.style.display = 'flex'; // ✅ ما بيطلع error حتى لو العنصر مش موجود
+        if (app) app.style.display = 'flex';
         setTimeout(()=>{ if (loader) loader.remove(); }, 200);
       }, 300);
       return;

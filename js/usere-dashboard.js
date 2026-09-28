@@ -651,15 +651,45 @@
     services: 'خدمات',
     serviceCategories: 'تصنيفات',
     tables: 'طاولات',
-    reservations: 'حجوزات'
+    reservations: 'حجوزات',
+    discountedProducts: 'منتجات بخصم'
   };
 
   var LOCKED_FEATURE_LABELS = {
     qrCode: 'كود QR',
-    shareWhatsapp: 'المشاركة عبر واتساب'
+    shareWhatsapp: 'المشاركة عبر واتساب',
+    cardPayment: 'إظهار الدفع بالبطاقة للزوار'
   };
 
   var LOCK_OVERLAY_TEXT = 'متاحة في الباقة المدفوعة';
+
+  function encodeCompressedCanvas(canvas, quality) {
+    var webp = canvas.toDataURL('image/webp', quality);
+    if (webp.indexOf('data:image/webp') === 0) return webp;
+    var ctx = canvas.getContext('2d');
+    ctx.globalCompositeOperation = 'destination-over';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL('image/jpeg', quality);
+  }
+
+  function compressImageFile(file, maxSide, quality, onDone) {
+    var reader = new FileReader();
+    reader.onload = function () {
+      var img = new Image();
+      img.onload = function () {
+        var ratio = Math.min(1, maxSide / Math.max(img.width, img.height));
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(img.width * ratio));
+        canvas.height = Math.max(1, Math.round(img.height * ratio));
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        onDone(encodeCompressedCanvas(canvas, quality));
+      };
+      img.onerror = function () { onDone(reader.result); };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  }
 
   function getPlanLimitStatus(limitKey, usedCount) {
     if (window.GMStoreTypeConfig && typeof window.GMStoreTypeConfig.getLimitStatus === 'function') {
@@ -689,6 +719,10 @@
       title = 'تجاوزت حد الباقة المجانية';
       message = 'وصلت للحد الأقصى في الباقة المجانية (' + opts.limit + ' ' + noun + '). ' +
         'اشترك بالباقة المدفوعة لإضافة ' + noun + ' أكثر.';
+      if (opts.limitKey === 'discountedProducts') {
+        message = 'وصلت للحد الأقصى للخصومات في الباقة المجانية (' + opts.limit + ' منتجات). ' +
+          'اشترك بالباقة المدفوعة لتفعيل الخصم على منتجات أكثر.';
+      }
     } else {
       var label = LOCKED_FEATURE_LABELS[opts.featureKey];
       title = 'ميزة للباقة المدفوعة';
@@ -1159,10 +1193,6 @@
     });
   }
 
-  // ---------------------------------------------------------------------
-  // Tables (الطاولات)
-  // ---------------------------------------------------------------------
-
   function getStoredTables() {
     try {
       var raw = localStorage.getItem(TABLES_STORAGE_KEY);
@@ -1191,9 +1221,6 @@
     return null;
   }
 
-  // Public, read-only accessor for tables (id + name + seats + status).
-  // Used to test gmSubmitTableReservation() from the console, and later
-  // by the public store page to build a "choose a table" dropdown.
   function gmGetTables() {
     return getStoredTables().map(function (t) {
       return { id: t.id, name: t.name, seats: t.seats, status: t.status };
@@ -1202,10 +1229,6 @@
 
   window.gmGetTables = gmGetTables;
 
-  // Same as gmGetTables(), but only tables that are currently available
-  // (not marked "occupied"). This is the list the public "احجز طاولاتك"
-  // modal should use to fill its table dropdown, so customers can't pick
-  // an occupied table.
   function gmGetAvailableTables() {
     return gmGetTables().filter(function (t) {
       return t.status !== 'occupied';
@@ -1498,10 +1521,6 @@
     });
   }
 
-  // ---------------------------------------------------------------------
-  // Reservations (الحجوزات)
-  // ---------------------------------------------------------------------
-
   function getStoredReservations() {
     try {
       var raw = localStorage.getItem(RESERVATIONS_STORAGE_KEY);
@@ -1552,9 +1571,6 @@
     return '<span class="badge amber"><span>\u25cf</span> قيد الانتظار</span>';
   }
 
-  // Cumulative number of reservations ever received. It is stored separately
-  // from the reservations list, so deleting a reservation does not free a slot.
-  // Math.max with the list length keeps data created before this counter existed.
   function getReservationsCreatedCount() {
     var stored = 0;
     try {
@@ -1569,9 +1585,6 @@
     } catch (e) { }
   }
 
-  // Free plan counts every reservation ever received (pending, confirmed,
-  // cancelled and deleted). The public platform must call this before
-  // showing/sending the booking form.
   function gmGetReservationLimitStatus() {
     return getPlanLimitStatus('reservations', getReservationsCreatedCount());
   }
@@ -2284,13 +2297,11 @@
       imageInput.addEventListener('change', function () {
         var file = imageInput.files && imageInput.files[0];
         if (!file) return;
-        var reader = new FileReader();
-        reader.onload = function () {
-          pendingImageDataUrl = reader.result;
+        compressImageFile(file, 480, 0.85, function (dataUrl) {
+          pendingImageDataUrl = dataUrl;
           avatarPreview.style.backgroundImage = 'url(' + pendingImageDataUrl + ')';
           avatarPreview.textContent = '';
-        };
-        reader.readAsDataURL(file);
+        });
       });
     }
 
@@ -2426,10 +2437,6 @@
       );
     }).join('');
 
-    // renderServiceRows() rebuilds these switch elements from scratch every
-    // time the panel opens, so the one-time global wireSwitches() (called
-    // once at page load) never reaches them. Wire click/keyboard toggling
-    // directly here, scoped to this container only.
     container.querySelectorAll('.switch').forEach(function (el) {
       el.setAttribute('role', 'switch');
       el.setAttribute('tabindex', '0');
@@ -3940,9 +3947,7 @@
       imageInput.addEventListener('change', function () {
         var file = imageInput.files && imageInput.files[0];
         if (!file) return;
-        var reader = new FileReader();
-        reader.onload = function () { setPreview(reader.result); };
-        reader.readAsDataURL(file);
+        compressImageFile(file, 720, 0.8, setPreview);
       });
     }
     if (removeImageBtn) {
@@ -4070,13 +4075,6 @@
     });
   }
 
-  // ---------------------------------------------------------------------
-  // Store products (categories + items) — same architecture as the menu
-  // system above, adapted for store-type activities (grocery, pharmacy,
-  // clothing...). Kept as a parallel set of functions (not a shared one)
-  // so the menu logic above stays untouched, per project scope rules.
-  // ---------------------------------------------------------------------
-
   function getStoredProductCategories() {
     try {
       var raw = localStorage.getItem(PRODUCT_CATEGORIES_STORAGE_KEY);
@@ -4104,7 +4102,21 @@
   function setStoredProductItems(list) {
     try {
       localStorage.setItem(PRODUCT_ITEMS_STORAGE_KEY, JSON.stringify(list));
-    } catch (err) {}
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
+
+  function storeHasDiscounts() {
+    var config = getStoreTypeConfig();
+    return !!(config && config.hasDiscounts);
+  }
+
+  function countDiscountedProducts(excludeId) {
+    return getStoredProductItems().filter(function (it) {
+      return it.discount === true && it.id !== excludeId;
+    }).length;
   }
 
   function generateProductCategoryId() {
@@ -4391,6 +4403,12 @@
         var priceValue = (item.price !== '' && item.price != null && !isNaN(Number(item.price)))
           ? Number(item.price).toFixed(2)
           : null;
+        var sizeChip = (storeHasDiscounts() && item.size)
+          ? ' <span class="menu-cat-chip">مقاس ' + escapeHtml(item.size) + '</span>'
+          : '';
+        var discountBadge = (storeHasDiscounts() && item.discount === true)
+          ? ' <span class="badge red">خصم</span>'
+          : '';
         var priceHtml = priceValue !== null
           ? '<span class="menu-price"><b>' + priceValue + '</b><i>₪</i></span>'
           : '<span class="menu-price menu-price--none"><b>—</b></span>';
@@ -4398,9 +4416,9 @@
         return (
           '<tr' + (item.available === false ? ' class="is-unavailable"' : '') + '>' +
             '<td class="menu-td-name" data-label="المنتج"><div class="menu-item-name-cell">' + thumb + '<span>' + escapeHtml(item.name) + '</span></div></td>' +
-            '<td class="menu-td-cat" data-label="التصنيف"><span class="menu-cat-chip">' + escapeHtml(productCategoryLabel(item.categoryId)) + '</span></td>' +
+            '<td class="menu-td-cat" data-label="التصنيف"><span class="menu-cat-chip">' + escapeHtml(productCategoryLabel(item.categoryId)) + '</span>' + sizeChip + '</td>' +
             '<td class="menu-td-price" data-label="السعر">' + priceHtml + '</td>' +
-            '<td class="menu-td-status" data-label="الحالة">' + buildProductStatusBadge(item) + '</td>' +
+            '<td class="menu-td-status" data-label="الحالة">' + buildProductStatusBadge(item) + discountBadge + '</td>' +
             '<td class="menu-td-actions">' +
               '<button type="button" class="icon-btn" data-action="toggle-product-item-availability" data-id="' + item.id + '" aria-label="' + (item.available !== false ? 'وضع كغير متاح' : 'وضع كمتاح') + '">' +
                 '<i data-lucide="' + (item.available !== false ? 'eye' : 'eye-off') + '" class="icon"></i>' +
@@ -4443,6 +4461,10 @@
     var categorySelect = document.getElementById('pie-category');
     var priceInput = document.getElementById('pie-price');
     var statusGroup = document.getElementById('pie-status-group');
+    var sizeField = document.getElementById('pie-size-field');
+    var sizeInput = document.getElementById('pie-size');
+    var discountField = document.getElementById('pie-discount-field');
+    var discountGroup = document.getElementById('pie-discount-group');
     var imageInput = document.getElementById('pie-image-input');
     var uploadBtn = document.getElementById('pie-upload-btn');
     var removeImageBtn = document.getElementById('pie-remove-image-btn');
@@ -4451,6 +4473,7 @@
 
     var editingId = null;
     var selectedStatus = 'available';
+    var selectedDiscount = false;
     var pendingImage = null;
 
     function setStatus(value) {
@@ -4459,6 +4482,27 @@
       statusGroup.querySelectorAll('.seg-btn').forEach(function (btn) {
         btn.classList.toggle('active', btn.getAttribute('data-value') === value);
       });
+    }
+
+    function setDiscount(isOn) {
+      selectedDiscount = !!isOn;
+      if (!discountGroup) return;
+      discountGroup.querySelectorAll('.seg-btn').forEach(function (btn) {
+        btn.classList.toggle('active', (btn.getAttribute('data-value') === 'discount') === selectedDiscount);
+      });
+    }
+
+    function canEnableDiscount() {
+      var status = getPlanLimitStatus('discountedProducts', countDiscountedProducts(editingId));
+      if (status.canAdd) return true;
+      openUpgradeModal({ limitKey: 'discountedProducts', limit: status.limit });
+      return false;
+    }
+
+    function applyFieldVisibility() {
+      var show = storeHasDiscounts();
+      if (sizeField) sizeField.style.display = show ? '' : 'none';
+      if (discountField) discountField.style.display = show ? '' : 'none';
     }
 
     function setPreview(imageUrl) {
@@ -4479,16 +4523,20 @@
     function resetForm() {
       if (nameInput) nameInput.value = '';
       if (priceInput) priceInput.value = '';
+      if (sizeInput) sizeInput.value = '';
       if (categorySelect) categorySelect.value = '';
       setStatus('available');
+      setDiscount(false);
       setPreview(null);
     }
 
     function fillFormFromItem(item) {
       if (nameInput) nameInput.value = item.name || '';
       if (priceInput) priceInput.value = item.price != null ? item.price : '';
+      if (sizeInput) sizeInput.value = item.size || '';
       if (categorySelect) categorySelect.value = item.categoryId || '';
       setStatus(item.available === false ? 'unavailable' : 'available');
+      setDiscount(item.discount === true);
       setPreview(item.image || null);
     }
 
@@ -4496,6 +4544,7 @@
       closeSidebarDrawerIfNeeded();
       closeMobileMoreSheet();
       renderProductCategorySelectOptions();
+      applyFieldVisibility();
 
       editingId = itemToEdit ? itemToEdit.id : null;
 
@@ -4528,9 +4577,7 @@
       imageInput.addEventListener('change', function () {
         var file = imageInput.files && imageInput.files[0];
         if (!file) return;
-        var reader = new FileReader();
-        reader.onload = function () { setPreview(reader.result); };
-        reader.readAsDataURL(file);
+        compressImageFile(file, 720, 0.8, setPreview);
       });
     }
     if (removeImageBtn) {
@@ -4561,6 +4608,13 @@
 
       var segBtn = e.target.closest && e.target.closest('#pie-status-group .seg-btn');
       if (segBtn) setStatus(segBtn.getAttribute('data-value'));
+
+      var discountBtn = e.target.closest && e.target.closest('#pie-discount-group .seg-btn');
+      if (discountBtn) {
+        var wantsDiscount = discountBtn.getAttribute('data-value') === 'discount';
+        if (wantsDiscount && !selectedDiscount && !canEnableDiscount()) return;
+        setDiscount(wantsDiscount);
+      }
     });
 
     document.addEventListener('keydown', function (e) {
@@ -4579,6 +4633,13 @@
 
         if (!editingId && !guardPlanLimit('products', list.length)) return;
 
+        var withDiscountFields = storeHasDiscounts();
+        var size = (withDiscountFields && sizeInput) ? sizeInput.value.trim() : '';
+        if (withDiscountFields && selectedDiscount && !canEnableDiscount()) {
+          setDiscount(false);
+          return;
+        }
+
         if (editingId) {
           for (var i = 0; i < list.length; i++) {
             if (list[i].id === editingId) {
@@ -4587,11 +4648,15 @@
               list[i].price = price;
               list[i].available = selectedStatus === 'available';
               list[i].image = pendingImage;
+              if (withDiscountFields) {
+                list[i].size = size;
+                list[i].discount = selectedDiscount;
+              }
               break;
             }
           }
         } else {
-          list.unshift({
+          var newItem = {
             id: generateProductItemId(),
             name: name,
             categoryId: categorySelect ? categorySelect.value : '',
@@ -4599,10 +4664,18 @@
             available: selectedStatus === 'available',
             image: pendingImage,
             createdAt: Date.now()
-          });
+          };
+          if (withDiscountFields) {
+            newItem.size = size;
+            newItem.discount = selectedDiscount;
+          }
+          list.unshift(newItem);
         }
 
-        setStoredProductItems(list);
+        if (!setStoredProductItems(list)) {
+          showToast('تعذر حفظ المنتج، مساحة التخزين ممتلئة', { icon: 'circle-alert', danger: true });
+          return;
+        }
         close();
         renderProductsPage();
         showToast(editingId ? 'تم تعديل المنتج' : 'تمت إضافة المنتج', { icon: 'package' });
@@ -4658,16 +4731,7 @@
     });
   }
 
-  // ---------------------------------------------------------------------
-  // Store services (categories + items) — same architecture as the store
-  // products system above, adapted for the "services.html" page (name,
-  // optional description, optional price, no image/availability toggle).
-  // Kept as a parallel set of functions so the products logic above stays
-  // untouched, per project scope rules.
-  // ---------------------------------------------------------------------
-
   var SERVICE_SUGGESTION_ICONS = {
-    delivery: 'truck',
     installation: 'wrench',
     warranty: 'shield-check',
     card_payment: 'credit-card',
@@ -4930,6 +4994,10 @@
     });
   }
 
+  function isCardPaymentServiceName(name) {
+    return /دفع.{0,8}بطاق|visa|فيزا|mastercard|ماستر/i.test(name || '');
+  }
+
   function renderServiceSuggestions() {
     var grid = document.getElementById('service-suggestions-grid');
     var title = document.getElementById('service-suggestions-title');
@@ -4951,16 +5019,20 @@
     if (title) title.style.display = '';
 
     grid.innerHTML = suggestions.map(function (svc) {
-      var icon = SERVICE_SUGGESTION_ICONS[svc.id] || 'sparkles';
+      var isCardPayment = svc.id === 'card_payment';
+      var isLocked = isCardPayment && isFeatureLockedForPlan('cardPayment');
+      var icon = isLocked ? 'lock' : (SERVICE_SUGGESTION_ICONS[svc.id] || 'sparkles');
+      var lockAttr = isCardPayment ? ' data-locked-feature="cardPayment"' : '';
       return (
-        '<button type="button" class="card quick-card" data-action="add-service-suggestion" data-name="' + escapeHtml(svc.label) + '" ' +
+        '<button type="button" class="card quick-card" data-action="add-service-suggestion" data-name="' + escapeHtml(svc.label) + '"' + lockAttr + ' ' +
           'style="width:100%;text-align:right;font:inherit;color:inherit;">' +
           '<div class="icon-wrap"><i data-lucide="' + icon + '" class="icon"></i></div>' +
-          '<div><div class="title">' + escapeHtml(svc.label) + '</div><div class="sub">اضغط للإضافة</div></div>' +
+          '<div><div class="title">' + escapeHtml(svc.label) + '</div><div class="sub">' + (isLocked ? LOCK_OVERLAY_TEXT : 'اضغط للإضافة') + '</div></div>' +
         '</button>'
       );
     }).join('');
 
+    applyLockedFeaturesToUI();
     bootIcons();
   }
 
@@ -5152,6 +5224,11 @@
         var priceRaw = priceInput ? priceInput.value : '';
         var price = priceRaw !== '' ? Number(priceRaw) : null;
         var description = descInput ? descInput.value.trim() : '';
+
+        if (isFeatureLockedForPlan('cardPayment') && isCardPaymentServiceName(name)) {
+          openUpgradeModal({ featureKey: 'cardPayment' });
+          return;
+        }
 
         var list = getStoredServiceItems();
 
