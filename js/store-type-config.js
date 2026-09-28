@@ -50,6 +50,40 @@ window.GMStoreTypeConfig = (function () {
       adTypes: ['offer', 'job'],
       adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
     },
+    pharmacy: {
+      key: 'pharmacy',
+      freeLimits: {},
+      hasDiscounts: false,
+      hasAppointments: false,
+      hasWhatsappOrder: true,
+      hiddenServices: [],
+      serviceIds: ['delivery', 'night_duty', 'prescription_order', 'cash_payment', 'card_payment', 'whatsapp_order'],
+      servicesNavSub: 'توصيل، مناوبة ليلية، وصفات طبية',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    medical: {
+      key: 'medical',
+      freeLimits: {},
+      hasDiscounts: false,
+      hasAppointments: false,
+      hiddenServices: [],
+      serviceIds: ['delivery', 'installation', 'device_rental', 'warranty', 'exchange_return', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'توصيل، تركيب، تأجير أجهزة، ضمان',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    optics: {
+      key: 'optics',
+      freeLimits: {},
+      hasDiscounts: false,
+      hasAppointments: false,
+      hiddenServices: [],
+      serviceIds: ['eye_exam', 'lens_fitting', 'warranty', 'exchange_return', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'فحص نظر، تركيب عدسات، ضمان',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
     clinic: { key: 'clinic', freeLimits: { appointments: 5 }, hasDiscounts: false, hasAppointments: true, hiddenServices: [] }
   };
 
@@ -62,10 +96,10 @@ window.GMStoreTypeConfig = (function () {
     'Bakery': 'grocery',
     'Sweets & Pastries': 'grocery',
     'Spices & Herbs': 'grocery',
-    'Pharmacy': 'general',
+    'Pharmacy': 'pharmacy',
     'Clinic & Medicine': 'clinic',
-    'Medical Supplies': 'general',
-    'Optics': 'general',
+    'Medical Supplies': 'medical',
+    'Optics': 'optics',
     "Men's Clothing": 'clothing',
     "Women's Clothing": 'clothing',
     "Kids' Clothing": 'clothing',
@@ -96,6 +130,7 @@ window.GMStoreTypeConfig = (function () {
   };
 
   var CLOTHING_ONLY_SERVICE_IDS = ['size_exchange', 'alteration', 'whatsapp_order'];
+  var HEALTH_ONLY_SERVICE_IDS = ['delivery', 'night_duty', 'prescription_order', 'device_rental', 'eye_exam', 'lens_fitting'];
 
   var storeConfigCache = {};
 
@@ -375,7 +410,13 @@ window.GMStoreTypeConfig = (function () {
       { id: 'exchange_return', label: 'استبدال واسترجاع', icon: 'repeat' },
       { id: 'size_exchange', label: 'تبديل المقاسات', icon: 'ruler' },
       { id: 'alteration', label: 'تعديل المقاس / الخياطة', icon: 'scissors' },
-      { id: 'whatsapp_order', label: 'الطلب عبر واتساب', icon: 'message-circle' }
+      { id: 'whatsapp_order', label: 'الطلب عبر واتساب', icon: 'message-circle' },
+      { id: 'delivery', label: 'خدمة توصيل', icon: 'truck' },
+      { id: 'night_duty', label: 'مناوبة ليلية', icon: 'moon' },
+      { id: 'prescription_order', label: 'استقبال الوصفات الطبية', icon: 'file-text' },
+      { id: 'device_rental', label: 'تأجير أجهزة طبية', icon: 'calendar-clock' },
+      { id: 'eye_exam', label: 'فحص نظر', icon: 'eye' },
+      { id: 'lens_fitting', label: 'تركيب عدسات', icon: 'glasses' }
     ];
 
     var services;
@@ -387,6 +428,7 @@ window.GMStoreTypeConfig = (function () {
       services = serviceCatalog.filter(function (service) {
         return service.id !== 'cash_payment' &&
           CLOTHING_ONLY_SERVICE_IDS.indexOf(service.id) === -1 &&
+          HEALTH_ONLY_SERVICE_IDS.indexOf(service.id) === -1 &&
           variant.hiddenServices.indexOf(service.id) === -1;
       });
     }
@@ -434,6 +476,7 @@ window.GMStoreTypeConfig = (function () {
       { label: 'إشعارات فورية', on: false }
     );
 
+    var servicesNavSub = variant.servicesNavSub || 'تركيب، ضمان، استبدال';
     var adsNavSub = hasOfferJobAds ? 'عروض ووظائف' : 'عروض وتخفيضات';
     var adsSubtitle = hasOfferJobAds
       ? 'عروض ووظائف تظهر في صفحة متجرك'
@@ -473,7 +516,7 @@ window.GMStoreTypeConfig = (function () {
       sidebar: [
         { page: 'dashboard', href: 'dashboard.html', icon: 'layout-grid', label: 'الرئيسية', sub: 'نظرة عامة على متجرك' },
         { page: 'prices', href: 'prices.html', icon: 'shopping-bag', label: 'المنتجات والأسعار', sub: 'الأصناف، الأسعار، التوفر' },
-        { action: 'open-services-edit', href: '#', icon: 'wrench', label: 'الخدمات المتاحة', sub: 'تركيب، ضمان، استبدال' },
+        { action: 'open-services-edit', href: '#', icon: 'wrench', label: 'الخدمات المتاحة', sub: servicesNavSub },
         { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', sub: adsNavSub, badge: 2 },
         { page: 'packages', href: 'packages.html', icon: 'layers', label: 'الباقات', sub: 'اختر باقة متجرك' },
         { page: 'profile', href: 'profile.html', icon: 'store', label: 'بروفايل المتجر', sub: 'تعديل المعلومات والصورة' }
@@ -487,7 +530,7 @@ window.GMStoreTypeConfig = (function () {
       services: services,
       dashboardCards: [
         { page: 'prices', href: 'prices.html', icon: 'shopping-bag', label: 'المنتجات والأسعار', sub: 'الأصناف والتوفر' },
-        { action: 'open-services-edit', href: '#', icon: 'wrench', label: 'الخدمات المتاحة', sub: 'تركيب، ضمان' },
+        { action: 'open-services-edit', href: '#', icon: 'wrench', label: 'الخدمات المتاحة', sub: servicesNavSub },
         { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', sub: adsNavSub }
       ],
       limits: limits,
