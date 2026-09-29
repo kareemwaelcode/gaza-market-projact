@@ -154,6 +154,8 @@
     return item.page || item.action || item.href;
   }
 
+  var MOBILE_MORE_LOGOUT_ONLY = true;
+
   function renderMobileMore() {
     var config = getStoreTypeConfig();
     if (!config || !Array.isArray(config.sidebar)) return;
@@ -164,7 +166,7 @@
     var logoutHTML = logoutRow ? logoutRow.outerHTML : '';
 
     var mobileNavKeys = (config.mobileNav || []).map(navItemKey);
-    var moreItems = config.sidebar.filter(function (item) {
+    var moreItems = MOBILE_MORE_LOGOUT_ONLY ? [] : config.sidebar.filter(function (item) {
       return mobileNavKeys.indexOf(navItemKey(item)) === -1;
     });
 
@@ -664,6 +666,7 @@
 
   var SERVICE_LOCKED_FEATURE = {
     card_payment: 'cardPayment',
+    'payment_methods-tow': 'cardPayment',
     whatsapp_order: 'whatsappOrder'
   };
 

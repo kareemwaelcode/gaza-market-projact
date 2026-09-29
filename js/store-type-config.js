@@ -13,7 +13,7 @@ window.GMStoreTypeConfig = (function () {
   };
 
   var FOOD_LOCKED_FEATURES = {
-    free: ['qrCode', 'shareWhatsapp'],
+    free: ['qrCode', 'shareWhatsapp', 'cardPayment'],
     paid: []
   };
 
@@ -266,7 +266,14 @@ window.GMStoreTypeConfig = (function () {
       }
     },
 
-    restaurant: buildFoodTypeConfig('restaurant', 'مطعم', { hasTableBooking: false }),
+    restaurant: buildFoodTypeConfig('restaurant', 'مطعم', {
+      hasTableBooking: false,
+      adTypes: ['offer', 'job'],
+      adOptions: { linkOnlyForJob: true },
+      adsSubtitle: 'عروض ووظائف تظهر في صفحة نشاطك',
+      adsNavSub: 'عروض ووظائف',
+      adsPaidLabel: 'نشر عدد غير محدود من الإعلانات (عروض ووظائف)'
+    }),
     cafe: buildFoodTypeConfig('cafe', 'كافيه', { hasTableBooking: true }),
     'restaurant-cafe': buildFoodTypeConfig('restaurant-cafe', 'مطعم وكافيه', { hasTableBooking: true }),
 
@@ -311,7 +318,7 @@ window.GMStoreTypeConfig = (function () {
     }
 
     sidebar.push(
-      { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', sub: 'فعاليات، عروض، وظائف', badge: 2 },
+      { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', sub: opts.adsNavSub || 'فعاليات، عروض، وظائف', badge: 2 },
       { page: 'packages', href: 'packages.html', icon: 'layers', label: 'الباقات', sub: 'اختر باقة نشاطك' },
       { page: 'profile', href: 'profile.html', icon: 'store', label: 'بروفايل النشاط', sub: 'تعديل المعلومات والصورة' }
     );
@@ -349,6 +356,7 @@ window.GMStoreTypeConfig = (function () {
       { label: 'إحصائيات النشاط', on: false },
       { label: 'كود QR لصفحة النشاط', on: false },
       { label: 'المشاركة عبر واتساب', on: false },
+      { label: 'إظهار الدفع بالبطاقة للزوار', on: false },
       { label: 'إشعارات فورية', on: false }
     );
 
@@ -356,7 +364,7 @@ window.GMStoreTypeConfig = (function () {
       'صفحة خاصة بنشاطك على GazaPrice',
       'لوحة تحكم لإدارة نشاطك',
       'منيو غير محدود (تصنيفات وأصناف بلا حدود)',
-      'نشر عدد غير محدود من الإعلانات (عروض، فعاليات، وظائف)'
+      opts.adsPaidLabel || 'نشر عدد غير محدود من الإعلانات (عروض، فعاليات، وظائف)'
     ];
     if (hasTableBooking) {
       paidFeatures.push(
@@ -369,6 +377,7 @@ window.GMStoreTypeConfig = (function () {
       'إحصائيات النشاط (مشاهدات الصفحة، مشاهدات المنيو، تفاعل الإعلانات)',
       'كود QR لصفحة النشاط',
       'مشاركة صفحة النشاط مباشرة عبر واتساب',
+      'إظهار الدفع بالبطاقة للزوار في صفحة النشاط',
       'إشعارات فورية (تنبيهات، تذكير تجديد)'
     );
 
@@ -390,11 +399,12 @@ window.GMStoreTypeConfig = (function () {
       dashboardCards: dashboardCards,
       limits: hasTableBooking ? FOOD_PLAN_LIMITS : omitTableLimits(FOOD_PLAN_LIMITS),
       lockedFeatures: FOOD_LOCKED_FEATURES,
-      adTypes: ['activity', 'offer'],
+      adTypes: opts.adTypes || ['activity', 'offer'],
+      adOptions: opts.adOptions || {},
       pageCopy: {
         profileTitle: 'بيانات النشاط',
         entityNameLabel: 'اسم النشاط',
-        adsSubtitle: 'عروض وفعاليات تظهر في صفحة نشاطك',
+        adsSubtitle: opts.adsSubtitle || 'عروض وفعاليات تظهر في صفحة نشاطك',
         heroWelcomeText: 'نشاطك جاهز لبدء استقبال طلباتك وخدماتك من هنا.'
       },
       packages: {
