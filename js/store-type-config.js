@@ -46,7 +46,6 @@ window.GMStoreTypeConfig = (function () {
       hasDiscounts: true,
       hasAppointments: false,
       hasProducts: true,
-      hasWhatsappOrder: true,
       hiddenServices: ['gift_wrap'],
       serviceIds: ['cash_payment', 'card_payment', 'warranty', 'exchange_return'],
       servicesNavSub: 'دفع كاش وبطاقة، ضمان، استبدال واسترجاع',
@@ -157,6 +156,10 @@ window.GMStoreTypeConfig = (function () {
   var HEALTH_ONLY_SERVICE_IDS = ['delivery', 'night_duty', 'prescription_order', 'device_rental', 'eye_exam', 'lens_fitting', 'health_check', 'injections', 'device_maintenance', 'glasses_repair', 'consultation', 'lab_tests', 'xray', 'vaccinations'];
 
   var storeConfigCache = {};
+
+  function getProductsNoun(count) {
+    return count >= 3 && count <= 10 ? 'منتجات' : 'منتج';
+  }
 
   function buildStoreLimits(variant) {
     var free = {};
@@ -492,7 +495,7 @@ window.GMStoreTypeConfig = (function () {
     ];
     if (hasProducts) {
       freeFeatures.push(
-        { label: 'إضافة حتى ' + free.products + ' منتج', on: true },
+        { label: 'إضافة حتى ' + free.products + ' ' + getProductsNoun(free.products), on: true },
         { label: 'حتى ' + free.productCategories + ' تصنيفات للمنتجات', on: true }
       );
     }
