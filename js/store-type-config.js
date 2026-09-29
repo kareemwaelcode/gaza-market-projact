@@ -42,13 +42,15 @@ window.GMStoreTypeConfig = (function () {
     },
     clothing: {
       key: 'clothing',
-      freeLimits: { discountedProducts: 5 },
+      freeLimits: { productCategories: 5, discountedProducts: 5 },
       hasDiscounts: true,
       hasAppointments: false,
       hasProducts: true,
       hasWhatsappOrder: true,
       hiddenServices: ['gift_wrap'],
-      serviceIds: ['cash_payment', 'warranty', 'exchange_return', 'size_exchange', 'alteration', 'whatsapp_order', 'card_payment'],
+      serviceIds: ['cash_payment', 'card_payment', 'warranty', 'exchange_return'],
+      servicesNavSub: 'دفع كاش وبطاقة، ضمان، استبدال واسترجاع',
+      productFields: ['details'],
       adTypes: ['offer', 'job'],
       adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
     },

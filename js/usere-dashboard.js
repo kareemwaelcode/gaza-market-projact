@@ -4273,6 +4273,11 @@
     return !!(config && config.hasDiscounts);
   }
 
+  function storeHasProductField(fieldKey) {
+    var config = getStoreTypeConfig();
+    return !!(config && Array.isArray(config.productFields) && config.productFields.indexOf(fieldKey) !== -1);
+  }
+
   function countDiscountedProducts(excludeId) {
     return getStoredProductItems().filter(function (it) {
       return it.discount === true && it.id !== excludeId;
@@ -4566,6 +4571,9 @@
         var sizeChip = (storeHasDiscounts() && item.size)
           ? ' <span class="menu-cat-chip">مقاس ' + escapeHtml(item.size) + '</span>'
           : '';
+        var detailsLine = (storeHasProductField('details') && item.details)
+          ? '<div class="sub" style="font-size:12px;color:var(--db-text-tertiary);">' + escapeHtml(item.details) + '</div>'
+          : '';
         var discountBadge = (storeHasDiscounts() && item.discount === true)
           ? ' <span class="badge red">خصم</span>'
           : '';
@@ -4575,7 +4583,7 @@
 
         return (
           '<tr' + (item.available === false ? ' class="is-unavailable"' : '') + '>' +
-            '<td class="menu-td-name" data-label="المنتج"><div class="menu-item-name-cell">' + thumb + '<span>' + escapeHtml(item.name) + '</span></div></td>' +
+            '<td class="menu-td-name" data-label="المنتج"><div class="menu-item-name-cell">' + thumb + '<span>' + escapeHtml(item.name) + detailsLine + '</span></div></td>' +
             '<td class="menu-td-cat" data-label="التصنيف"><span class="menu-cat-chip">' + escapeHtml(productCategoryLabel(item.categoryId)) + '</span>' + sizeChip + '</td>' +
             '<td class="menu-td-price" data-label="السعر">' + priceHtml + '</td>' +
             '<td class="menu-td-status" data-label="الحالة">' + buildProductStatusBadge(item) + discountBadge + '</td>' +
@@ -4623,6 +4631,8 @@
     var statusGroup = document.getElementById('pie-status-group');
     var sizeField = document.getElementById('pie-size-field');
     var sizeInput = document.getElementById('pie-size');
+    var detailsField = document.getElementById('pie-details-field');
+    var detailsInput = document.getElementById('pie-details');
     var discountField = document.getElementById('pie-discount-field');
     var discountGroup = document.getElementById('pie-discount-group');
     var imageInput = document.getElementById('pie-image-input');
@@ -4663,6 +4673,7 @@
       var show = storeHasDiscounts();
       if (sizeField) sizeField.style.display = show ? '' : 'none';
       if (discountField) discountField.style.display = show ? '' : 'none';
+      if (detailsField) detailsField.style.display = storeHasProductField('details') ? '' : 'none';
     }
 
     function setPreview(imageUrl) {
@@ -4684,6 +4695,7 @@
       if (nameInput) nameInput.value = '';
       if (priceInput) priceInput.value = '';
       if (sizeInput) sizeInput.value = '';
+      if (detailsInput) detailsInput.value = '';
       if (categorySelect) categorySelect.value = '';
       setStatus('available');
       setDiscount(false);
@@ -4694,6 +4706,7 @@
       if (nameInput) nameInput.value = item.name || '';
       if (priceInput) priceInput.value = item.price != null ? item.price : '';
       if (sizeInput) sizeInput.value = item.size || '';
+      if (detailsInput) detailsInput.value = item.details || '';
       if (categorySelect) categorySelect.value = item.categoryId || '';
       setStatus(item.available === false ? 'unavailable' : 'available');
       setDiscount(item.discount === true);
@@ -4793,6 +4806,8 @@
 
         if (!editingId && !guardPlanLimit('products', list.length)) return;
 
+        var withDetailsField = storeHasProductField('details');
+        var details = (withDetailsField && detailsInput) ? detailsInput.value.trim() : '';
         var withDiscountFields = storeHasDiscounts();
         var size = (withDiscountFields && sizeInput) ? sizeInput.value.trim() : '';
         if (withDiscountFields && selectedDiscount && !canEnableDiscount()) {
@@ -4808,6 +4823,7 @@
               list[i].price = price;
               list[i].available = selectedStatus === 'available';
               list[i].image = pendingImage;
+              if (withDetailsField) list[i].details = details;
               if (withDiscountFields) {
                 list[i].size = size;
                 list[i].discount = selectedDiscount;
@@ -4825,6 +4841,7 @@
             image: pendingImage,
             createdAt: Date.now()
           };
+          if (withDetailsField) newItem.details = details;
           if (withDiscountFields) {
             newItem.size = size;
             newItem.discount = selectedDiscount;
