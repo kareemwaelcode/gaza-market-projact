@@ -4285,6 +4285,58 @@
     return !!(config && Array.isArray(config.serviceFields) && config.serviceFields.indexOf(fieldKey) !== -1);
   }
 
+  function getExtraFieldDefs(kind) {
+    var config = getStoreTypeConfig();
+    var list = config && config[kind === 'service' ? 'serviceExtraFields' : 'productExtraFields'];
+    return Array.isArray(list) ? list : [];
+  }
+
+  function renderExtraFields(container, prefix, defs, values) {
+    if (!container) return;
+    var saved = values || {};
+    container.innerHTML = defs.map(function (def) {
+      var id = prefix + '-x-' + def.key;
+      var value = saved[def.key] != null ? String(saved[def.key]) : '';
+      var control;
+      if (def.type === 'choice') {
+        control = '<select id="' + id + '" data-extra-key="' + def.key + '"><option value="">غير محدد</option>' +
+          (def.options || []).map(function (opt) {
+            return '<option value="' + escapeHtml(opt) + '"' + (opt === value ? ' selected' : '') + '>' + escapeHtml(opt) + '</option>';
+          }).join('') + '</select>';
+      } else {
+        control = '<input type="text" id="' + id + '" data-extra-key="' + def.key + '" maxlength="' + (def.maxLength || 40) + '" placeholder="' + escapeHtml(def.placeholder || '') + '" value="' + escapeHtml(value) + '">';
+      }
+      return '<div class="field"><label for="' + id + '">' + escapeHtml(def.label) + '</label>' + control + '</div>';
+    }).join('');
+  }
+
+  function readExtraFields(container, defs) {
+    var result = {};
+    if (!container) return result;
+    defs.forEach(function (def) {
+      var el = container.querySelector('[data-extra-key="' + def.key + '"]');
+      var value = el ? String(el.value || '').trim() : '';
+      if (value) result[def.key] = value;
+    });
+    return result;
+  }
+
+  function formatExtraFields(defs, extra) {
+    if (!extra) return [];
+    var parts = [];
+    defs.forEach(function (def) {
+      if (extra[def.key]) parts.push(escapeHtml(def.label) + ': ' + escapeHtml(extra[def.key]));
+    });
+    return parts;
+  }
+
+  function extraFieldsMatch(term, defs, extra) {
+    if (!extra) return false;
+    return defs.some(function (def) {
+      return String(extra[def.key] || '').toLowerCase().indexOf(term) !== -1;
+    });
+  }
+
   function countDiscountedProducts(excludeId) {
     return getStoredProductItems().filter(function (it) {
       return it.discount === true && it.id !== excludeId;
@@ -4614,7 +4666,8 @@
                  productCategoryLabel(it.categoryId).toLowerCase().indexOf(term) !== -1 ||
                  (storeHasProductField('brand') && (it.brand || '').toLowerCase().indexOf(term) !== -1) ||
                  (storeHasProductField('color') && (it.color || '').toLowerCase().indexOf(term) !== -1) ||
-                 (storeHasProductField('material') && (it.material || '').toLowerCase().indexOf(term) !== -1);
+                 (storeHasProductField('material') && (it.material || '').toLowerCase().indexOf(term) !== -1) ||
+                 extraFieldsMatch(term, getExtraFieldDefs('product'), it.extra);
         })
       : items;
 
@@ -4639,6 +4692,7 @@
         if (storeHasProductField('brand') && item.brand) attrParts.push('الماركة: ' + escapeHtml(item.brand));
         if (storeHasProductField('material') && item.material) attrParts.push('الخامة: ' + escapeHtml(item.material));
         if (storeHasProductField('color') && item.color) attrParts.push('اللون: ' + escapeHtml(item.color));
+        formatExtraFields(getExtraFieldDefs('product'), item.extra).forEach(function (part) { attrParts.push(part); });
         var attrsLine = attrParts.length
           ? '<div class="sub" style="font-size:12px;color:var(--db-text-tertiary);">' + attrParts.join(' · ') + '</div>'
           : '';
@@ -4707,6 +4761,7 @@
     var colorInput = document.getElementById('pie-color');
     var materialField = document.getElementById('pie-material-field');
     var materialInput = document.getElementById('pie-material');
+    var extraContainer = document.getElementById('pie-extra-fields');
     var discountField = document.getElementById('pie-discount-field');
     var discountGroup = document.getElementById('pie-discount-group');
     var imageInput = document.getElementById('pie-image-input');
@@ -4817,6 +4872,7 @@
       closeMobileMoreSheet();
       renderProductCategorySelectOptions();
       applyFieldVisibility();
+      renderExtraFields(extraContainer, 'pie', getExtraFieldDefs('product'), itemToEdit ? itemToEdit.extra : null);
 
       editingId = itemToEdit ? itemToEdit.id : null;
 
@@ -4916,6 +4972,8 @@
         var brand = (withBrandField && brandInput) ? brandInput.value.trim() : '';
         var color = (withColorField && colorInput) ? colorInput.value.trim() : '';
         var material = (withMaterialField && materialInput) ? materialInput.value.trim() : '';
+        var extraDefs = getExtraFieldDefs('product');
+        var extra = extraDefs.length ? readExtraFields(extraContainer, extraDefs) : null;
         if (withDiscountFields && selectedDiscount && !canEnableDiscount()) {
           setDiscount(false);
           return;
@@ -4934,6 +4992,7 @@
               if (withBrandField) list[i].brand = brand;
               if (withColorField) list[i].color = color;
               if (withMaterialField) list[i].material = material;
+              if (extra) list[i].extra = extra;
               if (withDiscountFields) list[i].discount = selectedDiscount;
               break;
             }
@@ -4953,6 +5012,7 @@
           if (withBrandField) newItem.brand = brand;
           if (withColorField) newItem.color = color;
           if (withMaterialField) newItem.material = material;
+          if (extra) newItem.extra = extra;
           if (withDiscountFields) newItem.discount = selectedDiscount;
           list.unshift(newItem);
         }
@@ -5387,7 +5447,8 @@
       ? items.filter(function (it) {
           return (it.name || '').toLowerCase().indexOf(term) !== -1 ||
                  (it.description || '').toLowerCase().indexOf(term) !== -1 ||
-                 serviceCategoryLabel(it.categoryId).toLowerCase().indexOf(term) !== -1;
+                 serviceCategoryLabel(it.categoryId).toLowerCase().indexOf(term) !== -1 ||
+                 extraFieldsMatch(term, getExtraFieldDefs('service'), it.extra);
         })
       : items;
 
@@ -5407,6 +5468,10 @@
           : '';
         if (storeHasServiceField('duration') && item.duration) {
           descHtml += '<div class="sub" style="margin-top:2px;">مدة التنفيذ: ' + escapeHtml(item.duration) + '</div>';
+        }
+        var serviceExtraParts = formatExtraFields(getExtraFieldDefs('service'), item.extra);
+        if (serviceExtraParts.length) {
+          descHtml += '<div class="sub" style="margin-top:2px;">' + serviceExtraParts.join(' · ') + '</div>';
         }
         if (storeHasServiceField('priceFrom') && item.priceFrom === true && priceValue !== null) {
           priceHtml = '<span class="menu-price"><small style="color:var(--db-text-tertiary);margin-inline-end:4px;">يبدأ من</small><b>' + priceValue + '</b><i>₪</i></span>';
@@ -5459,6 +5524,7 @@
     var priceInput = document.getElementById('sie-price');
     var durationField = document.getElementById('sie-duration-field');
     var durationInput = document.getElementById('sie-duration');
+    var extraContainer = document.getElementById('sie-extra-fields');
     var priceModeField = document.getElementById('sie-price-mode-field');
     var priceModeGroup = document.getElementById('sie-price-mode-group');
     var saveBtn = document.getElementById('sie-save-btn');
@@ -5502,6 +5568,7 @@
       closeMobileMoreSheet();
       renderServiceCategorySelectOptions();
       applyServiceFieldVisibility();
+      renderExtraFields(extraContainer, 'sie', getExtraFieldDefs('service'), itemToEdit ? itemToEdit.extra : null);
 
       editingId = itemToEdit ? itemToEdit.id : null;
 
@@ -5575,6 +5642,8 @@
         var withDurationField = storeHasServiceField('duration');
         var withPriceFromField = storeHasServiceField('priceFrom');
         var duration = (withDurationField && durationInput) ? durationInput.value.trim() : '';
+        var extraDefs = getExtraFieldDefs('service');
+        var extra = extraDefs.length ? readExtraFields(extraContainer, extraDefs) : null;
 
         var lockedFeatureForName = getLockedFeatureForServiceName(name);
         if (lockedFeatureForName && isFeatureLockedForPlan(lockedFeatureForName)) {
@@ -5595,6 +5664,7 @@
               list[i].price = price;
               if (withDurationField) list[i].duration = duration;
               if (withPriceFromField) list[i].priceFrom = selectedPriceFrom;
+              if (extra) list[i].extra = extra;
               break;
             }
           }
@@ -5609,6 +5679,7 @@
           };
           if (withDurationField) newService.duration = duration;
           if (withPriceFromField) newService.priceFrom = selectedPriceFrom;
+          if (extra) newService.extra = extra;
           list.unshift(newService);
         }
 

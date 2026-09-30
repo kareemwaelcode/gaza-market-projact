@@ -251,6 +251,648 @@ window.GMStoreTypeConfig = (function () {
       heroWelcomeText: 'عيادتك جاهزة لاستقبال المواعيد وعرض خدماتك من هنا.',
       adTypes: ['offer', 'job'],
       adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    mobile: {
+      key: 'mobile',
+      freeLimits: { productCategories: 5, discountedProducts: 5 },
+      hasDiscounts: true,
+      hasAppointments: false,
+      hasProducts: true,
+      hiddenServices: [],
+      serviceIds: ['warranty', 'exchange_return', 'installments', 'delivery', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'ضمان، استبدال واسترجاع، تقسيط، توصيل',
+      productFields: ['details', 'brand'],
+      productExtraFields: [
+        { key: 'model', label: 'الموديل', placeholder: 'مثال: Galaxy A54' },
+        { key: 'storage', label: 'السعة (GB)', placeholder: 'مثال: 128', maxLength: 20 },
+        { key: 'condition', label: 'حالة الجهاز', type: 'choice', options: ['جديد', 'مستعمل'] },
+        { key: 'warranty', label: 'الضمان', placeholder: 'مثال: سنة من الوكيل' },
+        { key: 'accessoryType', label: 'نوع الإكسسوار (إن كان إكسسوار)', placeholder: 'مثال: شاحن، سماعة، جراب' }
+      ],
+      productHints: { name: 'مثال: سامسونج Galaxy A54 128GB', details: 'مثال: شاشة 6.4 إنش، كاميرا 50 ميجا', brand: 'مثال: سامسونج، آبل، شاومي' },
+      suggestedCategories: ['هواتف ذكية', 'سماعات', 'شواحن وكوابل', 'جرابات وحمايات', 'باور بانك', 'إكسسوارات متنوعة'],
+      heroWelcomeText: 'محلك جاهز لعرض الموبايلات والإكسسوارات وأسعارها من هنا.',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    computers: {
+      key: 'computers',
+      freeLimits: { productCategories: 5, discountedProducts: 5 },
+      hasDiscounts: true,
+      hasAppointments: false,
+      hasProducts: true,
+      hiddenServices: [],
+      serviceIds: ['warranty', 'after_sales', 'exchange_return', 'installments', 'delivery', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'ضمان، صيانة، استبدال واسترجاع، تقسيط',
+      productFields: ['details', 'brand'],
+      productExtraFields: [
+        { key: 'processor', label: 'المعالج', placeholder: 'مثال: Core i5 الجيل 12' },
+        { key: 'ram', label: 'الرام', placeholder: 'مثال: 16GB', maxLength: 20 },
+        { key: 'storage', label: 'التخزين', placeholder: 'مثال: 512GB SSD', maxLength: 30 },
+        { key: 'gpu', label: 'كرت الشاشة', placeholder: 'مثال: RTX 3050' },
+        { key: 'condition', label: 'حالة الجهاز', type: 'choice', options: ['جديد', 'مستعمل'] },
+        { key: 'warranty', label: 'الضمان', placeholder: 'مثال: سنتين' }
+      ],
+      productHints: { name: 'مثال: لابتوب HP 15 Core i5', details: 'مثال: شاشة 15.6 إنش، بطارية تدوم 6 ساعات', brand: 'مثال: HP، Dell، Lenovo' },
+      suggestedCategories: ['لابتوبات', 'كمبيوترات مكتبية', 'شاشات', 'قطع ومكونات', 'طابعات وأحبار', 'ملحقات (ماوس وكيبورد)'],
+      heroWelcomeText: 'محلك جاهز لعرض الكمبيوترات واللابتوبات وأسعارها من هنا.',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    electronics: {
+      key: 'electronics',
+      freeLimits: { productCategories: 5, discountedProducts: 5 },
+      hasDiscounts: true,
+      hasAppointments: false,
+      hasProducts: true,
+      hiddenServices: [],
+      serviceIds: ['warranty', 'installation', 'after_sales', 'exchange_return', 'installments', 'delivery', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'ضمان، تركيب، صيانة، تقسيط',
+      productFields: ['details', 'brand'],
+      productExtraFields: [
+        { key: 'deviceType', label: 'نوع الجهاز', placeholder: 'مثال: تلفزيون، سماعة، كاميرا' },
+        { key: 'model', label: 'الموديل', placeholder: 'مثال: موديل 2024' },
+        { key: 'condition', label: 'حالة الجهاز', type: 'choice', options: ['جديد', 'مستعمل'] },
+        { key: 'warranty', label: 'الضمان', placeholder: 'مثال: سنة' }
+      ],
+      productHints: { name: 'مثال: شاشة سمارت 55 إنش', details: 'مثال: 4K، نظام أندرويد، ريموت صوتي', brand: 'مثال: سامسونج، LG، سوني' },
+      suggestedCategories: ['تلفزيونات وشاشات', 'سماعات وسبيكرات', 'كاميرات', 'أجهزة ألعاب', 'أجهزة ذكية', 'إضاءة وكهربائيات صغيرة'],
+      heroWelcomeText: 'محلك جاهز لعرض الإلكترونيات وأسعارها من هنا.',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    solar: {
+      key: 'solar',
+      freeLimits: { productCategories: 5, discountedProducts: 5 },
+      hasDiscounts: true,
+      hasAppointments: false,
+      hasProducts: true,
+      hasServiceItems: true,
+      hiddenServices: [],
+      serviceIds: ['installation', 'technical_consultation', 'warranty', 'installments', 'delivery', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'تركيب، استشارة فنية، ضمان، تقسيط',
+      productFields: ['details', 'brand'],
+      productExtraFields: [
+        { key: 'partType', label: 'نوع القطعة', type: 'choice', options: ['لوح شمسي', 'بطارية', 'إنفرتر', 'شاحن / كنترولر', 'أخرى'] },
+        { key: 'power', label: 'القدرة (واط)', placeholder: 'مثال: 550', maxLength: 20 },
+        { key: 'capacityAh', label: 'السعة (أمبير/ساعة)', placeholder: 'مثال: 200', maxLength: 20 },
+        { key: 'voltage', label: 'الجهد (فولت)', placeholder: 'مثال: 12', maxLength: 20 },
+        { key: 'warranty', label: 'الضمان', placeholder: 'مثال: 5 سنوات' }
+      ],
+      productHints: { name: 'مثال: لوح شمسي 550 واط', details: 'مثال: أحادي البلورة، كفاءة عالية', brand: 'مثال: Jinko، Longi، Growatt' },
+      suggestedCategories: ['ألواح شمسية', 'بطاريات', 'إنفرترات', 'شواحن وكنترولر', 'كوابل وملحقات', 'إضاءة LED'],
+      serviceItemsNav: {
+        icon: 'zap',
+        label: 'باقات التركيب',
+        mobileLabel: 'الباقات',
+        sub: 'باقات جاهزة (ألواح + بطاريات + إنفرتر) بأسعارها',
+        cardSub: 'باقات التركيب وأسعارها'
+      },
+      serviceFields: ['duration', 'priceFrom'],
+      serviceSuggestions: [
+        { id: 'sl_small', label: 'باقة منزلية صغيرة (إضاءة وشحن)', icon: 'lightbulb' },
+        { id: 'sl_medium', label: 'باقة منزلية متوسطة (ثلاجة وتلفاز)', icon: 'house' },
+        { id: 'sl_large', label: 'باقة منزلية كاملة', icon: 'zap' },
+        { id: 'sl_install', label: 'تركيب وتمديد فقط', icon: 'wrench' }
+      ],
+      pageCopy: {
+        servicesPageTitle: 'باقات التركيب',
+        servicesEmptyText: 'أضف باقة جاهزة مثل لوح وبطارية وإنفرتر مع سعرها ومدة تركيبها ليطّلع عليها الزوار قبل زيارتك'
+      },
+      heroWelcomeText: 'محلك جاهز لعرض الطاقة الشمسية وباقات التركيب وأسعارها من هنا.',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    repair: {
+      key: 'repair',
+      freeLimits: {},
+      hasDiscounts: false,
+      hasAppointments: false,
+      hasProducts: false,
+      hasServiceItems: true,
+      hiddenServices: [],
+      serviceIds: ['urgent_service', 'delivery', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'تنفيذ سريع، توصيل، دفع كاش وبطاقة',
+      serviceItemsNav: {
+        icon: 'wrench',
+        label: 'الخدمات والأسعار',
+        mobileLabel: 'الأسعار',
+        sub: 'التصليحات والصيانة وأسعارها',
+        cardSub: 'الخدمات والأسعار ومدة التنفيذ'
+      },
+      serviceFields: ['duration', 'priceFrom'],
+      serviceExtraFields: [
+        { key: 'deviceType', label: 'نوع الجهاز', placeholder: 'مثال: موبايل، لابتوب، شاشة' },
+        { key: 'warranty', label: 'الضمان على الإصلاح', placeholder: 'مثال: شهر، 3 شهور' }
+      ],
+      serviceSuggestions: [
+        { id: 'rp_screen', label: 'تغيير شاشة', icon: 'smartphone' },
+        { id: 'rp_battery', label: 'تغيير بطارية', icon: 'battery-charging' },
+        { id: 'rp_charge_port', label: 'تصليح منفذ الشحن', icon: 'plug-zap' },
+        { id: 'rp_software', label: 'فورمات وتنصيب نظام', icon: 'hard-drive' },
+        { id: 'rp_laptop', label: 'صيانة وتنظيف لابتوب', icon: 'laptop' }
+      ],
+      pageCopy: {
+        servicesPageTitle: 'الخدمات والأسعار',
+        servicesEmptyText: 'أضف خدمة مثل تغيير شاشة أو بطارية مع سعرها ومدة تنفيذها وضمانها ليطّلع عليها الزوار قبل زيارتك'
+      },
+      heroWelcomeText: 'محلك جاهز لعرض خدمات التصليح والصيانة وأسعارها من هنا.',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    buildingmat: {
+      key: 'buildingmat',
+      freeLimits: {},
+      hasDiscounts: false,
+      hasAppointments: false,
+      hasProducts: true,
+      hiddenServices: [],
+      serviceIds: ['delivery', 'wholesale', 'technical_consultation', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'توصيل للموقع، بيع بالجملة، استشارة فنية',
+      productFields: ['details', 'brand'],
+      productExtraFields: [
+        { key: 'materialType', label: 'نوع المادة', type: 'choice', options: ['إسمنت ولصق', 'رمل وحصى', 'طوب وبلوك', 'عزل', 'أدوات بناء', 'أخرى'] },
+        { key: 'unit', label: 'وحدة البيع', type: 'choice', options: ['كيس', 'طن', 'متر مكعب', 'حبة', 'متر', 'قطعة'] }
+      ],
+      productHints: { name: 'مثال: إسمنت أسود 50 كيلو', details: 'مثال: إسمنت بورتلاندي، مناسب للصب والبناء', brand: 'مثال: اسم المصنع أو الشركة' },
+      suggestedCategories: ['إسمنت ولصق', 'رمل وحصى', 'طوب وبلوك', 'عزل', 'أدوات بناء'],
+      heroWelcomeText: 'محلك جاهز لعرض مواد البناء وأسعارها من هنا.',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    ironalu: {
+      key: 'ironalu',
+      freeLimits: {},
+      hasDiscounts: false,
+      hasAppointments: false,
+      hasProducts: true,
+      hasServiceItems: true,
+      hiddenServices: [],
+      serviceIds: ['delivery', 'wholesale', 'technical_consultation', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'توصيل، بيع بالجملة، استشارة فنية',
+      productFields: ['details', 'brand'],
+      productExtraFields: [
+        { key: 'metalType', label: 'نوع المعدن', type: 'choice', options: ['حديد', 'ألمنيوم', 'ستانلس', 'أخرى'] },
+        { key: 'dimension', label: 'المقاس / السماكة', placeholder: 'مثال: 12 ملم، 6 متر', maxLength: 30 },
+        { key: 'unit', label: 'وحدة البيع', type: 'choice', options: ['طن', 'كيلو', 'متر', 'قطعة'] }
+      ],
+      productHints: { name: 'مثال: حديد تسليح 12 ملم', details: 'مثال: طول 12 متر، درجة 60', brand: 'مثال: اسم المصنع أو الشركة' },
+      suggestedCategories: ['حديد تسليح', 'ألمنيوم', 'أبواب وشبابيك', 'دربزين وحدادة', 'لحام ومستلزماته'],
+      serviceItemsNav: {
+        icon: 'hammer',
+        label: 'التفصيل والتركيب',
+        mobileLabel: 'التفصيل',
+        sub: 'أبواب، شبابيك، دربزين، أسعار وتركيب',
+        cardSub: 'خدمات التفصيل والتركيب وأسعارها'
+      },
+      serviceFields: ['duration', 'priceFrom'],
+      serviceSuggestions: [
+        { id: 'ia_door', label: 'تفصيل باب حديد', icon: 'door-open' },
+        { id: 'ia_window', label: 'تفصيل شباك ألمنيوم', icon: 'app-window' },
+        { id: 'ia_rail', label: 'تفصيل وتركيب دربزين', icon: 'hammer' },
+        { id: 'ia_shade', label: 'مظلات وسقوف معدنية', icon: 'warehouse' },
+        { id: 'ia_weld', label: 'لحام وصيانة', icon: 'flame' }
+      ],
+      pageCopy: {
+        servicesPageTitle: 'التفصيل والتركيب',
+        servicesEmptyText: 'أضف خدمة مثل تفصيل باب أو شباك أو دربزين مع سعرها ومدة تنفيذها ليطّلع عليها الزوار قبل زيارتك'
+      },
+      heroWelcomeText: 'محلك جاهز لعرض الحديد والألمنيوم وخدمات التفصيل وأسعارها من هنا.',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    paintsdecor: {
+      key: 'paintsdecor',
+      freeLimits: { productCategories: 5, discountedProducts: 5 },
+      hasDiscounts: true,
+      hasAppointments: false,
+      hasProducts: true,
+      hiddenServices: [],
+      serviceIds: ['color_mixing', 'delivery', 'technical_consultation', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'خلط ألوان بالكمبيوتر، توصيل، استشارة فنية',
+      productFields: ['details', 'brand', 'color'],
+      productExtraFields: [
+        { key: 'packSize', label: 'الحجم / العبوة', type: 'choice', options: ['1 لتر', '4 لتر (جالون)', '5 لتر', '18 لتر', 'أخرى'] },
+        { key: 'finish', label: 'نوع التشطيب', type: 'choice', options: ['مطفي', 'نصف لامع', 'لامع'] }
+      ],
+      productHints: { name: 'مثال: دهان داخلي أبيض 18 لتر', details: 'مثال: قابل للغسيل، يغطي 12 متر للتر', brand: 'مثال: جوتن، جمجوم، ناشيونال', color: 'مثال: أبيض، رقم اللون RAL 9010' },
+      suggestedCategories: ['دهانات داخلية', 'دهانات خارجية', 'معاجين وأساسات', 'ورق جدران', 'أدوات دهان'],
+      heroWelcomeText: 'محلك جاهز لعرض الدهانات والديكور وأسعارها من هنا.',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    wood: {
+      key: 'wood',
+      freeLimits: { productCategories: 5, discountedProducts: 5 },
+      hasDiscounts: true,
+      hasAppointments: false,
+      hasProducts: true,
+      hiddenServices: [],
+      serviceIds: ['cut_to_size', 'delivery', 'wholesale', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'قص حسب المقاس، توصيل، بيع بالجملة',
+      productFields: ['details'],
+      productExtraFields: [
+        { key: 'woodType', label: 'نوع الخشب', type: 'choice', options: ['زان', 'صنوبر', 'MDF', 'أبلكاش', 'باركيه', 'أخرى'] },
+        { key: 'dimension', label: 'المقاس (الطول × العرض × السماكة)', placeholder: 'مثال: 244 × 122 × 1.8 سم', maxLength: 40 },
+        { key: 'unit', label: 'وحدة البيع', type: 'choice', options: ['لوح', 'متر', 'قطعة'] }
+      ],
+      productHints: { name: 'مثال: لوح MDF أبيض 18 ملم', details: 'مثال: وجهين، مقاوم للرطوبة' },
+      suggestedCategories: ['ألواح MDF', 'خشب طبيعي', 'أبلكاش', 'باركيه', 'إكسسوارات ومفصلات'],
+      heroWelcomeText: 'محلك جاهز لعرض الأخشاب وأسعارها من هنا.',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    tiles: {
+      key: 'tiles',
+      freeLimits: { productCategories: 5, discountedProducts: 5 },
+      hasDiscounts: true,
+      hasAppointments: false,
+      hasProducts: true,
+      hiddenServices: [],
+      serviceIds: ['quantity_calc', 'delivery', 'technical_consultation', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'حساب الكمية من المساحة، توصيل، استشارة فنية',
+      productFields: ['details', 'brand'],
+      productExtraFields: [
+        { key: 'tileSize', label: 'المقاس', placeholder: 'مثال: 60×60 سم', maxLength: 30 },
+        { key: 'tileType', label: 'النوع', type: 'choice', options: ['أرضيات', 'جدران', 'بورسلان'] },
+        { key: 'origin', label: 'بلد المنشأ', placeholder: 'مثال: إسباني، تركي، محلي', maxLength: 30 },
+        { key: 'finish', label: 'التشطيب', type: 'choice', options: ['لامع', 'مطفي'] },
+        { key: 'priceUnit', label: 'السعر لكل', type: 'choice', options: ['متر', 'صندوق', 'قطعة'] },
+        { key: 'metersPerBox', label: 'كمية المتر في الصندوق', placeholder: 'مثال: 1.44', maxLength: 20 }
+      ],
+      productHints: { name: 'مثال: سيراميك أرضيات 60×60', details: 'مثال: درجة أولى، مقاوم للخدش', brand: 'مثال: اسم الشركة المصنعة' },
+      suggestedCategories: ['أرضيات', 'جدران', 'بورسلان', 'حمامات ومطابخ', 'أدوات تركيب وجص'],
+      heroWelcomeText: 'محلك جاهز لعرض السيراميك والبلاط وأسعاره من هنا.',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    stationery: {
+      key: 'stationery',
+      freeLimits: { productCategories: 5, discountedProducts: 5 },
+      hasDiscounts: true,
+      hasAppointments: false,
+      hasProducts: true,
+      hiddenServices: [],
+      serviceIds: ['printing_copying', 'delivery', 'wholesale', 'gift_wrap', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'طباعة وتصوير، توصيل، جملة، تغليف هدايا',
+      productFields: ['details', 'brand'],
+      productExtraFields: [
+        { key: 'unit', label: 'وحدة البيع', type: 'choice', options: ['قطعة', 'علبة', 'دزينة', 'رزمة', 'كرتونة'] }
+      ],
+      productHints: { name: 'مثال: دفتر 100 ورقة سلك', details: 'مثال: ورق أبيض، غلاف كرتون مقوى', brand: 'مثال: اسم الشركة المصنعة' },
+      suggestedCategories: ['دفاتر وكراريس', 'أقلام وأدوات كتابة', 'حقائب مدرسية', 'أدوات مكتبية', 'كتب وقصص', 'مستلزمات مدرسية'],
+      heroWelcomeText: 'مكتبتك جاهزة لعرض القرطاسية والكتب وأسعارها من هنا.',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    toys: {
+      key: 'toys',
+      freeLimits: { productCategories: 5, discountedProducts: 5 },
+      hasDiscounts: true,
+      hasAppointments: false,
+      hasProducts: true,
+      hiddenServices: [],
+      serviceIds: ['gift_wrap', 'exchange_return', 'delivery', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'تغليف هدايا، استبدال واسترجاع، توصيل',
+      productFields: ['details', 'brand', 'color'],
+      productExtraFields: [
+        { key: 'ageGroup', label: 'الفئة العمرية', type: 'choice', options: ['0-2 سنة', '3-5 سنوات', '6-8 سنوات', '9 سنوات فما فوق', 'لكل الأعمار'] },
+        { key: 'battery', label: 'البطارية', type: 'choice', options: ['مشمولة', 'غير مشمولة', 'لا تحتاج بطارية'] }
+      ],
+      productHints: { name: 'مثال: سيارة تحكم عن بعد', details: 'مثال: تعمل بالبطارية، مناسبة للأطفال', brand: 'مثال: اسم الشركة المصنعة', color: 'مثال: أحمر، أزرق' },
+      suggestedCategories: ['ألعاب تعليمية', 'دمى وعرائس', 'سيارات وألعاب تحكم', 'ألعاب تركيب ومكعبات', 'ألعاب خارجية', 'هدايا ومفاجآت'],
+      heroWelcomeText: 'محلك جاهز لعرض ألعاب الأطفال وأسعارها من هنا.',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    artsupplies: {
+      key: 'artsupplies',
+      freeLimits: { productCategories: 5, discountedProducts: 5 },
+      hasDiscounts: true,
+      hasAppointments: false,
+      hasProducts: true,
+      hiddenServices: [],
+      serviceIds: ['delivery', 'wholesale', 'exchange_return', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'توصيل، جملة، استبدال واسترجاع',
+      productFields: ['details', 'brand', 'color'],
+      productExtraFields: [
+        { key: 'artSize', label: 'المقاس', placeholder: 'مثال: A3، 50×70 سم', maxLength: 30 },
+        { key: 'quality', label: 'الفئة', type: 'choice', options: ['مبتدئ', 'طلاب', 'محترف'] }
+      ],
+      productHints: { name: 'مثال: علبة ألوان مائية 24 لون', details: 'مثال: ألوان زاهية، قابلة للمزج', brand: 'مثال: اسم الشركة المصنعة', color: 'مثال: مجموعة متعددة الألوان' },
+      suggestedCategories: ['ألوان وأقلام رسم', 'دفاتر وأوراق رسم', 'فرش وأدوات تلوين', 'لوحات وحوامل', 'أدوات هندسية', 'مستلزمات أشغال يدوية'],
+      heroWelcomeText: 'محلك جاهز لعرض أدوات الفن والرسم وأسعارها من هنا.',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    salonmen: {
+      key: 'salonmen',
+      freeLimits: {},
+      hasDiscounts: false,
+      hasAppointments: false,
+      hasProducts: false,
+      hasServiceItems: true,
+      hiddenServices: [],
+      serviceIds: ['home_visit', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'زيارة منزلية، دفع كاش وبطاقة',
+      serviceItemsNav: {
+        icon: 'scissors',
+        label: 'الخدمات والأسعار',
+        mobileLabel: 'الأسعار',
+        sub: 'قص، حلاقة، عناية، أسعار',
+        cardSub: 'الخدمات والأسعار ومدة التنفيذ'
+      },
+      serviceFields: ['duration', 'priceFrom'],
+      serviceSuggestions: [
+        { id: 'sm_cut', label: 'قص شعر', icon: 'scissors' },
+        { id: 'sm_shave', label: 'حلاقة ذقن', icon: 'scissors' },
+        { id: 'sm_cut_beard', label: 'قص شعر وذقن', icon: 'scissors' },
+        { id: 'sm_groom', label: 'تجهيز عريس', icon: 'sparkles' },
+        { id: 'sm_color', label: 'صبغة شعر', icon: 'palette' },
+        { id: 'sm_skin', label: 'عناية بالبشرة', icon: 'sparkles' }
+      ],
+      pageCopy: {
+        servicesPageTitle: 'الخدمات والأسعار',
+        servicesEmptyText: 'أضف خدمة مثل قص الشعر أو الحلاقة مع سعرها ومدتها ليطّلع عليها الزوار قبل زيارتك'
+      },
+      heroWelcomeText: 'صالونك جاهز لعرض خدماتك وأسعارك من هنا.',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    salonwomen: {
+      key: 'salonwomen',
+      freeLimits: {},
+      hasDiscounts: false,
+      hasAppointments: false,
+      hasProducts: false,
+      hasServiceItems: true,
+      hiddenServices: [],
+      serviceIds: ['home_visit', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'زيارة منزلية، دفع كاش وبطاقة',
+      serviceItemsNav: {
+        icon: 'sparkles',
+        label: 'الخدمات والأسعار',
+        mobileLabel: 'الأسعار',
+        sub: 'شعر، عناية، مكياج، أسعار',
+        cardSub: 'الخدمات والأسعار ومدة التنفيذ'
+      },
+      serviceFields: ['duration', 'priceFrom'],
+      serviceSuggestions: [
+        { id: 'sw_cut', label: 'قص وتسريح', icon: 'scissors' },
+        { id: 'sw_blow', label: 'سشوار', icon: 'wind' },
+        { id: 'sw_color', label: 'صبغة شعر', icon: 'palette' },
+        { id: 'sw_nails', label: 'مناكير وباديكير', icon: 'sparkles' },
+        { id: 'sw_makeup', label: 'مكياج', icon: 'brush' },
+        { id: 'sw_bride', label: 'تجهيز عروس', icon: 'sparkles' }
+      ],
+      pageCopy: {
+        servicesPageTitle: 'الخدمات والأسعار',
+        servicesEmptyText: 'أضف خدمة مثل القص أو الصبغة أو المكياج مع سعرها ومدتها ليطّلع عليها الزوار قبل زيارتك'
+      },
+      heroWelcomeText: 'صالونك جاهز لعرض خدماتك وأسعارك من هنا.',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    laundry: {
+      key: 'laundry',
+      freeLimits: {},
+      hasDiscounts: false,
+      hasAppointments: false,
+      hasProducts: false,
+      hasServiceItems: true,
+      hiddenServices: [],
+      serviceIds: ['delivery', 'urgent_service', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'توصيل، تنفيذ سريع، دفع كاش وبطاقة',
+      serviceItemsNav: {
+        icon: 'shirt',
+        label: 'الخدمات والأسعار',
+        mobileLabel: 'الأسعار',
+        sub: 'غسيل، كوي، تنظيف، أسعار',
+        cardSub: 'الخدمات والأسعار ومدة التنفيذ'
+      },
+      serviceFields: ['duration', 'priceFrom'],
+      serviceExtraFields: [
+        { key: 'pricingUnit', label: 'يُسعَّر لكل', type: 'choice', options: ['قطعة', 'كيلو', 'متر', 'طقم'] }
+      ],
+      serviceSuggestions: [
+        { id: 'ld_wash_iron', label: 'غسيل وكوي ملابس', icon: 'shirt' },
+        { id: 'ld_iron', label: 'كوي فقط', icon: 'shirt' },
+        { id: 'ld_suit', label: 'تنظيف بدلة جاف', icon: 'sparkles' },
+        { id: 'ld_blanket', label: 'غسيل أغطية وبطانيات', icon: 'bed-double' },
+        { id: 'ld_carpet', label: 'غسيل سجاد', icon: 'layers' },
+        { id: 'ld_curtain', label: 'غسيل ستائر', icon: 'sparkles' }
+      ],
+      pageCopy: {
+        servicesPageTitle: 'الخدمات والأسعار',
+        servicesEmptyText: 'أضف خدمة مثل الغسيل والكوي أو تنظيف السجاد مع سعرها ومدة تنفيذها ليطّلع عليها الزوار قبل زيارتك'
+      },
+      heroWelcomeText: 'مغسلتك جاهزة لعرض خدماتك وأسعارك من هنا.',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    photography: {
+      key: 'photography',
+      freeLimits: {},
+      hasDiscounts: false,
+      hasAppointments: false,
+      hasProducts: false,
+      hasServiceItems: true,
+      hiddenServices: [],
+      serviceIds: ['outdoor_shoot', 'photo_printing', 'urgent_service', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'تصوير خارجي، طباعة صور وألبومات، تسليم سريع',
+      serviceItemsNav: {
+        icon: 'camera',
+        label: 'الباقات والأسعار',
+        mobileLabel: 'الباقات',
+        sub: 'باقات التصوير وأسعارها',
+        cardSub: 'باقات التصوير ومدتها وأسعارها'
+      },
+      serviceFields: ['duration', 'priceFrom'],
+      serviceExtraFields: [
+        { key: 'includes', label: 'ما تتضمنه الباقة', placeholder: 'مثال: 100 صورة معدلة + ألبوم', maxLength: 80 }
+      ],
+      serviceSuggestions: [
+        { id: 'ph_wedding', label: 'تصوير حفل زفاف', icon: 'camera' },
+        { id: 'ph_family', label: 'جلسة تصوير عائلية', icon: 'users' },
+        { id: 'ph_newborn', label: 'تصوير مواليد', icon: 'baby' },
+        { id: 'ph_event', label: 'تصوير مناسبات', icon: 'party-popper' },
+        { id: 'ph_product', label: 'تصوير منتجات', icon: 'package' },
+        { id: 'ph_id', label: 'صور شخصية ووثائق', icon: 'image' }
+      ],
+      pageCopy: {
+        servicesPageTitle: 'الباقات والأسعار',
+        servicesEmptyText: 'أضف باقة تصوير مع سعرها ومدتها وما تتضمنه ليطّلع عليها الزوار قبل زيارتك'
+      },
+      heroWelcomeText: 'استوديو التصوير جاهز لعرض باقاتك وأسعارك من هنا.',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    autoparts: {
+      key: 'autoparts',
+      freeLimits: { productCategories: 5, discountedProducts: 5 },
+      hasDiscounts: true,
+      hasAppointments: false,
+      hasProducts: true,
+      hiddenServices: [],
+      serviceIds: ['installation', 'warranty', 'exchange_return', 'delivery', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'تركيب، ضمان، استبدال واسترجاع، توصيل',
+      productFields: ['details', 'brand'],
+      productExtraFields: [
+        { key: 'carMake', label: 'ماركة السيارة المناسبة', placeholder: 'مثال: تويوتا، هيونداي', maxLength: 40 },
+        { key: 'carModel', label: 'الموديل وسنة الصنع', placeholder: 'مثال: كورولا 2015-2020', maxLength: 40 },
+        { key: 'partNumber', label: 'رقم القطعة', placeholder: 'مثال: 04152-YZZA1', maxLength: 30 },
+        { key: 'partQuality', label: 'نوع القطعة', type: 'choice', options: ['أصلية', 'تجارية (بديلة)'] },
+        { key: 'condition', label: 'الحالة', type: 'choice', options: ['جديد', 'مستعمل'] }
+      ],
+      productHints: { name: 'مثال: فلتر زيت تويوتا كورولا', details: 'مثال: يناسب محرك 1.6 و1.8', brand: 'مثال: اسم الشركة المصنعة' },
+      suggestedCategories: ['فلاتر وزيوت', 'فرامل وتيل', 'كهرباء وبطاريات', 'محرك وتبريد', 'تعليق وتوجيه', 'إكسسوارات وزينة'],
+      heroWelcomeText: 'محلك جاهز لعرض قطع الغيار وأسعارها من هنا.',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    garage: {
+      key: 'garage',
+      freeLimits: {},
+      hasDiscounts: false,
+      hasAppointments: false,
+      hasProducts: false,
+      hasServiceItems: true,
+      hiddenServices: [],
+      serviceIds: ['free_inspection', 'towing', 'warranty', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'فحص مبدئي، سحب سيارات، ضمان على العمل',
+      serviceItemsNav: {
+        icon: 'wrench',
+        label: 'الخدمات والأسعار',
+        mobileLabel: 'الأسعار',
+        sub: 'ميكانيك، كهرباء، سمكرة، أسعار',
+        cardSub: 'الخدمات والأسعار ومدة التنفيذ'
+      },
+      serviceFields: ['duration', 'priceFrom'],
+      serviceExtraFields: [
+        { key: 'carType', label: 'نوع السيارة (اختياري)', placeholder: 'مثال: صغيرة، جيب، تجارية', maxLength: 40 },
+        { key: 'warranty', label: 'الضمان على العمل', placeholder: 'مثال: شهر، 3 شهور' }
+      ],
+      serviceSuggestions: [
+        { id: 'gr_oil', label: 'تغيير زيت وفلتر', icon: 'droplets' },
+        { id: 'gr_scan', label: 'فحص كمبيوتر', icon: 'scan' },
+        { id: 'gr_mech', label: 'ميكانيك عام', icon: 'wrench' },
+        { id: 'gr_elec', label: 'كهرباء سيارات', icon: 'zap' },
+        { id: 'gr_body', label: 'سمكرة ودهان', icon: 'brush' },
+        { id: 'gr_precheck', label: 'فحص قبل الشراء', icon: 'search' }
+      ],
+      pageCopy: {
+        servicesPageTitle: 'الخدمات والأسعار',
+        servicesEmptyText: 'أضف خدمة مثل تغيير الزيت أو الفحص بالكمبيوتر مع سعرها ومدة تنفيذها ليطّلع عليها الزوار قبل زيارتك'
+      },
+      heroWelcomeText: 'كراجك جاهز لعرض خدماتك وأسعارك من هنا.',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    tires: {
+      key: 'tires',
+      freeLimits: { productCategories: 5, discountedProducts: 5 },
+      hasDiscounts: true,
+      hasAppointments: false,
+      hasProducts: true,
+      hiddenServices: [],
+      serviceIds: ['tire_fitting', 'warranty', 'delivery', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'تركيب وترصيص، ضمان، توصيل',
+      productFields: ['details', 'brand'],
+      productExtraFields: [
+        { key: 'tireSize', label: 'المقاس', placeholder: 'مثال: 205/55 R16', maxLength: 30 },
+        { key: 'season', label: 'النوع', type: 'choice', options: ['صيفي', 'شتوي', 'لكل المواسم'] },
+        { key: 'mfgYear', label: 'سنة الصنع', placeholder: 'مثال: 2024', maxLength: 10 },
+        { key: 'condition', label: 'الحالة', type: 'choice', options: ['جديد', 'مستعمل'] }
+      ],
+      productHints: { name: 'مثال: إطار ميشلان 205/55 R16', details: 'مثال: مناسب للسيارات الصغيرة والمتوسطة', brand: 'مثال: ميشلان، بريجستون، هانكوك' },
+      suggestedCategories: ['إطارات سيارات صغيرة', 'إطارات جيب ودفع رباعي', 'إطارات شاحنات', 'جنطات', 'بطاريات', 'ملحقات وصمامات'],
+      heroWelcomeText: 'محلك جاهز لعرض الإطارات وأسعارها من هنا.',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    vet: {
+      key: 'vet',
+      freeLimits: { productCategories: 5 },
+      hasDiscounts: false,
+      hasAppointments: false,
+      hasProducts: true,
+      hasServiceItems: true,
+      hiddenServices: [],
+      serviceIds: ['emergency_24h', 'home_visit', 'vaccinations', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'طوارئ 24 ساعة، زيارة منزلية، تطعيمات',
+      productFields: ['details', 'brand'],
+      productExtraFields: [
+        { key: 'animalType', label: 'نوع الحيوان', type: 'choice', options: ['أبقار', 'أغنام وماعز', 'دواجن', 'قطط وكلاب', 'خيول', 'عام'] },
+        { key: 'expiry', label: 'تاريخ الانتهاء', placeholder: 'مثال: 2027/03', maxLength: 20 }
+      ],
+      productHints: { name: 'مثال: مضاد حيوي للأغنام', details: 'مثال: حقن، عبوة 50 مل', brand: 'مثال: اسم الشركة المصنعة' },
+      suggestedCategories: ['أدوية بيطرية', 'لقاحات', 'فيتامينات ومكملات', 'مستلزمات قطط وكلاب', 'أدوات جراحية وحقن', 'مطهرات ومعقمات'],
+      serviceItemsNav: {
+        icon: 'stethoscope',
+        label: 'الخدمات والأسعار',
+        mobileLabel: 'الخدمات',
+        sub: 'كشف، تطعيم، علاج، أسعار',
+        cardSub: 'الخدمات البيطرية وأسعارها'
+      },
+      serviceFields: ['priceFrom'],
+      serviceExtraFields: [
+        { key: 'animalType', label: 'نوع الحيوان', type: 'choice', options: ['أبقار', 'أغنام وماعز', 'دواجن', 'قطط وكلاب', 'خيول', 'عام'] }
+      ],
+      serviceSuggestions: [
+        { id: 'vt_exam', label: 'كشف وفحص', icon: 'stethoscope' },
+        { id: 'vt_vaccine', label: 'تطعيم', icon: 'syringe' },
+        { id: 'vt_wound', label: 'علاج جروح وتضميد', icon: 'heart-pulse' },
+        { id: 'vt_birth', label: 'ولادة وتوليد', icon: 'baby' },
+        { id: 'vt_lab', label: 'تحاليل', icon: 'flask-conical' }
+      ],
+      pageCopy: {
+        servicesPageTitle: 'الخدمات والأسعار',
+        servicesEmptyText: 'أضف خدمة مثل الكشف أو التطعيم أو العلاج مع سعرها ليطّلع عليها الزوار قبل زيارتك'
+      },
+      heroWelcomeText: 'عيادتك البيطرية جاهزة لعرض خدماتك ومنتجاتك وأسعارها من هنا.',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    feed: {
+      key: 'feed',
+      freeLimits: {},
+      hasDiscounts: false,
+      hasAppointments: false,
+      hasProducts: true,
+      hiddenServices: [],
+      serviceIds: ['delivery', 'wholesale', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'توصيل، بيع بالجملة',
+      productFields: ['details', 'brand'],
+      productExtraFields: [
+        { key: 'animalType', label: 'نوع الحيوان', type: 'choice', options: ['أبقار', 'أغنام وماعز', 'دواجن', 'قطط وكلاب', 'أسماك', 'أخرى'] },
+        { key: 'packSize', label: 'الوزن / العبوة', placeholder: 'مثال: 25 كيلو', maxLength: 30 },
+        { key: 'expiry', label: 'تاريخ الانتهاء', placeholder: 'مثال: 2027/03', maxLength: 20 }
+      ],
+      productHints: { name: 'مثال: علف دواجن تسمين 25 كيلو', details: 'مثال: نسبة بروتين 21%', brand: 'مثال: اسم الشركة المصنعة' },
+      suggestedCategories: ['أعلاف دواجن', 'أعلاف أبقار وأغنام', 'طعام قطط وكلاب', 'مكملات غذائية', 'أدوات تغذية وسقاية', 'مستلزمات حظائر'],
+      heroWelcomeText: 'محلك جاهز لعرض الأعلاف والمستلزمات وأسعارها من هنا.',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    agritools: {
+      key: 'agritools',
+      freeLimits: { productCategories: 5, discountedProducts: 5 },
+      hasDiscounts: true,
+      hasAppointments: false,
+      hasProducts: true,
+      hiddenServices: [],
+      serviceIds: ['installation', 'warranty', 'after_sales', 'delivery', 'installments', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'تركيب، ضمان، صيانة، توصيل، تقسيط',
+      productFields: ['details', 'brand', 'material'],
+      productExtraFields: [
+        { key: 'powerType', label: 'نوع التشغيل', type: 'choice', options: ['يدوي', 'كهربائي', 'بنزين / ديزل', 'طاقة شمسية'] },
+        { key: 'warranty', label: 'الضمان', placeholder: 'مثال: سنة' }
+      ],
+      productHints: { name: 'مثال: مضخة مياه زراعية', details: 'مثال: قوة 2 حصان، مناسبة للري', brand: 'مثال: اسم الشركة المصنعة', material: 'مثال: حديد، بلاستيك، ستانلس' },
+      suggestedCategories: ['أدوات يدوية', 'مضخات وري', 'بذور وشتلات', 'أسمدة ومبيدات', 'بيوت بلاستيكية ومستلزماتها', 'معدات كهربائية'],
+      heroWelcomeText: 'محلك جاهز لعرض الأدوات الزراعية وأسعارها من هنا.',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
     }
   };
 
@@ -278,7 +920,30 @@ window.GMStoreTypeConfig = (function () {
     'Household Tools': 'household',
     'Electrical & Home Appliances': 'appliances',
     'Cleaning Supplies': 'cleaning',
-    'Plumbing Supplies': 'plumbing'
+    'Plumbing Supplies': 'plumbing',
+    'Mobile & Accessories': 'mobile',
+    'Computers & Laptops': 'computers',
+    'Electronics': 'electronics',
+    'Solar Energy': 'solar',
+    'Repair & Maintenance': 'repair',
+    'Building Materials': 'buildingmat',
+    'Iron & Aluminum': 'ironalu',
+    'Paints & Decor': 'paintsdecor',
+    'Wood': 'wood',
+    'Ceramics & Tiles': 'tiles',
+    'Bookstore & Stationery': 'stationery',
+    "Children's Toys": 'toys',
+    'Art & Drawing Tools': 'artsupplies',
+    "Men's Salon": 'salonmen',
+    "Women's Salon": 'salonwomen',
+    'Laundry': 'laundry',
+    'Photography': 'photography',
+    'Spare Parts': 'autoparts',
+    'Garage & Service': 'garage',
+    'Tires': 'tires',
+    'Veterinary': 'vet',
+    'Fodder & Supplies': 'feed',
+    'Agricultural Tools': 'agritools'
   };
 
   var STORE_SUBCATEGORY_AR_TO_ID = {
@@ -305,12 +970,37 @@ window.GMStoreTypeConfig = (function () {
     'أدوات منزلية': 'Household Tools',
     'كهربائيات وأجهزة منزلية': 'Electrical & Home Appliances',
     'مواد تنظيف': 'Cleaning Supplies',
-    'أدوات صحية': 'Plumbing Supplies'
+    'أدوات صحية': 'Plumbing Supplies',
+    'موبايل وإكسسوارات': 'Mobile & Accessories',
+    'كمبيوتر ولابتوب': 'Computers & Laptops',
+    'إلكترونيات': 'Electronics',
+    'طاقة شمسية': 'Solar Energy',
+    'تصليح وصيانة': 'Repair & Maintenance',
+    'مواد بناء': 'Building Materials',
+    'حديد وألمنيوم': 'Iron & Aluminum',
+    'دهانات وديكور': 'Paints & Decor',
+    'خشب': 'Wood',
+    'سيراميك وبلاط': 'Ceramics & Tiles',
+    'مكتبة وقرطاسية': 'Bookstore & Stationery',
+    'ألعاب أطفال': "Children's Toys",
+    'أدوات فن ورسم': 'Art & Drawing Tools',
+    'صالون رجالي': "Men's Salon",
+    'صالون نسائي': "Women's Salon",
+    'مغسلة': 'Laundry',
+    'تصوير': 'Photography',
+    'قطع غيار': 'Spare Parts',
+    'كراج وخدمة': 'Garage & Service',
+    'إطارات': 'Tires',
+    'بيطري': 'Veterinary',
+    'أعلاف ومستلزمات': 'Fodder & Supplies',
+    'أدوات زراعية': 'Agricultural Tools'
   };
 
   var CLOTHING_ONLY_SERVICE_IDS = ['size_exchange', 'alteration', 'whatsapp_order'];
   var TAILORING_ONLY_SERVICE_IDS = ['fitting', 'home_measurement', 'fabric_supply', 'urgent_service'];
   var HOME_ONLY_SERVICE_IDS = ['furniture_assembly', 'custom_order', 'installments', 'after_sales', 'bridal_sets', 'wholesale', 'refill', 'technical_consultation'];
+  var CONSTRUCTION_ONLY_SERVICE_IDS = ['color_mixing', 'cut_to_size', 'quantity_calc'];
+  var OTHER_GROUPS_ONLY_SERVICE_IDS = ['printing_copying', 'home_visit', 'free_inspection', 'towing', 'tire_fitting', 'emergency_24h', 'outdoor_shoot', 'photo_printing'];
   var HEALTH_ONLY_SERVICE_IDS = ['delivery', 'night_duty', 'prescription_order', 'device_rental', 'eye_exam', 'lens_fitting', 'health_check', 'injections', 'device_maintenance', 'glasses_repair', 'consultation', 'lab_tests', 'xray', 'vaccinations'];
 
   var storeConfigCache = {};
@@ -634,7 +1324,18 @@ window.GMStoreTypeConfig = (function () {
       { id: 'bridal_sets', label: 'تجهيز جهاز العرسان', icon: 'sparkles' },
       { id: 'wholesale', label: 'بيع بالجملة', icon: 'boxes' },
       { id: 'refill', label: 'تعبئة سوائل بالوزن', icon: 'droplets' },
-      { id: 'technical_consultation', label: 'استشارة فنية', icon: 'lightbulb' }
+      { id: 'technical_consultation', label: 'استشارة فنية', icon: 'lightbulb' },
+      { id: 'color_mixing', label: 'خلط ألوان بالكمبيوتر', icon: 'palette' },
+      { id: 'cut_to_size', label: 'قص حسب المقاس', icon: 'scissors' },
+      { id: 'quantity_calc', label: 'حساب الكمية من المساحة', icon: 'calculator' },
+      { id: 'printing_copying', label: 'طباعة وتصوير مستندات', icon: 'printer' },
+      { id: 'home_visit', label: 'زيارة منزلية', icon: 'house' },
+      { id: 'free_inspection', label: 'فحص مبدئي مجاني', icon: 'search' },
+      { id: 'towing', label: 'سحب سيارات', icon: 'truck' },
+      { id: 'tire_fitting', label: 'تركيب وترصيص إطارات', icon: 'circle-dot' },
+      { id: 'emergency_24h', label: 'طوارئ 24 ساعة', icon: 'siren' },
+      { id: 'outdoor_shoot', label: 'تصوير خارجي', icon: 'map-pin' },
+      { id: 'photo_printing', label: 'طباعة صور وألبومات', icon: 'image' }
     ];
 
     var services;
@@ -649,6 +1350,8 @@ window.GMStoreTypeConfig = (function () {
           TAILORING_ONLY_SERVICE_IDS.indexOf(service.id) === -1 &&
           HOME_ONLY_SERVICE_IDS.indexOf(service.id) === -1 &&
           HEALTH_ONLY_SERVICE_IDS.indexOf(service.id) === -1 &&
+          CONSTRUCTION_ONLY_SERVICE_IDS.indexOf(service.id) === -1 &&
+          OTHER_GROUPS_ONLY_SERVICE_IDS.indexOf(service.id) === -1 &&
           variant.hiddenServices.indexOf(service.id) === -1;
       });
     }
@@ -803,6 +1506,8 @@ window.GMStoreTypeConfig = (function () {
       serviceSuggestions: variant.serviceSuggestions || [],
       productFields: variant.productFields || [],
       productHints: variant.productHints || {},
+      productExtraFields: variant.productExtraFields || [],
+      serviceExtraFields: variant.serviceExtraFields || [],
       suggestedCategories: variant.suggestedCategories || [],
       fallbackAvatarLetter: 'م',
       sidebar: sidebar,
