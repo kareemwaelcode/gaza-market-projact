@@ -49,7 +49,55 @@ window.GMStoreTypeConfig = (function () {
       hiddenServices: ['gift_wrap'],
       serviceIds: ['cash_payment', 'card_payment', 'warranty', 'exchange_return'],
       servicesNavSub: 'دفع كاش وبطاقة، ضمان، استبدال واسترجاع',
-      productFields: ['details'],
+      productFields: ['details', 'size'],
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    accessories: {
+      key: 'accessories',
+      freeLimits: { productCategories: 5, discountedProducts: 5 },
+      hasDiscounts: true,
+      hasAppointments: false,
+      hasProducts: true,
+      hiddenServices: [],
+      serviceIds: ['cash_payment', 'card_payment', 'gift_wrap', 'warranty', 'exchange_return'],
+      servicesNavSub: 'تغليف هدايا، ضمان، استبدال واسترجاع',
+      productFields: ['details', 'color', 'material'],
+      suggestedCategories: ['ساعات', 'حقائب ومحافظ', 'خواتم وأساور', 'قلادات وأطقم', 'نظارات شمسية', 'إكسسوارات شعر', 'أحزمة'],
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    tailoring: {
+      key: 'tailoring',
+      freeLimits: {},
+      hasDiscounts: false,
+      hasAppointments: false,
+      hasProducts: false,
+      hasServiceItems: true,
+      hiddenServices: [],
+      serviceIds: ['fitting', 'home_measurement', 'fabric_supply', 'urgent_service', 'delivery', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'قياس منزلي، أقمشة، تنفيذ سريع، توصيل',
+      serviceItemsNav: {
+        icon: 'scissors',
+        label: 'الخدمات والأسعار',
+        mobileLabel: 'الأسعار',
+        sub: 'تفصيل، تعديل، تقصير، أسعار',
+        cardSub: 'الأعمال والأسعار ومدة التنفيذ'
+      },
+      serviceFields: ['duration', 'priceFrom'],
+      serviceSuggestions: [
+        { id: 'tl_suit', label: 'تفصيل بدلة رجالي', icon: 'shirt' },
+        { id: 'tl_dress', label: 'تفصيل فستان أو ثوب', icon: 'sparkles' },
+        { id: 'tl_hem', label: 'تقصير بنطلون أو تنورة', icon: 'scissors' },
+        { id: 'tl_resize', label: 'تضييق أو توسيع', icon: 'ruler' },
+        { id: 'tl_zipper', label: 'تبديل سحاب', icon: 'repeat' },
+        { id: 'tl_embroidery', label: 'تطريز', icon: 'flower-2' }
+      ],
+      pageCopy: {
+        servicesPageTitle: 'الخدمات والأسعار',
+        servicesEmptyText: 'أضف عملاً مثل التفصيل أو التقصير أو التعديل مع سعره ومدة تنفيذه ليطّلع عليه الزوار قبل زيارتك'
+      },
+      heroWelcomeText: 'محلك جاهز لعرض خدماتك وأسعارك ومدة التنفيذ من هنا.',
       adTypes: ['offer', 'job'],
       adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
     },
@@ -127,8 +175,8 @@ window.GMStoreTypeConfig = (function () {
     "Women's Clothing": 'clothing',
     "Kids' Clothing": 'clothing',
     'Shoes': 'clothing',
-    'Accessories': 'clothing',
-    'Tailoring': 'clothing'
+    'Accessories': 'accessories',
+    'Tailoring': 'tailoring'
   };
 
   var STORE_SUBCATEGORY_AR_TO_ID = {
@@ -153,6 +201,7 @@ window.GMStoreTypeConfig = (function () {
   };
 
   var CLOTHING_ONLY_SERVICE_IDS = ['size_exchange', 'alteration', 'whatsapp_order'];
+  var TAILORING_ONLY_SERVICE_IDS = ['fitting', 'home_measurement', 'fabric_supply', 'urgent_service'];
   var HEALTH_ONLY_SERVICE_IDS = ['delivery', 'night_duty', 'prescription_order', 'device_rental', 'eye_exam', 'lens_fitting', 'health_check', 'injections', 'device_maintenance', 'glasses_repair', 'consultation', 'lab_tests', 'xray', 'vaccinations'];
 
   var storeConfigCache = {};
@@ -450,6 +499,10 @@ window.GMStoreTypeConfig = (function () {
       { id: 'exchange_return', label: 'استبدال واسترجاع', icon: 'repeat' },
       { id: 'size_exchange', label: 'تبديل المقاسات', icon: 'ruler' },
       { id: 'alteration', label: 'تعديل المقاس / الخياطة', icon: 'scissors' },
+      { id: 'fitting', label: 'بروفة قبل التسليم', icon: 'ruler' },
+      { id: 'home_measurement', label: 'أخذ المقاسات في المنزل', icon: 'house' },
+      { id: 'fabric_supply', label: 'توفير الأقمشة', icon: 'swatch-book' },
+      { id: 'urgent_service', label: 'تنفيذ سريع', icon: 'zap' },
       { id: 'whatsapp_order', label: 'الطلب عبر واتساب', icon: 'message-circle' },
       { id: 'delivery', label: 'خدمة توصيل', icon: 'truck' },
       { id: 'night_duty', label: 'مناوبة ليلية', icon: 'moon' },
@@ -476,6 +529,7 @@ window.GMStoreTypeConfig = (function () {
       services = serviceCatalog.filter(function (service) {
         return service.id !== 'cash_payment' &&
           CLOTHING_ONLY_SERVICE_IDS.indexOf(service.id) === -1 &&
+          TAILORING_ONLY_SERVICE_IDS.indexOf(service.id) === -1 &&
           HEALTH_ONLY_SERVICE_IDS.indexOf(service.id) === -1 &&
           variant.hiddenServices.indexOf(service.id) === -1;
       });
@@ -580,6 +634,13 @@ window.GMStoreTypeConfig = (function () {
       dashboardCards.push({ page: 'prices', href: 'prices.html', icon: 'shopping-bag', label: 'المنتجات والأسعار', sub: 'الأصناف والتوفر' });
     }
 
+    if (variant.hasServiceItems && variant.serviceItemsNav) {
+      var svcNav = variant.serviceItemsNav;
+      sidebar.push({ page: 'services', href: 'services.html', icon: svcNav.icon, label: svcNav.label, sub: svcNav.sub });
+      mobileNav.push({ page: 'services', href: 'services.html', icon: svcNav.icon, label: svcNav.mobileLabel || svcNav.label });
+      dashboardCards.push({ page: 'services', href: 'services.html', icon: svcNav.icon, label: svcNav.label, sub: svcNav.cardSub || svcNav.sub });
+    }
+
     sidebar.push(
       { action: 'open-services-edit', href: '#', icon: 'wrench', label: 'الخدمات المتاحة', sub: servicesNavSub },
       { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', sub: adsNavSub, badge: 2 },
@@ -595,6 +656,16 @@ window.GMStoreTypeConfig = (function () {
       { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', sub: adsNavSub }
     );
 
+    var storePageCopy = {
+      profileTitle: 'بيانات المتجر',
+      entityNameLabel: 'اسم المتجر',
+      adsSubtitle: adsSubtitle,
+      heroWelcomeText: variant.heroWelcomeText || 'متجرك جاهز لعرض منتجاتك وخدماتك من هنا.'
+    };
+    if (variant.pageCopy) {
+      Object.keys(variant.pageCopy).forEach(function (key) { storePageCopy[key] = variant.pageCopy[key]; });
+    }
+
     return {
       id: id,
       label: label,
@@ -602,6 +673,9 @@ window.GMStoreTypeConfig = (function () {
       hasDiscounts: variant.hasDiscounts,
       hasAppointments: variant.hasAppointments,
       hasProducts: hasProducts,
+      hasServiceItems: variant.hasServiceItems === true,
+      serviceFields: variant.serviceFields || [],
+      serviceSuggestions: variant.serviceSuggestions || [],
       productFields: variant.productFields || [],
       suggestedCategories: variant.suggestedCategories || [],
       fallbackAvatarLetter: 'م',
@@ -613,12 +687,7 @@ window.GMStoreTypeConfig = (function () {
       lockedFeatures: STORE_LOCKED_FEATURES,
       adTypes: variant.adTypes,
       adOptions: variant.adOptions,
-      pageCopy: {
-        profileTitle: 'بيانات المتجر',
-        entityNameLabel: 'اسم المتجر',
-        adsSubtitle: adsSubtitle,
-        heroWelcomeText: variant.heroWelcomeText || 'متجرك جاهز لعرض منتجاتك وخدماتك من هنا.'
-      },
+      pageCopy: storePageCopy,
       packages: {
         pageSubtitle: 'اختر باقة متجرك',
         entityNameLabel: 'اسم المتجر',
@@ -644,14 +713,18 @@ window.GMStoreTypeConfig = (function () {
     };
   }
 
+  function hasOwn(obj, key) {
+    return Object.prototype.hasOwnProperty.call(obj, key);
+  }
+
   function getStoreSubcategoryId() {
     try {
       var storedId = window.localStorage.getItem(SUBCATEGORY_ID_KEY);
-      if (storedId && STORE_SUBCATEGORY_VARIANT[storedId]) return storedId;
+      if (storedId) return storedId;
       var storedLabel = window.localStorage.getItem(SUBCATEGORY_LABEL_KEY);
       if (storedLabel) {
-        if (STORE_SUBCATEGORY_VARIANT[storedLabel]) return storedLabel;
-        if (STORE_SUBCATEGORY_AR_TO_ID[storedLabel]) return STORE_SUBCATEGORY_AR_TO_ID[storedLabel];
+        if (hasOwn(STORE_SUBCATEGORY_AR_TO_ID, storedLabel)) return STORE_SUBCATEGORY_AR_TO_ID[storedLabel];
+        return storedLabel;
       }
     } catch (e) { }
     return null;
@@ -659,7 +732,9 @@ window.GMStoreTypeConfig = (function () {
 
   function getStoreVariantKey() {
     var subcategoryId = getStoreSubcategoryId();
-    return (subcategoryId && STORE_SUBCATEGORY_VARIANT[subcategoryId]) || 'general';
+    return (subcategoryId && hasOwn(STORE_SUBCATEGORY_VARIANT, subcategoryId))
+      ? STORE_SUBCATEGORY_VARIANT[subcategoryId]
+      : 'general';
   }
 
   function getStoreConfig() {

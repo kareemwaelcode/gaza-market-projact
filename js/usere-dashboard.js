@@ -4278,6 +4278,11 @@
     return !!(config && Array.isArray(config.productFields) && config.productFields.indexOf(fieldKey) !== -1);
   }
 
+  function storeHasServiceField(fieldKey) {
+    var config = getStoreTypeConfig();
+    return !!(config && Array.isArray(config.serviceFields) && config.serviceFields.indexOf(fieldKey) !== -1);
+  }
+
   function countDiscountedProducts(excludeId) {
     return getStoredProductItems().filter(function (it) {
       return it.discount === true && it.id !== excludeId;
@@ -4553,7 +4558,9 @@
     var visibleItems = term
       ? items.filter(function (it) {
           return (it.name || '').toLowerCase().indexOf(term) !== -1 ||
-                 productCategoryLabel(it.categoryId).toLowerCase().indexOf(term) !== -1;
+                 productCategoryLabel(it.categoryId).toLowerCase().indexOf(term) !== -1 ||
+                 (storeHasProductField('color') && (it.color || '').toLowerCase().indexOf(term) !== -1) ||
+                 (storeHasProductField('material') && (it.material || '').toLowerCase().indexOf(term) !== -1);
         })
       : items;
 
@@ -4568,11 +4575,17 @@
         var priceValue = (item.price !== '' && item.price != null && !isNaN(Number(item.price)))
           ? Number(item.price).toFixed(2)
           : null;
-        var sizeChip = (storeHasDiscounts() && item.size)
+        var sizeChip = (storeHasProductField('size') && item.size)
           ? ' <span class="menu-cat-chip">مقاس ' + escapeHtml(item.size) + '</span>'
           : '';
         var detailsLine = (storeHasProductField('details') && item.details)
           ? '<div class="sub" style="font-size:12px;color:var(--db-text-tertiary);">' + escapeHtml(item.details) + '</div>'
+          : '';
+        var attrParts = [];
+        if (storeHasProductField('material') && item.material) attrParts.push('الخامة: ' + escapeHtml(item.material));
+        if (storeHasProductField('color') && item.color) attrParts.push('اللون: ' + escapeHtml(item.color));
+        var attrsLine = attrParts.length
+          ? '<div class="sub" style="font-size:12px;color:var(--db-text-tertiary);">' + attrParts.join(' · ') + '</div>'
           : '';
         var discountBadge = (storeHasDiscounts() && item.discount === true)
           ? ' <span class="badge red">خصم</span>'
@@ -4583,7 +4596,7 @@
 
         return (
           '<tr' + (item.available === false ? ' class="is-unavailable"' : '') + '>' +
-            '<td class="menu-td-name" data-label="المنتج"><div class="menu-item-name-cell">' + thumb + '<span>' + escapeHtml(item.name) + detailsLine + '</span></div></td>' +
+            '<td class="menu-td-name" data-label="المنتج"><div class="menu-item-name-cell">' + thumb + '<span>' + escapeHtml(item.name) + detailsLine + attrsLine + '</span></div></td>' +
             '<td class="menu-td-cat" data-label="التصنيف"><span class="menu-cat-chip">' + escapeHtml(productCategoryLabel(item.categoryId)) + '</span>' + sizeChip + '</td>' +
             '<td class="menu-td-price" data-label="السعر">' + priceHtml + '</td>' +
             '<td class="menu-td-status" data-label="الحالة">' + buildProductStatusBadge(item) + discountBadge + '</td>' +
@@ -4633,6 +4646,10 @@
     var sizeInput = document.getElementById('pie-size');
     var detailsField = document.getElementById('pie-details-field');
     var detailsInput = document.getElementById('pie-details');
+    var colorField = document.getElementById('pie-color-field');
+    var colorInput = document.getElementById('pie-color');
+    var materialField = document.getElementById('pie-material-field');
+    var materialInput = document.getElementById('pie-material');
     var discountField = document.getElementById('pie-discount-field');
     var discountGroup = document.getElementById('pie-discount-group');
     var imageInput = document.getElementById('pie-image-input');
@@ -4670,10 +4687,11 @@
     }
 
     function applyFieldVisibility() {
-      var show = storeHasDiscounts();
-      if (sizeField) sizeField.style.display = show ? '' : 'none';
-      if (discountField) discountField.style.display = show ? '' : 'none';
+      if (sizeField) sizeField.style.display = storeHasProductField('size') ? '' : 'none';
+      if (discountField) discountField.style.display = storeHasDiscounts() ? '' : 'none';
       if (detailsField) detailsField.style.display = storeHasProductField('details') ? '' : 'none';
+      if (colorField) colorField.style.display = storeHasProductField('color') ? '' : 'none';
+      if (materialField) materialField.style.display = storeHasProductField('material') ? '' : 'none';
     }
 
     function setPreview(imageUrl) {
@@ -4696,6 +4714,8 @@
       if (priceInput) priceInput.value = '';
       if (sizeInput) sizeInput.value = '';
       if (detailsInput) detailsInput.value = '';
+      if (colorInput) colorInput.value = '';
+      if (materialInput) materialInput.value = '';
       if (categorySelect) categorySelect.value = '';
       setStatus('available');
       setDiscount(false);
@@ -4707,6 +4727,8 @@
       if (priceInput) priceInput.value = item.price != null ? item.price : '';
       if (sizeInput) sizeInput.value = item.size || '';
       if (detailsInput) detailsInput.value = item.details || '';
+      if (colorInput) colorInput.value = item.color || '';
+      if (materialInput) materialInput.value = item.material || '';
       if (categorySelect) categorySelect.value = item.categoryId || '';
       setStatus(item.available === false ? 'unavailable' : 'available');
       setDiscount(item.discount === true);
@@ -4809,7 +4831,12 @@
         var withDetailsField = storeHasProductField('details');
         var details = (withDetailsField && detailsInput) ? detailsInput.value.trim() : '';
         var withDiscountFields = storeHasDiscounts();
-        var size = (withDiscountFields && sizeInput) ? sizeInput.value.trim() : '';
+        var withSizeField = storeHasProductField('size');
+        var withColorField = storeHasProductField('color');
+        var withMaterialField = storeHasProductField('material');
+        var size = (withSizeField && sizeInput) ? sizeInput.value.trim() : '';
+        var color = (withColorField && colorInput) ? colorInput.value.trim() : '';
+        var material = (withMaterialField && materialInput) ? materialInput.value.trim() : '';
         if (withDiscountFields && selectedDiscount && !canEnableDiscount()) {
           setDiscount(false);
           return;
@@ -4824,10 +4851,10 @@
               list[i].available = selectedStatus === 'available';
               list[i].image = pendingImage;
               if (withDetailsField) list[i].details = details;
-              if (withDiscountFields) {
-                list[i].size = size;
-                list[i].discount = selectedDiscount;
-              }
+              if (withSizeField) list[i].size = size;
+              if (withColorField) list[i].color = color;
+              if (withMaterialField) list[i].material = material;
+              if (withDiscountFields) list[i].discount = selectedDiscount;
               break;
             }
           }
@@ -4842,10 +4869,10 @@
             createdAt: Date.now()
           };
           if (withDetailsField) newItem.details = details;
-          if (withDiscountFields) {
-            newItem.size = size;
-            newItem.discount = selectedDiscount;
-          }
+          if (withSizeField) newItem.size = size;
+          if (withColorField) newItem.color = color;
+          if (withMaterialField) newItem.material = material;
+          if (withDiscountFields) newItem.discount = selectedDiscount;
           list.unshift(newItem);
         }
 
@@ -4916,7 +4943,12 @@
     exchange_return: 'rotate-ccw',
     size_exchange: 'ruler',
     alteration: 'scissors',
-    whatsapp_order: 'message-circle'
+    whatsapp_order: 'message-circle',
+    fitting: 'ruler',
+    home_measurement: 'house',
+    fabric_supply: 'swatch-book',
+    urgent_service: 'zap',
+    delivery: 'truck'
   };
 
   function getStoredServiceCategories() {
@@ -5192,6 +5224,14 @@
     return null;
   }
 
+  function getServiceSuggestionSource() {
+    var config = getStoreTypeConfig();
+    if (config && Array.isArray(config.serviceSuggestions) && config.serviceSuggestions.length) {
+      return { list: config.serviceSuggestions, fromConfig: true };
+    }
+    return { list: getCurrentTypeServices(), fromConfig: false };
+  }
+
   function renderServiceSuggestions() {
     var grid = document.getElementById('service-suggestions-grid');
     var title = document.getElementById('service-suggestions-title');
@@ -5201,7 +5241,8 @@
       return (it.name || '').trim().toLowerCase();
     });
 
-    var suggestions = getCurrentTypeServices().filter(function (svc) {
+    var suggestionSource = getServiceSuggestionSource();
+    var suggestions = suggestionSource.list.filter(function (svc) {
       return existingNames.indexOf((svc.label || '').trim().toLowerCase()) === -1;
     });
 
@@ -5215,7 +5256,7 @@
     grid.innerHTML = suggestions.map(function (svc) {
       var lockedFeatureKey = getServiceLockedFeatureKey(svc.id);
       var isLocked = isServiceLocked(svc.id);
-      var icon = isLocked ? 'lock' : (SERVICE_SUGGESTION_ICONS[svc.id] || 'sparkles');
+      var icon = isLocked ? 'lock' : (SERVICE_SUGGESTION_ICONS[svc.id] || (suggestionSource.fromConfig && svc.icon) || 'sparkles');
       var lockAttr = lockedFeatureKey ? ' data-locked-feature="' + lockedFeatureKey + '"' : '';
       return (
         '<button type="button" class="card quick-card" data-action="add-service-suggestion" data-name="' + escapeHtml(svc.label) + '"' + lockAttr + ' ' +
@@ -5283,6 +5324,12 @@
         var descHtml = item.description
           ? '<div class="sub" style="margin-top:2px;">' + escapeHtml(item.description) + '</div>'
           : '';
+        if (storeHasServiceField('duration') && item.duration) {
+          descHtml += '<div class="sub" style="margin-top:2px;">مدة التنفيذ: ' + escapeHtml(item.duration) + '</div>';
+        }
+        if (storeHasServiceField('priceFrom') && item.priceFrom === true && priceValue !== null) {
+          priceHtml = '<span class="menu-price"><small style="color:var(--db-text-tertiary);margin-inline-end:4px;">يبدأ من</small><b>' + priceValue + '</b><i>₪</i></span>';
+        }
 
         return (
           '<tr>' +
@@ -5329,15 +5376,35 @@
     var descInput = document.getElementById('sie-description');
     var categorySelect = document.getElementById('sie-category');
     var priceInput = document.getElementById('sie-price');
+    var durationField = document.getElementById('sie-duration-field');
+    var durationInput = document.getElementById('sie-duration');
+    var priceModeField = document.getElementById('sie-price-mode-field');
+    var priceModeGroup = document.getElementById('sie-price-mode-group');
     var saveBtn = document.getElementById('sie-save-btn');
 
     var editingId = null;
+    var selectedPriceFrom = false;
+
+    function setPriceFrom(isOn) {
+      selectedPriceFrom = !!isOn;
+      if (!priceModeGroup) return;
+      priceModeGroup.querySelectorAll('.seg-btn').forEach(function (btn) {
+        btn.classList.toggle('active', (btn.getAttribute('data-value') === 'from') === selectedPriceFrom);
+      });
+    }
+
+    function applyServiceFieldVisibility() {
+      if (durationField) durationField.style.display = storeHasServiceField('duration') ? '' : 'none';
+      if (priceModeField) priceModeField.style.display = storeHasServiceField('priceFrom') ? '' : 'none';
+    }
 
     function resetForm() {
       if (nameInput) nameInput.value = '';
       if (descInput) descInput.value = '';
       if (priceInput) priceInput.value = '';
       if (categorySelect) categorySelect.value = '';
+      if (durationInput) durationInput.value = '';
+      setPriceFrom(false);
     }
 
     function fillFormFromItem(item) {
@@ -5345,12 +5412,15 @@
       if (descInput) descInput.value = item.description || '';
       if (priceInput) priceInput.value = item.price != null ? item.price : '';
       if (categorySelect) categorySelect.value = item.categoryId || '';
+      if (durationInput) durationInput.value = item.duration || '';
+      setPriceFrom(item.priceFrom === true);
     }
 
     function open(itemToEdit) {
       closeSidebarDrawerIfNeeded();
       closeMobileMoreSheet();
       renderServiceCategorySelectOptions();
+      applyServiceFieldVisibility();
 
       editingId = itemToEdit ? itemToEdit.id : null;
 
@@ -5404,6 +5474,9 @@
 
       var closeTrigger = e.target.closest && e.target.closest('[data-action="close-service-item-add"]');
       if (closeTrigger) { close(); return; }
+
+      var priceModeBtn = e.target.closest && e.target.closest('#sie-price-mode-group .seg-btn');
+      if (priceModeBtn) setPriceFrom(priceModeBtn.getAttribute('data-value') === 'from');
     });
 
     document.addEventListener('keydown', function (e) {
@@ -5418,6 +5491,9 @@
         var priceRaw = priceInput ? priceInput.value : '';
         var price = priceRaw !== '' ? Number(priceRaw) : null;
         var description = descInput ? descInput.value.trim() : '';
+        var withDurationField = storeHasServiceField('duration');
+        var withPriceFromField = storeHasServiceField('priceFrom');
+        var duration = (withDurationField && durationInput) ? durationInput.value.trim() : '';
 
         var lockedFeatureForName = getLockedFeatureForServiceName(name);
         if (lockedFeatureForName && isFeatureLockedForPlan(lockedFeatureForName)) {
@@ -5436,18 +5512,23 @@
               list[i].description = description;
               list[i].categoryId = categorySelect ? categorySelect.value : '';
               list[i].price = price;
+              if (withDurationField) list[i].duration = duration;
+              if (withPriceFromField) list[i].priceFrom = selectedPriceFrom;
               break;
             }
           }
         } else {
-          list.unshift({
+          var newService = {
             id: generateServiceItemId(),
             name: name,
             description: description,
             categoryId: categorySelect ? categorySelect.value : '',
             price: price,
             createdAt: Date.now()
-          });
+          };
+          if (withDurationField) newService.duration = duration;
+          if (withPriceFromField) newService.priceFrom = selectedPriceFrom;
+          list.unshift(newService);
         }
 
         setStoredServiceItems(list);
