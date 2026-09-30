@@ -7,6 +7,86 @@
 <script src="auth/auth-api.js"></script>
 <script src="auth/auth-guard.js"></script>
 <link rel="stylesheet" href="../css/user-dashboard.css">
+<style>
+/* Appointments page — scoped styles (dashboard tokens; light/dark + RTL) */
+.apt-stack { display: flex; flex-direction: column; gap: 16px; }
+.apt-stack > .card, .apt-stack > .stat-grid, .apt-stack > #apt-data-wrap { margin: 0; }
+
+/* hours summary card (read-only; edited from the side panel) */
+.apt-hours-head { align-items: flex-start; }
+.apt-hours-head .btn { flex-shrink: 0; }
+.apt-sum-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 10px; }
+.apt-sum-day {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  background: var(--db-bg-canvas);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.apt-sum-day .d { font-size: 13px; font-weight: 700; }
+.apt-sum-day .t { font-size: 12.5px; color: var(--db-text-secondary); }
+.apt-sum-day.is-closed .d, .apt-sum-day.is-closed .t { color: var(--db-text-tertiary); }
+.apt-sum-slot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--db-text-secondary);
+}
+.apt-sum-slot .icon { width: 16px; height: 16px; flex-shrink: 0; }
+.apt-sum-slot b { color: var(--text); }
+
+/* panel rows */
+.aph-days { display: flex; flex-direction: column; }
+.aph-day { padding: 12px 0; border-bottom: 1px solid var(--border); }
+.aph-day:last-child { border-bottom: none; }
+.aph-day-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.aph-day-name { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 14px; cursor: pointer; margin: 0; }
+.aph-day-name input { width: 18px; height: 18px; accent-color: var(--db-accent); cursor: pointer; margin: 0; }
+.aph-day-closed {
+  display: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--db-text-tertiary);
+  background: var(--db-bg-canvas);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px 12px;
+}
+.aph-day.is-closed .aph-day-closed { display: inline-block; }
+.aph-day.is-closed .aph-day-name { color: var(--db-text-tertiary); }
+.aph-day-times { display: flex; align-items: center; gap: 10px; }
+.aph-day-times span { color: var(--db-text-tertiary); }
+.aph-time {
+  flex: 1;
+  min-width: 0;
+  background: var(--db-bg-canvas);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  padding: 9px 12px;
+  font-size: 13.5px;
+  font-family: inherit;
+  direction: ltr;
+  text-align: center;
+}
+.aph-time:focus { outline: none; border-color: var(--db-accent-soft-border); }
+.aph-time:disabled { opacity: 0.45; cursor: not-allowed; }
+
+@media (max-width: 640px) {
+  .apt-hours-head { flex-direction: column; align-items: stretch; }
+  .apt-hours-head .btn { width: 100%; justify-content: center; }
+  .apt-sum-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 520px) {
+  .aph-time, #aph-slot { font-size: 16px; }
+}
+</style>
 </head>
 <body data-page="appointments">
 <script>(function(){try{if(localStorage.getItem('gaza-market-dashboard-theme')==='dark'){document.body.classList.add('dark-mode');}}catch(e){}})();</script>
@@ -36,27 +116,20 @@
           </div>
         </div>
 
+        <div class="apt-stack">
+
         <div class="card card-pad" id="apt-hours-card">
-          <div class="card-header">
+          <div class="card-header apt-hours-head">
             <div>
               <h3>دوام العيادة والأوقات المتاحة</h3>
-              <div class="sub">حدد أيام الدوام وساعاته ومدة الموعد الواحد</div>
+              <div class="sub">أيام الدوام وساعاته ومدة الموعد الواحد</div>
             </div>
-            <button type="button" class="btn btn-primary btn-sm" id="apt-hours-save">
-              <i data-lucide="check" class="icon"></i> حفظ الدوام
+            <button type="button" class="btn btn-primary btn-sm" data-action="open-apt-hours">
+              <i data-lucide="pencil" class="icon"></i> تعديل الدوام
             </button>
           </div>
-          <div id="apt-hours-rows"></div>
-          <div class="form-row" style="margin-top:16px;">
-            <label for="apt-slot-select" style="font-weight:700;">مدة الموعد الواحد</label>
-            <select id="apt-slot-select" class="input">
-              <option value="15">15 دقيقة</option>
-              <option value="20">20 دقيقة</option>
-              <option value="30">30 دقيقة</option>
-              <option value="45">45 دقيقة</option>
-              <option value="60">60 دقيقة</option>
-            </select>
-          </div>
+          <div class="apt-sum-grid" id="apt-hours-summary"></div>
+          <div class="apt-sum-slot" id="apt-hours-slot-line"></div>
         </div>
 
         <div class="stat-grid stat-grid--3">
@@ -123,11 +196,14 @@
           <div class="sub">راح تظهر هون أي طلبات موعد توصلك من صفحة عيادتك</div>
         </div>
 
+        </div>
+
       </div>
     </main>
   </div>
 
   <div id="services-edit-slot"></div>
+  <div id="apt-hours-slot"></div>
   <div id="mobile-nav-slot"></div>
 
   <script src="https://unpkg.com/lucide@1.45.0/dist/umd/lucide.min.js"></script>

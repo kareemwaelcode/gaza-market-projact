@@ -9,6 +9,8 @@
 (function () {
   'use strict';
 
+  var CURRENT_SCRIPT_URL = document.currentScript ? document.currentScript.src : null;
+
   var APPOINTMENTS_KEY = 'gmDashboardAppointments';
   var CREATED_KEY = 'gmDashboardAppointmentsCreated';
   var HOURS_KEY = 'gmDashboardClinicHours';
@@ -280,31 +282,85 @@
     return base;
   }
 
-  function renderHours() {
-    var wrap = document.getElementById('apt-hours-rows');
+  function fmtTime(value) {
+    var m = /^(\d{1,2}):(\d{2})/.exec(value || '');
+    if (!m) return '';
+    var h = parseInt(m[1], 10);
+    var suffix = h >= 12 ? 'م' : 'ص';
+    var h12 = h % 12 === 0 ? 12 : h % 12;
+    return (h12 < 10 ? '0' : '') + h12 + ':' + m[2] + ' ' + suffix;
+  }
+
+  /* summary card on the page (read-only) */
+  function renderHoursSummary() {
+    var wrap = document.getElementById('apt-hours-summary');
+    if (!wrap) return;
+    var hours = getHours();
+    wrap.innerHTML = DAYS.map(function (d, i) {
+      var day = hours.days[i];
+      return '<div class="apt-sum-day' + (day.open ? '' : ' is-closed') + '">' +
+        '<span class="d">' + d.label + '</span>' +
+        (day.open
+          ? '<span class="t">من ' + escapeHtml(fmtTime(day.from)) + '</span><span class="t">إلى ' + escapeHtml(fmtTime(day.to)) + '</span>'
+          : '<span class="t">مغلق</span>') +
+      '</div>';
+    }).join('');
+    var line = document.getElementById('apt-hours-slot-line');
+    if (line) {
+      line.innerHTML = '<i data-lucide="clock" class="icon"></i><span>مدة الموعد الواحد: <b>' + hours.slot + ' دقيقة</b></span>';
+    }
+    refreshIcons();
+  }
+
+  /* edit panel */
+  function renderHoursPanel() {
+    var wrap = document.getElementById('aph-rows');
     if (!wrap) return;
     var hours = getHours();
     var html = '';
     DAYS.forEach(function (d, i) {
       var day = hours.days[i];
       html +=
-        '<div class="flex gap-12" style="align-items:center;padding:8px 0;flex-wrap:wrap;" data-day="' + d.key + '">' +
-          '<label style="min-width:110px;font-weight:700;display:flex;align-items:center;gap:8px;">' +
-            '<input type="checkbox" data-hours-open' + (day.open ? ' checked' : '') + '> ' + d.label +
-          '</label>' +
-          '<input type="time" class="input" data-hours-from value="' + escapeHtml(day.from) + '"' + (day.open ? '' : ' disabled') + ' style="max-width:130px;direction:ltr;">' +
-          '<span>—</span>' +
-          '<input type="time" class="input" data-hours-to value="' + escapeHtml(day.to) + '"' + (day.open ? '' : ' disabled') + ' style="max-width:130px;direction:ltr;">' +
-          (day.open ? '' : '<span class="sub" style="color:var(--db-text-tertiary);">مغلق</span>') +
+        '<div class="aph-day' + (day.open ? '' : ' is-closed') + '" data-day="' + d.key + '">' +
+          '<div class="aph-day-top">' +
+            '<label class="aph-day-name">' +
+              '<input type="checkbox" data-hours-open' + (day.open ? ' checked' : '') + '>' +
+              '<span>' + d.label + '</span>' +
+            '</label>' +
+            '<span class="aph-day-closed">مغلق</span>' +
+          '</div>' +
+          '<div class="aph-day-times">' +
+            '<input type="time" class="aph-time" data-hours-from value="' + escapeHtml(day.from) + '"' + (day.open ? '' : ' disabled') + ' aria-label="من">' +
+            '<span>—</span>' +
+            '<input type="time" class="aph-time" data-hours-to value="' + escapeHtml(day.to) + '"' + (day.open ? '' : ' disabled') + ' aria-label="إلى">' +
+          '</div>' +
         '</div>';
     });
     wrap.innerHTML = html;
-    var slot = document.getElementById('apt-slot-select');
+    var slot = document.getElementById('aph-slot');
     if (slot) slot.value = String(hours.slot);
   }
 
+  function openHoursPanel() {
+    var panel = document.getElementById('aph-panel');
+    var scrim = document.getElementById('aph-scrim');
+    if (!panel) return;
+    renderHoursPanel();
+    panel.classList.add('open');
+    if (scrim) scrim.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeHoursPanel() {
+    var panel = document.getElementById('aph-panel');
+    var scrim = document.getElementById('aph-scrim');
+    if (panel) panel.classList.remove('open');
+    if (scrim) scrim.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
   function saveHours() {
-    var wrap = document.getElementById('apt-hours-rows');
+    var wrap = document.getElementById('aph-rows');
     if (!wrap) return;
     var days = [];
     var error = '';
@@ -316,10 +372,21 @@
       days.push({ key: row.getAttribute('data-day'), open: open, from: from, to: to });
     });
     if (error) { toast(error); return; }
-    var slotEl = document.getElementById('apt-slot-select');
+    var slotEl = document.getElementById('aph-slot');
     writeJson(HOURS_KEY, { slot: slotEl ? parseInt(slotEl.value, 10) : 30, days: days });
-    renderHours();
+    closeHoursPanel();
+    renderHoursSummary();
     toast('تم حفظ دوام العيادة');
+  }
+
+  function loadHoursPanel() {
+    var host = document.getElementById('apt-hours-slot');
+    if (!host || !CURRENT_SCRIPT_URL) return Promise.resolve();
+    var url = new URL('../dashboard-users/partials/apt-hours-edit-panel.html', CURRENT_SCRIPT_URL).href;
+    return fetch(url)
+      .then(function (res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.text(); })
+      .then(function (html) { host.innerHTML = html; refreshIcons(); })
+      .catch(function (err) { console.error('Failed to load hours panel:', url, err); });
   }
 
   /* ---------- events ---------- */
@@ -327,7 +394,8 @@
   function init() {
     if (document.body.getAttribute('data-page') !== 'appointments') return;
     renderList();
-    renderHours();
+    renderHoursSummary();
+    loadHoursPanel();
 
     document.addEventListener('click', function (e) {
       var btn = e.target.closest && e.target.closest('[data-apt-action]');
@@ -340,7 +408,9 @@
         renderList();
         return;
       }
-      if (e.target.closest && e.target.closest('#apt-hours-save')) { saveHours(); return; }
+      if (e.target.closest && e.target.closest('[data-action="open-apt-hours"]')) { openHoursPanel(); return; }
+      if (e.target.closest && e.target.closest('[data-action="close-apt-hours"]')) { closeHoursPanel(); return; }
+      if (e.target.closest && e.target.closest('#aph-save-btn')) { saveHours(); return; }
       if (e.target.closest && e.target.closest('#apt-search-clear')) {
         var input = document.getElementById('apt-search-input');
         if (input) { input.value = ''; renderList(); }
@@ -350,14 +420,17 @@
     var search = document.getElementById('apt-search-input');
     if (search) search.addEventListener('input', renderList);
 
-    var hoursWrap = document.getElementById('apt-hours-rows');
-    if (hoursWrap) {
-      hoursWrap.addEventListener('change', function (e) {
-        if (!e.target.matches('[data-hours-open]')) return;
-        var row = e.target.closest('[data-day]');
-        row.querySelectorAll('[data-hours-from],[data-hours-to]').forEach(function (inp) { inp.disabled = !e.target.checked; });
-      });
-    }
+    document.addEventListener('change', function (e) {
+      if (!e.target.matches || !e.target.matches('#aph-rows [data-hours-open]')) return;
+      var row = e.target.closest('[data-day]');
+      row.classList.toggle('is-closed', !e.target.checked);
+      row.querySelectorAll('[data-hours-from],[data-hours-to]').forEach(function (inp) { inp.disabled = !e.target.checked; });
+    });
+
+    document.addEventListener('keydown', function (e) {
+      var panel = document.getElementById('aph-panel');
+      if (e.key === 'Escape' && panel && panel.classList.contains('open')) closeHoursPanel();
+    });
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
