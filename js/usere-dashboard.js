@@ -89,10 +89,16 @@
   function getTypeLabelWithSubCategory(typeLabel) {
     var config = getStoreTypeConfig();
     if (!config || config.id !== 'store') return typeLabel;
-    try {
-      var subLabel = localStorage.getItem(STORE_SUBCATEGORY_KEY);
-      if (subLabel) return typeLabel + ' — ' + subLabel;
-    } catch (e) {}
+    var subLabel = null;
+    if (window.GMStoreTypeConfig && typeof window.GMStoreTypeConfig.getStoreSubcategoryLabel === 'function') {
+      subLabel = window.GMStoreTypeConfig.getStoreSubcategoryLabel();
+    }
+    if (!subLabel) {
+      try {
+        subLabel = localStorage.getItem(STORE_SUBCATEGORY_KEY);
+      } catch (e) {}
+    }
+    if (subLabel) return typeLabel + ' — ' + subLabel;
     return typeLabel;
   }
 
@@ -5939,7 +5945,31 @@
     buildWhatsappLinks();
   }
 
+  var SHARED_PAGES = ['dashboard', 'packages', 'profile'];
+
+  function isPageAllowedForType(page) {
+    if (!page || SHARED_PAGES.indexOf(page) !== -1) return true;
+    var config = getStoreTypeConfig();
+    if (!config) return true;
+    var lists = [config.sidebar, config.mobileNav, config.dashboardCards];
+    for (var i = 0; i < lists.length; i++) {
+      var list = lists[i] || [];
+      for (var j = 0; j < list.length; j++) {
+        if (list[j] && list[j].page === page) return true;
+      }
+    }
+    return false;
+  }
+
+  function guardPageForStoreType() {
+    var page = document.body.getAttribute('data-page');
+    if (isPageAllowedForType(page)) return true;
+    window.location.replace('dashboard.html');
+    return false;
+  }
+
   async function init() {
+    if (!guardPageForStoreType()) return;
     initHeroDynamicInfo();
     ensureMobileNavHost();
     await Promise.all([

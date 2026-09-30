@@ -1567,6 +1567,15 @@ window.GMStoreTypeConfig = (function () {
     return null;
   }
 
+  function getStoreSubcategoryLabel() {
+    var id = getStoreSubcategoryId();
+    if (!id) return null;
+    for (var ar in STORE_SUBCATEGORY_AR_TO_ID) {
+      if (hasOwn(STORE_SUBCATEGORY_AR_TO_ID, ar) && STORE_SUBCATEGORY_AR_TO_ID[ar] === id) return ar;
+    }
+    return id;
+  }
+
   function getStoreVariantKey() {
     var subcategoryId = getStoreSubcategoryId();
     return (subcategoryId && hasOwn(STORE_SUBCATEGORY_VARIANT, subcategoryId))
@@ -1653,6 +1662,7 @@ window.GMStoreTypeConfig = (function () {
     TYPES: TYPES,
     getCurrentType: getCurrentType,
     getStoreSubcategoryId: getStoreSubcategoryId,
+    getStoreSubcategoryLabel: getStoreSubcategoryLabel,
     setCurrentType: setCurrentType,
     getCurrentPlan: getCurrentPlan,
     setCurrentPlan: setCurrentPlan,
