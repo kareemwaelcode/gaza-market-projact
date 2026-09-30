@@ -1469,6 +1469,12 @@ window.GMStoreTypeConfig = (function () {
       dashboardCards.push({ page: 'services', href: 'services.html', icon: svcNav.icon, label: svcNav.label, sub: svcNav.cardSub || svcNav.sub });
     }
 
+    if (variant.hasAppointments) {
+      sidebar.push({ page: 'appointments', href: 'appointments.html', icon: 'calendar-clock', label: 'المواعيد', sub: 'حجوزات المرضى ودوام العيادة' });
+      mobileNav.push({ page: 'appointments', href: 'appointments.html', icon: 'calendar-clock', label: 'المواعيد', badge: true });
+      dashboardCards.push({ page: 'appointments', href: 'appointments.html', icon: 'calendar-clock', label: 'المواعيد', sub: 'حجوزات المرضى والدوام' });
+    }
+
     sidebar.push(
       { action: 'open-services-edit', href: '#', icon: 'wrench', label: 'الخدمات المتاحة', sub: servicesNavSub },
       { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', sub: adsNavSub, badge: 2 },
