@@ -18,7 +18,7 @@ window.GMStoreTypeConfig = (function () {
   };
 
   var STORE_LOCKED_FEATURES = {
-    free: ['qrCode', 'shareWhatsapp', 'cardPayment', 'whatsappOrder'],
+    free: ['qrCode', 'shareWhatsapp', 'cardPayment', 'whatsappOrder', 'installments'],
     paid: []
   };
 
@@ -143,6 +143,102 @@ window.GMStoreTypeConfig = (function () {
       adTypes: ['offer', 'job'],
       adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
     },
+    furniture: {
+      key: 'furniture',
+      freeLimits: { productCategories: 5, discountedProducts: 5 },
+      hasDiscounts: true,
+      hasAppointments: false,
+      hasProducts: true,
+      hiddenServices: [],
+      serviceIds: ['furniture_assembly', 'custom_order', 'warranty', 'exchange_return', 'installments', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'فك وتركيب، تفصيل حسب الطلب، ضمان، تقسيط',
+      productFields: ['details', 'color', 'material'],
+      productHints: { name: 'مثال: غرفة نوم خشب زان', details: 'مثال: 6 قطع، شامل الخزانة والتسريحة', color: 'مثال: بني، رمادي، أبيض', material: 'مثال: خشب زان، MDF، معدن' },
+      suggestedCategories: ['غرف نوم', 'غرف جلوس وصالونات', 'غرف سفرة', 'مطابخ وخزائن', 'طاولات وكراسي', 'أسرّة وفرشات', 'أثاث مكتبي', 'أثاث أطفال'],
+      heroWelcomeText: 'معرضك جاهز لعرض قطع الأثاث وأسعارها من هنا.',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    furnishings: {
+      key: 'furnishings',
+      freeLimits: { productCategories: 5, discountedProducts: 5 },
+      hasDiscounts: true,
+      hasAppointments: false,
+      hasProducts: true,
+      hiddenServices: [],
+      serviceIds: ['home_measurement', 'custom_order', 'installation', 'exchange_return', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'أخذ مقاسات، تفصيل ستائر، تركيب',
+      productFields: ['details', 'size', 'color', 'material'],
+      productHints: { name: 'مثال: طقم ستائر مخمل', details: 'مثال: طقم من 4 قطع مع الإكسسوارات', size: 'مثال: 2×3 متر أو سرير مفرد', color: 'مثال: بيج، رمادي، بني', material: 'مثال: قطن، مخمل، بوليستر' },
+      suggestedCategories: ['ستائر', 'شراشف وأطقم سرير', 'بطانيات ولحف', 'مخدات ووسائد', 'سجاد وموكيت', 'مفارش طاولات ومطبخ', 'مناشف'],
+      heroWelcomeText: 'محلك جاهز لعرض المفروشات والستائر وأسعارها من هنا.',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    household: {
+      key: 'household',
+      freeLimits: { productCategories: 5, discountedProducts: 5 },
+      hasDiscounts: true,
+      hasAppointments: false,
+      hasProducts: true,
+      hiddenServices: [],
+      serviceIds: ['bridal_sets', 'gift_wrap', 'warranty', 'exchange_return', 'wholesale', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'جهاز عروس، تغليف هدايا، بيع بالجملة',
+      productFields: ['details', 'color', 'material'],
+      productHints: { name: 'مثال: طقم قدور ستانلس 10 قطع', details: 'مثال: 10 قطع مع أغطية زجاجية', color: 'مثال: فضي، أسود', material: 'مثال: ستانلس ستيل، زجاج، ميلامين' },
+      suggestedCategories: ['أواني وقدور', 'صحون وكاسات', 'أدوات مطبخ', 'علب تخزين وحفظ', 'أدوات مائدة وتقديم', 'أدوات غسيل ونشر', 'منظمات ورفوف'],
+      heroWelcomeText: 'محلك جاهز لعرض الأدوات المنزلية وأسعارها من هنا.',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    appliances: {
+      key: 'appliances',
+      freeLimits: { productCategories: 5, discountedProducts: 5 },
+      hasDiscounts: true,
+      hasAppointments: false,
+      hasProducts: true,
+      hiddenServices: [],
+      serviceIds: ['installation', 'warranty', 'after_sales', 'exchange_return', 'installments', 'bridal_sets', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'تركيب، ضمان، صيانة، تقسيط',
+      productFields: ['details', 'brand', 'color'],
+      productHints: { name: 'مثال: غسالة أوتوماتيك 8 كيلو', details: 'مثال: 8 كيلو، توفير طاقة، ضمان سنتين', brand: 'مثال: سامسونج، LG، بيكو', color: 'مثال: أبيض، ستانلس' },
+      suggestedCategories: ['ثلاجات وفريزرات', 'غسالات', 'أفران وغاز', 'مكيفات ومراوح', 'تلفزيونات وشاشات', 'أجهزة مطبخ صغيرة', 'سخانات مياه', 'مكانس كهربائية'],
+      heroWelcomeText: 'معرضك جاهز لعرض الأجهزة الكهربائية وأسعارها من هنا.',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    cleaning: {
+      key: 'cleaning',
+      freeLimits: { products: 15, productCategories: 5 },
+      hasDiscounts: false,
+      hasAppointments: false,
+      hasProducts: true,
+      hiddenServices: [],
+      serviceIds: ['refill', 'wholesale', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'تعبئة سوائل، بيع بالجملة',
+      productFields: ['details', 'brand'],
+      productHints: { name: 'مثال: سائل جلي 4 لتر', details: 'مثال: عبوة 4 لتر، رائحة ليمون', brand: 'مثال: فيري، أومو، دومستوس' },
+      suggestedCategories: ['منظفات أرضيات', 'منظفات مطبخ وجلي', 'منظفات حمام', 'مساحيق ومنظفات غسيل', 'معطرات ومزيلات روائح', 'مطهرات ومعقمات', 'أدوات تنظيف'],
+      heroWelcomeText: 'محلك جاهز لعرض مواد التنظيف وأسعارها من هنا.',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    plumbing: {
+      key: 'plumbing',
+      freeLimits: { productCategories: 5, discountedProducts: 5 },
+      hasDiscounts: true,
+      hasAppointments: false,
+      hasProducts: true,
+      hiddenServices: [],
+      serviceIds: ['installation', 'technical_consultation', 'warranty', 'exchange_return', 'wholesale', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'تركيب، استشارة فنية، ضمان، جملة',
+      productFields: ['details', 'brand', 'color', 'material'],
+      productHints: { name: 'مثال: خلاط مغسلة كروم', details: 'مثال: قطر 1 إنش، ضمان سنة', brand: 'مثال: اسم الشركة المصنعة', color: 'مثال: كروم، أسود مطفي', material: 'مثال: نحاس، ستانلس، PVC' },
+      suggestedCategories: ['مراحيض ومغاسل', 'خلاطات وحنفيات', 'أحواض وبانيوهات', 'مواسير ووصلات', 'خزانات مياه', 'مضخات ومحابس', 'إكسسوارات حمام'],
+      heroWelcomeText: 'محلك جاهز لعرض الأدوات الصحية وأسعارها من هنا.',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
     clinic: {
       key: 'clinic',
       freeLimits: { appointments: 5 },
@@ -176,7 +272,13 @@ window.GMStoreTypeConfig = (function () {
     "Kids' Clothing": 'clothing',
     'Shoes': 'clothing',
     'Accessories': 'accessories',
-    'Tailoring': 'tailoring'
+    'Tailoring': 'tailoring',
+    'Home Furniture': 'furniture',
+    'Furnishings & Curtains': 'furnishings',
+    'Household Tools': 'household',
+    'Electrical & Home Appliances': 'appliances',
+    'Cleaning Supplies': 'cleaning',
+    'Plumbing Supplies': 'plumbing'
   };
 
   var STORE_SUBCATEGORY_AR_TO_ID = {
@@ -197,11 +299,18 @@ window.GMStoreTypeConfig = (function () {
     'ملابس أطفال': "Kids' Clothing",
     'أحذية': 'Shoes',
     'إكسسوارات': 'Accessories',
-    'خياطة': 'Tailoring'
+    'خياطة': 'Tailoring',
+    'أثاث منزلي': 'Home Furniture',
+    'مفروشات وستائر': 'Furnishings & Curtains',
+    'أدوات منزلية': 'Household Tools',
+    'كهربائيات وأجهزة منزلية': 'Electrical & Home Appliances',
+    'مواد تنظيف': 'Cleaning Supplies',
+    'أدوات صحية': 'Plumbing Supplies'
   };
 
   var CLOTHING_ONLY_SERVICE_IDS = ['size_exchange', 'alteration', 'whatsapp_order'];
   var TAILORING_ONLY_SERVICE_IDS = ['fitting', 'home_measurement', 'fabric_supply', 'urgent_service'];
+  var HOME_ONLY_SERVICE_IDS = ['furniture_assembly', 'custom_order', 'installments', 'after_sales', 'bridal_sets', 'wholesale', 'refill', 'technical_consultation'];
   var HEALTH_ONLY_SERVICE_IDS = ['delivery', 'night_duty', 'prescription_order', 'device_rental', 'eye_exam', 'lens_fitting', 'health_check', 'injections', 'device_maintenance', 'glasses_repair', 'consultation', 'lab_tests', 'xray', 'vaccinations'];
 
   var storeConfigCache = {};
@@ -517,7 +626,15 @@ window.GMStoreTypeConfig = (function () {
       { id: 'consultation', label: 'كشفية', icon: 'stethoscope' },
       { id: 'lab_tests', label: 'تحاليل مخبرية', icon: 'flask-conical' },
       { id: 'xray', label: 'أشعة', icon: 'scan' },
-      { id: 'vaccinations', label: 'تطعيمات', icon: 'shield-plus' }
+      { id: 'vaccinations', label: 'تطعيمات', icon: 'shield-plus' },
+      { id: 'furniture_assembly', label: 'فك وتركيب', icon: 'wrench' },
+      { id: 'custom_order', label: 'تفصيل حسب الطلب', icon: 'pencil-ruler' },
+      { id: 'installments', label: 'تقسيط', icon: 'calendar-clock' },
+      { id: 'after_sales', label: 'صيانة وخدمة ما بعد البيع', icon: 'hammer' },
+      { id: 'bridal_sets', label: 'تجهيز جهاز العرسان', icon: 'sparkles' },
+      { id: 'wholesale', label: 'بيع بالجملة', icon: 'boxes' },
+      { id: 'refill', label: 'تعبئة سوائل بالوزن', icon: 'droplets' },
+      { id: 'technical_consultation', label: 'استشارة فنية', icon: 'lightbulb' }
     ];
 
     var services;
@@ -530,6 +647,7 @@ window.GMStoreTypeConfig = (function () {
         return service.id !== 'cash_payment' &&
           CLOTHING_ONLY_SERVICE_IDS.indexOf(service.id) === -1 &&
           TAILORING_ONLY_SERVICE_IDS.indexOf(service.id) === -1 &&
+          HOME_ONLY_SERVICE_IDS.indexOf(service.id) === -1 &&
           HEALTH_ONLY_SERVICE_IDS.indexOf(service.id) === -1 &&
           variant.hiddenServices.indexOf(service.id) === -1;
       });
@@ -542,6 +660,7 @@ window.GMStoreTypeConfig = (function () {
       : 'نشر عدد غير محدود من الإعلانات (عروض، تخفيضات، منتجات جديدة)';
 
     var hasProducts = variant.hasProducts !== false;
+    var hasInstallments = services.some(function (service) { return service.id === 'installments'; });
 
     var freeFeatures = [
       { label: 'صفحة خاصة بمتجرك على GazaPrice', on: true },
@@ -579,6 +698,9 @@ window.GMStoreTypeConfig = (function () {
     if (variant.hasAppointments) {
       freeFeatures.push({ label: 'حجوزات مواعيد غير محدودة', on: false });
     }
+    if (hasInstallments) {
+      freeFeatures.push({ label: 'إظهار خدمة التقسيط للزوار', on: false });
+    }
     freeFeatures.push(
       { label: 'شارة "مميز" وأولوية الظهور', on: false },
       { label: 'إحصائيات المتجر', on: false },
@@ -610,6 +732,9 @@ window.GMStoreTypeConfig = (function () {
     }
     if (variant.hasWhatsappOrder) {
       paidFeatures.push('استقبال طلبات الزباين عبر واتساب');
+    }
+    if (hasInstallments) {
+      paidFeatures.push('إظهار خدمة التقسيط للزوار في صفحة المتجر');
     }
     paidFeatures.push(
       'شارة "مميز" وأولوية الظهور في نتائج البحث',
@@ -677,6 +802,7 @@ window.GMStoreTypeConfig = (function () {
       serviceFields: variant.serviceFields || [],
       serviceSuggestions: variant.serviceSuggestions || [],
       productFields: variant.productFields || [],
+      productHints: variant.productHints || {},
       suggestedCategories: variant.suggestedCategories || [],
       fallbackAvatarLetter: 'م',
       sidebar: sidebar,

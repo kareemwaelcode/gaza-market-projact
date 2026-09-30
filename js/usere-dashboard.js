@@ -661,13 +661,15 @@
     qrCode: 'كود QR',
     shareWhatsapp: 'المشاركة عبر واتساب',
     cardPayment: 'إظهار الدفع بالبطاقة للزوار',
-    whatsappOrder: 'استقبال الطلبات عبر واتساب'
+    whatsappOrder: 'استقبال الطلبات عبر واتساب',
+    installments: 'خدمة التقسيط'
   };
 
   var SERVICE_LOCKED_FEATURE = {
     card_payment: 'cardPayment',
     'payment_methods-tow': 'cardPayment',
-    whatsapp_order: 'whatsappOrder'
+    whatsapp_order: 'whatsappOrder',
+    installments: 'installments'
   };
 
   function getServiceLockedFeatureKey(serviceId) {
@@ -4324,10 +4326,43 @@
 
   var productEditingCategoryId = null;
 
+  function renderProductCategorySuggestions() {
+    var wrap = document.getElementById('pcp-suggestions');
+    var box = document.getElementById('pcp-suggestions-list');
+    if (!wrap || !box) return;
+
+    var config = getStoreTypeConfig();
+    var suggested = (config && Array.isArray(config.suggestedCategories)) ? config.suggestedCategories : [];
+
+    var nameInput = document.getElementById('pcp-new-name');
+    if (nameInput && suggested.length) nameInput.placeholder = 'مثال: ' + suggested[0];
+
+    var existing = getStoredProductCategories().map(function (cat) {
+      return String(cat.name || '').trim();
+    });
+    var remaining = suggested.filter(function (name) { return existing.indexOf(name) === -1; });
+
+    if (!remaining.length) {
+      wrap.style.display = 'none';
+      box.innerHTML = '';
+      return;
+    }
+
+    box.innerHTML = remaining.map(function (name) {
+      return '<button type="button" class="btn btn-ghost btn-sm" data-action="add-product-category-suggestion" data-name="' + escapeHtml(name) + '">' +
+        '<i data-lucide="plus" class="icon"></i> ' + escapeHtml(name) +
+      '</button>';
+    }).join('');
+    wrap.style.display = '';
+    bootIcons();
+  }
+
   function renderProductCategoryList() {
     var list = document.getElementById('pcp-list');
     var empty = document.getElementById('pcp-empty');
     if (!list) return;
+
+    renderProductCategorySuggestions();
 
     var categories = getStoredProductCategories();
 
@@ -4436,6 +4471,24 @@
     document.addEventListener('click', function (e) {
       var openTrigger = e.target.closest && e.target.closest('[data-action="open-product-category-panel"]');
       if (openTrigger) { e.preventDefault(); open(); return; }
+
+      var suggestionTrigger = e.target.closest && e.target.closest('[data-action="add-product-category-suggestion"]');
+      if (suggestionTrigger) {
+        e.preventDefault();
+        var suggestedName = (suggestionTrigger.getAttribute('data-name') || '').trim();
+        if (!suggestedName) return;
+
+        var suggestedList = getStoredProductCategories();
+        if (!guardPlanLimit('productCategories', suggestedList.length)) return;
+        suggestedList.push({ id: generateProductCategoryId(), name: suggestedName, createdAt: Date.now() });
+        setStoredProductCategories(suggestedList);
+
+        renderProductCategoryList();
+        renderProductCategorySelectOptions();
+        renderProductsPage();
+        showToast('تمت إضافة التصنيف', { icon: 'folder-plus' });
+        return;
+      }
 
       var closeTrigger = e.target.closest && e.target.closest('[data-action="close-product-category-panel"]');
       if (closeTrigger) { close(); return; }
@@ -4559,6 +4612,7 @@
       ? items.filter(function (it) {
           return (it.name || '').toLowerCase().indexOf(term) !== -1 ||
                  productCategoryLabel(it.categoryId).toLowerCase().indexOf(term) !== -1 ||
+                 (storeHasProductField('brand') && (it.brand || '').toLowerCase().indexOf(term) !== -1) ||
                  (storeHasProductField('color') && (it.color || '').toLowerCase().indexOf(term) !== -1) ||
                  (storeHasProductField('material') && (it.material || '').toLowerCase().indexOf(term) !== -1);
         })
@@ -4582,6 +4636,7 @@
           ? '<div class="sub" style="font-size:12px;color:var(--db-text-tertiary);">' + escapeHtml(item.details) + '</div>'
           : '';
         var attrParts = [];
+        if (storeHasProductField('brand') && item.brand) attrParts.push('الماركة: ' + escapeHtml(item.brand));
         if (storeHasProductField('material') && item.material) attrParts.push('الخامة: ' + escapeHtml(item.material));
         if (storeHasProductField('color') && item.color) attrParts.push('اللون: ' + escapeHtml(item.color));
         var attrsLine = attrParts.length
@@ -4646,6 +4701,8 @@
     var sizeInput = document.getElementById('pie-size');
     var detailsField = document.getElementById('pie-details-field');
     var detailsInput = document.getElementById('pie-details');
+    var brandField = document.getElementById('pie-brand-field');
+    var brandInput = document.getElementById('pie-brand');
     var colorField = document.getElementById('pie-color-field');
     var colorInput = document.getElementById('pie-color');
     var materialField = document.getElementById('pie-material-field');
@@ -4690,8 +4747,26 @@
       if (sizeField) sizeField.style.display = storeHasProductField('size') ? '' : 'none';
       if (discountField) discountField.style.display = storeHasDiscounts() ? '' : 'none';
       if (detailsField) detailsField.style.display = storeHasProductField('details') ? '' : 'none';
+      if (brandField) brandField.style.display = storeHasProductField('brand') ? '' : 'none';
       if (colorField) colorField.style.display = storeHasProductField('color') ? '' : 'none';
       if (materialField) materialField.style.display = storeHasProductField('material') ? '' : 'none';
+      applyFieldHints();
+    }
+
+    function applyFieldHints() {
+      var config = getStoreTypeConfig();
+      var hints = (config && config.productHints) || {};
+      var pairs = [
+        [nameInput, 'name'],
+        [detailsInput, 'details'],
+        [sizeInput, 'size'],
+        [brandInput, 'brand'],
+        [colorInput, 'color'],
+        [materialInput, 'material']
+      ];
+      pairs.forEach(function (pair) {
+        if (pair[0] && hints[pair[1]]) pair[0].placeholder = hints[pair[1]];
+      });
     }
 
     function setPreview(imageUrl) {
@@ -4714,6 +4789,7 @@
       if (priceInput) priceInput.value = '';
       if (sizeInput) sizeInput.value = '';
       if (detailsInput) detailsInput.value = '';
+      if (brandInput) brandInput.value = '';
       if (colorInput) colorInput.value = '';
       if (materialInput) materialInput.value = '';
       if (categorySelect) categorySelect.value = '';
@@ -4727,6 +4803,7 @@
       if (priceInput) priceInput.value = item.price != null ? item.price : '';
       if (sizeInput) sizeInput.value = item.size || '';
       if (detailsInput) detailsInput.value = item.details || '';
+      if (brandInput) brandInput.value = item.brand || '';
       if (colorInput) colorInput.value = item.color || '';
       if (materialInput) materialInput.value = item.material || '';
       if (categorySelect) categorySelect.value = item.categoryId || '';
@@ -4832,9 +4909,11 @@
         var details = (withDetailsField && detailsInput) ? detailsInput.value.trim() : '';
         var withDiscountFields = storeHasDiscounts();
         var withSizeField = storeHasProductField('size');
+        var withBrandField = storeHasProductField('brand');
         var withColorField = storeHasProductField('color');
         var withMaterialField = storeHasProductField('material');
         var size = (withSizeField && sizeInput) ? sizeInput.value.trim() : '';
+        var brand = (withBrandField && brandInput) ? brandInput.value.trim() : '';
         var color = (withColorField && colorInput) ? colorInput.value.trim() : '';
         var material = (withMaterialField && materialInput) ? materialInput.value.trim() : '';
         if (withDiscountFields && selectedDiscount && !canEnableDiscount()) {
@@ -4852,6 +4931,7 @@
               list[i].image = pendingImage;
               if (withDetailsField) list[i].details = details;
               if (withSizeField) list[i].size = size;
+              if (withBrandField) list[i].brand = brand;
               if (withColorField) list[i].color = color;
               if (withMaterialField) list[i].material = material;
               if (withDiscountFields) list[i].discount = selectedDiscount;
@@ -4870,6 +4950,7 @@
           };
           if (withDetailsField) newItem.details = details;
           if (withSizeField) newItem.size = size;
+          if (withBrandField) newItem.brand = brand;
           if (withColorField) newItem.color = color;
           if (withMaterialField) newItem.material = material;
           if (withDiscountFields) newItem.discount = selectedDiscount;
