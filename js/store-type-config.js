@@ -1240,7 +1240,7 @@ window.GMStoreTypeConfig = (function () {
         { action: 'open-services-edit', href: '#', icon: 'wrench', label: 'الخدمات المتاحة', sub: 'واي فاي، كهرباء، طباعة، مشروبات' },
         { page: 'subscribers', href: 'subscribers.html', icon: 'users', label: 'المشتركين', sub: 'إضافة، تجديد، إنهاء الاشتراك' },
         { page: 'subscription-requests', href: 'subscription-requests.html', icon: 'thumbs-up', label: 'طلبات الاشتراك', sub: 'طلبات وصلتك أونلاين للموافقة' },
-        { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', sub: 'فعاليات، ورش، وظائف، عروض', badge: 2 },
+        { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', sub: 'فعاليات، ورش، وظائف، عروض' },
         { page: 'packages', href: 'packages.html', icon: 'layers', label: 'الباقات', sub: 'اختر باقة مساحتك' },
         { page: 'profile', href: 'profile.html', icon: 'store', label: 'بروفايل المساحة', sub: 'تعديل المعلومات والصورة' }
       ],
@@ -1250,7 +1250,7 @@ window.GMStoreTypeConfig = (function () {
         { action: 'open-services-edit', href: '#', icon: 'wrench', label: 'الخدمات المتاحة' },
         { page: 'subscribers', href: 'subscribers.html', icon: 'users', label: 'المشتركين' },
         { page: 'subscription-requests', href: 'subscription-requests.html', icon: 'thumbs-up', label: 'طلبات الاشتراك' },
-        { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', badge: true }
+        { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات' }
       ],
       services: [
         { id: 'wifi', label: 'WiFi' },
@@ -1370,12 +1370,12 @@ window.GMStoreTypeConfig = (function () {
     }
 
     sidebar.push(
-      { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', sub: opts.adsNavSub || 'فعاليات، عروض، وظائف', badge: 2 },
+      { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', sub: opts.adsNavSub || 'فعاليات، عروض، وظائف' },
       { page: 'packages', href: 'packages.html', icon: 'layers', label: 'الباقات', sub: 'اختر باقة نشاطك' },
       { page: 'profile', href: 'profile.html', icon: 'store', label: 'بروفايل النشاط', sub: 'تعديل المعلومات والصورة' }
     );
     mobileNav.push(
-      { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', badge: true }
+      { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات' }
     );
 
     var freeFeatures = [
@@ -1679,13 +1679,13 @@ window.GMStoreTypeConfig = (function () {
 
     sidebar.push(
       { action: 'open-services-edit', href: '#', icon: 'wrench', label: 'الخدمات المتاحة', sub: servicesNavSub },
-      { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', sub: adsNavSub, badge: 2 },
+      { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', sub: adsNavSub },
       { page: 'packages', href: 'packages.html', icon: 'layers', label: 'الباقات', sub: 'اختر باقة متجرك' },
       { page: 'profile', href: 'profile.html', icon: 'store', label: 'بروفايل المتجر', sub: 'تعديل المعلومات والصورة' }
     );
     mobileNav.push(
       { action: 'open-services-edit', href: '#', icon: 'wrench', label: 'الخدمات المتاحة' },
-      { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات', badge: true }
+      { page: 'ads', href: 'ads.html', icon: 'megaphone', label: 'الإعلانات' }
     );
     dashboardCards.push(
       { action: 'open-services-edit', href: '#', icon: 'wrench', label: 'الخدمات المتاحة', sub: servicesNavSub },

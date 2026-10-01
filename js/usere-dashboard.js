@@ -20,6 +20,7 @@
   var STORE_SERVICE_ITEMS_STORAGE_KEY = 'gmDashboardStoreServiceItems';
   var NOTIFICATIONS_STORAGE_KEY = 'gmDashboardNotifications';
   var NOTIFICATIONS_MAX = 30;
+  var VISITS_STORAGE_KEY = 'gmDashboardVisits';
 
   var PUBLIC_BASE_URL = 'https://gazaprice.com';
 
@@ -2023,51 +2024,42 @@
     if (pageSub) pageSub.textContent = text;
   }
 
+  function setAvatarElement(el, image, text) {
+    if (!el) return;
+    if (image) {
+      el.style.backgroundImage = toCssUrl(image);
+      el.style.backgroundSize = 'cover';
+      el.style.backgroundPosition = 'center';
+      el.textContent = '';
+      return;
+    }
+    el.style.backgroundImage = '';
+    el.style.backgroundSize = '';
+    el.style.backgroundPosition = '';
+    el.textContent = text;
+  }
+
+  function applyIdentityToUI(profile) {
+    var hasName = !!(profile && profile.name);
+    var displayName = hasName ? profile.name : getFallbackName();
+    var avatarText = hasName ? profile.name.trim().charAt(0) : getFallbackAvatarLetter();
+    var image = profile && profile.image ? profile.image : null;
+
+    ['hero-user-name', 'profile-name-text', 'udTopnavUsername'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.textContent = displayName;
+    });
+    setAvatarElement(document.getElementById('profile-avatar-letter'), image, avatarText);
+    setAvatarElement(document.querySelector('.ud-topnav-avatar'), image, avatarText);
+  }
+
   function applyProfileToUI(profile) {
     applyProfileSubText(profile);
+    applyIdentityToUI(profile);
     if (!profile) {
       var emptyProfileName = document.getElementById('profile-page-name');
       if (emptyProfileName) emptyProfileName.textContent = getFallbackName();
       return;
-    }
-
-    var heroName = document.getElementById('hero-user-name');
-    if (heroName && profile.name) heroName.textContent = profile.name;
-
-    var profileName = document.getElementById('profile-name-text');
-    if (profileName && profile.name) profileName.textContent = profile.name;
-
-    var avatarLetter = document.getElementById('profile-avatar-letter');
-    if (avatarLetter) {
-      if (profile.image) {
-        avatarLetter.style.backgroundImage = toCssUrl(profile.image);
-        avatarLetter.style.backgroundSize = 'cover';
-        avatarLetter.style.backgroundPosition = 'center';
-        avatarLetter.textContent = '';
-      } else {
-        avatarLetter.style.backgroundImage = '';
-        avatarLetter.style.backgroundSize = '';
-        avatarLetter.style.backgroundPosition = '';
-        if (profile.name) avatarLetter.textContent = profile.name.trim().charAt(0);
-      }
-    }
-
-    var topnavUsername = document.getElementById('udTopnavUsername');
-    if (topnavUsername && profile.name) topnavUsername.textContent = profile.name;
-
-    var topnavAvatar = document.querySelector('.ud-topnav-avatar');
-    if (topnavAvatar) {
-      if (profile.image) {
-        topnavAvatar.style.backgroundImage = toCssUrl(profile.image);
-        topnavAvatar.style.backgroundSize = 'cover';
-        topnavAvatar.style.backgroundPosition = 'center';
-        topnavAvatar.textContent = '';
-      } else {
-        topnavAvatar.style.backgroundImage = '';
-        topnavAvatar.style.backgroundSize = '';
-        topnavAvatar.style.backgroundPosition = '';
-        if (profile.name) topnavAvatar.textContent = profile.name.trim().charAt(0);
-      }
     }
 
     var emptyBox = document.getElementById('location-empty');
@@ -2145,6 +2137,37 @@
     });
     document.querySelectorAll('.js-open-status-sub').forEach(function (el) {
       el.textContent = isOpen ? 'الزبائن يستطيعون الطلب الآن' : 'غير متاح لاستقبال الطلبات حالياً';
+    });
+  }
+
+  function toVisitCount(value) {
+    var n = parseInt(value, 10);
+    return n > 0 ? n : 0;
+  }
+
+  function getStoredVisits() {
+    var visits = { today: 0, week: 0, total: 0 };
+    try {
+      var data = parseStoredObject(localStorage.getItem(scopedKey(VISITS_STORAGE_KEY)));
+      if (data) {
+        visits.today = toVisitCount(data.today);
+        visits.week = toVisitCount(data.week);
+        visits.total = toVisitCount(data.total);
+      }
+    } catch (err) {}
+    return visits;
+  }
+
+  function applyVisitsToUI() {
+    var visits = getStoredVisits();
+    [
+      ['.js-visits-today', visits.today],
+      ['.js-visits-week', visits.week],
+      ['.js-visits-total', visits.total]
+    ].forEach(function (pair) {
+      document.querySelectorAll(pair[0]).forEach(function (el) {
+        el.textContent = String(pair[1]);
+      });
     });
   }
 
@@ -6085,6 +6108,7 @@
     initLogoutAction();
     applyProfileToUI(getStoredProfile());
     applyOpenStatusToUI(getStoredOpenStatus());
+    applyVisitsToUI();
     renderSubscribersPage();
     renderSubscriptionRequestsPage();
     renderTablesPage();
