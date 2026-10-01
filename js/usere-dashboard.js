@@ -50,7 +50,7 @@
     }
     var url = new URL(filename, PARTIALS_BASE_URL).href;
     try {
-      var res = await fetch(url);
+      var res = await fetch(url, { credentials: 'same-origin' });
       if (!res.ok) throw new Error('HTTP ' + res.status);
       host.innerHTML = await res.text();
     } catch (err) {
@@ -123,11 +123,11 @@
     var html = config.sidebar.map(function (item) {
       var badge = item.badge ? '<span class="nav-item-badge">' + item.badge + '</span>' : '';
       return (
-        '<a href="' + (item.href || '#') + '" class="nav-item"' + navItemAttrs(item) + '>' +
+        '<a href="' + escapeHtml(item.href || '#') + '" class="nav-item"' + navItemAttrs(item) + '>' +
           '<span class="nav-item-icon"><i data-lucide="' + item.icon + '" class="icon"></i></span>' +
           '<span class="nav-item-text">' +
-            '<span class="nav-item-label">' + item.label + '</span>' +
-            '<span class="label-sub">' + item.sub + '</span>' +
+            '<span class="nav-item-label">' + escapeHtml(item.label) + '</span>' +
+            '<span class="label-sub">' + escapeHtml(item.sub) + '</span>' +
           '</span>' +
           badge +
           '<i data-lucide="chevron-left" class="icon nav-item-chevron"></i>' +
@@ -150,9 +150,9 @@
     var itemsHTML = config.mobileNav.map(function (item) {
       var badge = item.badge ? '<span class="mobile-nav-badge"></span>' : '';
       return (
-        '<a href="' + (item.href || '#') + '" class="mobile-nav-item"' + navItemAttrs(item) + '>' +
+        '<a href="' + escapeHtml(item.href || '#') + '" class="mobile-nav-item"' + navItemAttrs(item) + '>' +
           '<i data-lucide="' + item.icon + '" class="icon"></i>' +
-          '<span>' + item.label + '</span>' +
+          '<span>' + escapeHtml(item.label) + '</span>' +
           badge +
         '</a>'
       );
@@ -183,12 +183,12 @@
 
     var itemsHTML = moreItems.map(function (item) {
       return (
-        '<a href="' + (item.href || '#') + '" class="mobile-more-row"' + navItemAttrs(item) + '>' +
+        '<a href="' + escapeHtml(item.href || '#') + '" class="mobile-more-row"' + navItemAttrs(item) + '>' +
           '<div class="mobile-more-row-icon-wrap">' +
             '<i data-lucide="' + item.icon + '" class="icon"></i>' +
           '</div>' +
           '<div class="mobile-more-row-text">' +
-            '<div class="mobile-more-row-title">' + item.label + '</div>' +
+            '<div class="mobile-more-row-title">' + escapeHtml(item.label) + '</div>' +
             '<div class="mobile-more-row-sub">' + (item.sub || '') + '</div>' +
           '</div>' +
           '<i data-lucide="chevron-left" class="icon mobile-more-chevron"></i>' +
@@ -209,13 +209,13 @@
       var inner =
         '<div class="icon-wrap"><i data-lucide="' + item.icon + '" class="icon"></i></div>' +
         '<div>' +
-          '<div class="title">' + item.label + '</div>' +
-          '<div class="sub">' + item.sub + '</div>' +
+          '<div class="title">' + escapeHtml(item.label) + '</div>' +
+          '<div class="sub">' + escapeHtml(item.sub) + '</div>' +
         '</div>';
       if (item.action) {
         return '<div class="card quick-card" data-action="' + item.action + '">' + inner + '</div>';
       }
-      return '<a href="' + (item.href || '#') + '" class="card quick-card">' + inner + '</a>';
+      return '<a href="' + escapeHtml(item.href || '#') + '" class="card quick-card">' + inner + '</a>';
     }).join('');
 
     grid.innerHTML = html;
@@ -396,7 +396,7 @@
       applyTheme(nextTheme);
       try {
         localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
-      } catch (err) {}
+      } catch (err) { handleStorageError(err); }
     });
   }
 
@@ -408,10 +408,17 @@
     });
   }
 
+  var iconsQueued = false;
+
   function bootIcons() {
-    if (window.lucide && typeof window.lucide.createIcons === 'function') {
-      window.lucide.createIcons();
-    }
+    if (iconsQueued) return;
+    iconsQueued = true;
+    Promise.resolve().then(function () {
+      iconsQueued = false;
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons();
+      }
+    });
   }
 
   var FREE_PLAN_CHIP_LABEL = 'مجانية';
@@ -860,7 +867,7 @@
   function getStoredProfile() {
     try {
       var raw = localStorage.getItem(scopedKey(PROFILE_STORAGE_KEY));
-      return raw ? JSON.parse(raw) : null;
+      return parseStoredObject(raw);
     } catch (err) {
       return null;
     }
@@ -869,7 +876,7 @@
   function setStoredProfile(profile) {
     try {
       localStorage.setItem(scopedKey(PROFILE_STORAGE_KEY), JSON.stringify(profile));
-    } catch (err) {}
+    } catch (err) { handleStorageError(err); }
   }
 
   function getPublicUrl(profile) {
@@ -920,13 +927,13 @@
   function setStoredOpenStatus(isOpen) {
     try {
       localStorage.setItem(scopedKey(OPEN_STORAGE_KEY), isOpen ? 'true' : 'false');
-    } catch (err) {}
+    } catch (err) { handleStorageError(err); }
   }
 
   function getStoredPricesHours() {
     try {
       var raw = localStorage.getItem(scopedKey(PRICES_HOURS_STORAGE_KEY));
-      return raw ? JSON.parse(raw) : null;
+      return parseStoredObject(raw);
     } catch (err) {
       return null;
     }
@@ -935,13 +942,13 @@
   function setStoredPricesHours(data) {
     try {
       localStorage.setItem(scopedKey(PRICES_HOURS_STORAGE_KEY), JSON.stringify(data));
-    } catch (err) {}
+    } catch (err) { handleStorageError(err); }
   }
 
   function getStoredServices() {
     try {
       var raw = localStorage.getItem(scopedKey(SERVICES_STORAGE_KEY));
-      return raw ? JSON.parse(raw) : null;
+      return parseStoredObject(raw);
     } catch (err) {
       return null;
     }
@@ -950,13 +957,13 @@
   function setStoredServices(data) {
     try {
       localStorage.setItem(scopedKey(SERVICES_STORAGE_KEY), JSON.stringify(data));
-    } catch (err) {}
+    } catch (err) { handleStorageError(err); }
   }
 
   function getStoredSubscribers() {
     try {
       var raw = localStorage.getItem(scopedKey(SUBSCRIBERS_STORAGE_KEY));
-      return raw ? JSON.parse(raw) : [];
+      return parseStoredArray(raw);
     } catch (err) {
       return [];
     }
@@ -965,7 +972,7 @@
   function setStoredSubscribers(list) {
     try {
       localStorage.setItem(scopedKey(SUBSCRIBERS_STORAGE_KEY), JSON.stringify(list));
-    } catch (err) {}
+    } catch (err) { handleStorageError(err); }
   }
 
   function generateSubscriberId() {
@@ -975,7 +982,7 @@
   function getStoredSubscriptionRequests() {
     try {
       var raw = localStorage.getItem(scopedKey(SUBSCRIPTION_REQUESTS_STORAGE_KEY));
-      return raw ? JSON.parse(raw) : [];
+      return parseStoredArray(raw);
     } catch (err) {
       return [];
     }
@@ -984,7 +991,7 @@
   function setStoredSubscriptionRequests(list) {
     try {
       localStorage.setItem(scopedKey(SUBSCRIPTION_REQUESTS_STORAGE_KEY), JSON.stringify(list));
-    } catch (err) {}
+    } catch (err) { handleStorageError(err); }
   }
 
   function generateRequestId() {
@@ -1084,14 +1091,14 @@
           '<td class="mono" style="direction:ltr;text-align:right;">' + dateLabel + '</td>' +
           '<td>' +
             '<div class="flex gap-8">' +
-              '<button type="button" class="btn btn-primary btn-sm" data-action="approve-request" data-id="' + req.id + '">موافقة</button>' +
-              '<button type="button" class="btn btn-danger btn-sm" data-action="reject-request" data-id="' + req.id + '">رفض</button>' +
+              '<button type="button" class="btn btn-primary btn-sm" data-action="approve-request" data-id="' + escapeHtml(req.id) + '">موافقة</button>' +
+              '<button type="button" class="btn btn-danger btn-sm" data-action="reject-request" data-id="' + escapeHtml(req.id) + '">رفض</button>' +
             '</div>' +
           '</td>' +
         '</tr>';
 
       cardsHtml +=
-        '<div class="sub-card" data-id="' + req.id + '">' +
+        '<div class="sub-card" data-id="' + escapeHtml(req.id) + '">' +
           '<div class="sub-card-top">' +
             '<span class="badge amber">جديد</span>' +
             '<div class="sub-card-name">' + escapeHtml(req.name) + '</div>' +
@@ -1103,10 +1110,10 @@
           '<div class="sub-card-row">' + durationLabel + ' \u00b7 ' + dateLabel + '</div>' +
           (req.note ? '<div class="sub-card-note">' + escapeHtml(req.note) + '</div>' : '') +
           '<div class="sub-card-actions" style="grid-template-columns:repeat(2,1fr);">' +
-            '<button type="button" class="btn btn-primary btn-sm" data-action="approve-request" data-id="' + req.id + '">' +
+            '<button type="button" class="btn btn-primary btn-sm" data-action="approve-request" data-id="' + escapeHtml(req.id) + '">' +
               '<i data-lucide="check" class="icon"></i> موافقة' +
             '</button>' +
-            '<button type="button" class="btn btn-danger btn-sm" data-action="reject-request" data-id="' + req.id + '">' +
+            '<button type="button" class="btn btn-danger btn-sm" data-action="reject-request" data-id="' + escapeHtml(req.id) + '">' +
               '<i data-lucide="x" class="icon"></i> رفض' +
             '</button>' +
           '</div>' +
@@ -1237,7 +1244,7 @@
   function setStoredTables(list) {
     try {
       localStorage.setItem(scopedKey(TABLES_STORAGE_KEY), JSON.stringify(list));
-    } catch (err) {}
+    } catch (err) { handleStorageError(err); }
   }
 
   function generateTableId() {
@@ -1565,7 +1572,7 @@
   function setStoredReservations(list) {
     try {
       localStorage.setItem(scopedKey(RESERVATIONS_STORAGE_KEY), JSON.stringify(list));
-    } catch (err) {}
+    } catch (err) { handleStorageError(err); }
   }
 
   function generateReservationId() {
@@ -1827,9 +1834,9 @@
     var searchClearBtn = document.getElementById('res-search-clear');
     if (!searchInput) return;
 
-    searchInput.addEventListener('input', function () {
+    searchInput.addEventListener('input', debounce(function () {
       renderReservationsPage();
-    });
+    }, 150));
 
     if (searchClearBtn) {
       searchClearBtn.addEventListener('click', function () {
@@ -2033,7 +2040,7 @@
     var avatarLetter = document.getElementById('profile-avatar-letter');
     if (avatarLetter) {
       if (profile.image) {
-        avatarLetter.style.backgroundImage = 'url(' + profile.image + ')';
+        avatarLetter.style.backgroundImage = toCssUrl(profile.image);
         avatarLetter.style.backgroundSize = 'cover';
         avatarLetter.style.backgroundPosition = 'center';
         avatarLetter.textContent = '';
@@ -2051,7 +2058,7 @@
     var topnavAvatar = document.querySelector('.ud-topnav-avatar');
     if (topnavAvatar) {
       if (profile.image) {
-        topnavAvatar.style.backgroundImage = 'url(' + profile.image + ')';
+        topnavAvatar.style.backgroundImage = toCssUrl(profile.image);
         topnavAvatar.style.backgroundSize = 'cover';
         topnavAvatar.style.backgroundPosition = 'center';
         topnavAvatar.textContent = '';
@@ -2074,7 +2081,7 @@
     var ppAvatar = document.getElementById('profile-page-avatar');
     if (ppAvatar) {
       if (profile.image) {
-        ppAvatar.style.backgroundImage = 'url(' + profile.image + ')';
+        ppAvatar.style.backgroundImage = toCssUrl(profile.image);
         ppAvatar.textContent = '';
       } else {
         ppAvatar.style.backgroundImage = '';
@@ -2465,9 +2472,9 @@
       return (
         '<div class="sve-row">' +
           iconHtml +
-          '<div class="switch" id="sve-switch-' + svc.id + '"' + (locked ? ' data-locked-feature="' + lockedKey + '"' : '') + '></div>' +
-          '<span class="sve-row-label">' + svc.label + (locked ? ' <i data-lucide="lock" class="icon" style="width:14px;height:14px;vertical-align:middle;"></i>' : '') + '</span>' +
-          '<input type="text" id="sve-details-' + svc.id + '" class="sve-details-input" placeholder="' + (locked ? LOCK_OVERLAY_TEXT : 'تفاصيل إضافية (اختياري)...') + '"' + (locked ? ' disabled' : '') + '>' +
+          '<div class="switch" id="sve-switch-' + escapeHtml(svc.id) + '"' + (locked ? ' data-locked-feature="' + escapeHtml(lockedKey) + '"' : '') + '></div>' +
+          '<span class="sve-row-label">' + escapeHtml(svc.label) + (locked ? ' <i data-lucide="lock" class="icon" style="width:14px;height:14px;vertical-align:middle;"></i>' : '') + '</span>' +
+          '<input type="text" id="sve-details-' + escapeHtml(svc.id) + '" class="sve-details-input" placeholder="' + (locked ? LOCK_OVERLAY_TEXT : 'تفاصيل إضافية (اختياري)...') + '"' + (locked ? ' disabled' : '') + '>' +
         '</div>'
       );
     }).join('');
@@ -2611,6 +2618,65 @@
     });
   }
 
+  function safeExternalUrl(url) {
+    var value = String(url == null ? '' : url).trim();
+    if (!/^https?:\/\//i.test(value)) return '';
+    try {
+      var parsed = new URL(value);
+      return parsed.protocol === 'http:' || parsed.protocol === 'https:' ? parsed.href : '';
+    } catch (err) {
+      return '';
+    }
+  }
+
+  function safeImageSrc(src) {
+    var value = String(src == null ? '' : src).trim();
+    if (!value) return '';
+    if (/^data:image\/(png|jpe?g|webp|gif);base64,[a-z0-9+\/=]+$/i.test(value)) return value;
+    if (/^https?:\/\//i.test(value)) return value;
+    if (/^[a-z][a-z0-9+.-]*:/i.test(value)) return '';
+    if (/^\/\//.test(value)) return '';
+    return value;
+  }
+
+  function toCssUrl(src) {
+    var safe = safeImageSrc(src);
+    if (!safe) return '';
+    return 'url("' + safe.replace(/["\\\r\n()]/g, function (ch) { return encodeURIComponent(ch); }) + '")';
+  }
+
+  function parseStoredArray(raw) {
+    if (!raw) return [];
+    var parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  }
+
+  function parseStoredObject(raw) {
+    if (!raw) return null;
+    var parsed = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : null;
+  }
+
+  var storageErrorShownAt = 0;
+
+  function handleStorageError(err) {
+    var now = Date.now();
+    if (now - storageErrorShownAt < 4000) return;
+    storageErrorShownAt = now;
+    var quota = err && (err.name === 'QuotaExceededError' || err.name === 'NS_ERROR_DOM_QUOTA_REACHED');
+    showToast(quota ? 'تعذّر الحفظ: مساحة التخزين ممتلئة، قلّل حجم الصور أو احذف بيانات قديمة' : 'تعذّر حفظ التغييرات', { danger: true, icon: 'alert-triangle' });
+  }
+
+  function debounce(fn, wait) {
+    var timer = null;
+    return function () {
+      var ctx = this;
+      var args = arguments;
+      window.clearTimeout(timer);
+      timer = window.setTimeout(function () { fn.apply(ctx, args); }, wait);
+    };
+  }
+
   function ensureToastContainer() {
     var el = document.getElementById('gm-toast-container');
     if (!el) {
@@ -2628,7 +2694,7 @@
     var toast = document.createElement('div');
     toast.className = 'gm-toast' + (options.danger ? ' gm-toast--danger' : '');
     toast.innerHTML =
-      '<i data-lucide="' + (options.icon || 'check-circle') + '" class="icon"></i>' +
+      '<i data-lucide="' + escapeHtml(options.icon || 'check-circle') + '" class="icon"></i>' +
       '<span>' + escapeHtml(message) + '</span>';
     container.appendChild(toast);
     bootIcons();
@@ -2813,16 +2879,16 @@
           '<td>' + statusBadge + '</td>' +
           '<td>' +
             '<div class="flex gap-8">' +
-              '<button type="button" class="icon-btn" data-action="delete-subscriber" data-id="' + sub.id + '" aria-label="حذف" title="حذف"><i data-lucide="trash-2" class="icon"></i></button>' +
-              '<button type="button" class="icon-btn" data-action="stop-subscriber" data-id="' + sub.id + '" aria-label="إيقاف" title="إيقاف"><i data-lucide="ban" class="icon"></i></button>' +
-              '<button type="button" class="icon-btn" data-action="renew-subscriber" data-id="' + sub.id + '" aria-label="تجديد" title="تجديد"><i data-lucide="refresh-cw" class="icon"></i></button>' +
-              '<button type="button" class="icon-btn" data-action="edit-subscriber" data-id="' + sub.id + '" aria-label="تعديل" title="تعديل"><i data-lucide="pencil" class="icon"></i></button>' +
+              '<button type="button" class="icon-btn" data-action="delete-subscriber" data-id="' + escapeHtml(sub.id) + '" aria-label="حذف" title="حذف"><i data-lucide="trash-2" class="icon"></i></button>' +
+              '<button type="button" class="icon-btn" data-action="stop-subscriber" data-id="' + escapeHtml(sub.id) + '" aria-label="إيقاف" title="إيقاف"><i data-lucide="ban" class="icon"></i></button>' +
+              '<button type="button" class="icon-btn" data-action="renew-subscriber" data-id="' + escapeHtml(sub.id) + '" aria-label="تجديد" title="تجديد"><i data-lucide="refresh-cw" class="icon"></i></button>' +
+              '<button type="button" class="icon-btn" data-action="edit-subscriber" data-id="' + escapeHtml(sub.id) + '" aria-label="تعديل" title="تعديل"><i data-lucide="pencil" class="icon"></i></button>' +
             '</div>' +
           '</td>' +
         '</tr>';
 
       cardsHtml +=
-        '<div class="sub-card" data-id="' + sub.id + '">' +
+        '<div class="sub-card" data-id="' + escapeHtml(sub.id) + '">' +
           '<div class="sub-card-top">' +
             statusBadge +
             '<div class="sub-card-name">' + escapeHtml(sub.name) + '</div>' +
@@ -2836,17 +2902,17 @@
           '</div>' +
           (sub.note ? '<div class="sub-card-note">' + escapeHtml(sub.note) + '</div>' : '') +
           '<div class="sub-card-actions">' +
-            '<button type="button" class="btn btn-sm btn-danger" data-action="delete-subscriber" data-id="' + sub.id + '">' +
+            '<button type="button" class="btn btn-sm btn-danger" data-action="delete-subscriber" data-id="' + escapeHtml(sub.id) + '">' +
               '<i data-lucide="trash-2" class="icon"></i> حذف' +
             '</button>' +
-            '<button type="button" class="btn btn-sm btn-ghost" data-action="stop-subscriber" data-id="' + sub.id + '">' +
+            '<button type="button" class="btn btn-sm btn-ghost" data-action="stop-subscriber" data-id="' + escapeHtml(sub.id) + '">' +
               '<i data-lucide="ban" class="icon"></i> إلغاء' +
             '</button>' +
-            '<button type="button" class="btn btn-sm btn-ghost" data-action="edit-subscriber" data-id="' + sub.id + '">' +
+            '<button type="button" class="btn btn-sm btn-ghost" data-action="edit-subscriber" data-id="' + escapeHtml(sub.id) + '">' +
               '<i data-lucide="pencil" class="icon"></i> تعديل' +
             '</button>' +
           '</div>' +
-          '<button type="button" class="btn btn-primary sub-card-renew" data-action="renew-subscriber" data-id="' + sub.id + '">' +
+          '<button type="button" class="btn btn-primary sub-card-renew" data-action="renew-subscriber" data-id="' + escapeHtml(sub.id) + '">' +
             '<i data-lucide="refresh-cw" class="icon"></i> تجديد' +
           '</button>' +
         '</div>';
@@ -3170,7 +3236,7 @@
   function setStoredAds(list) {
     try {
       localStorage.setItem(getAdsStorageKey(), JSON.stringify(list));
-    } catch (err) {}
+    } catch (err) { handleStorageError(err); }
   }
 
   function generateAdId() {
@@ -3180,7 +3246,7 @@
   function getStoredNotifications() {
     try {
       var raw = localStorage.getItem(scopedKey(NOTIFICATIONS_STORAGE_KEY));
-      return raw ? JSON.parse(raw) : [];
+      return parseStoredArray(raw);
     } catch (err) {
       return [];
     }
@@ -3189,7 +3255,7 @@
   function setStoredNotifications(list) {
     try {
       localStorage.setItem(scopedKey(NOTIFICATIONS_STORAGE_KEY), JSON.stringify(list));
-    } catch (err) {}
+    } catch (err) { handleStorageError(err); }
   }
 
   function generateNotificationId() {
@@ -3381,16 +3447,16 @@
             '<div style="font-weight:700;">' + escapeHtml(ad.title) + '</div>' +
             buildAdOfferPriceHtml(ad) +
             (ad.details ? '<div class="sub" style="font-size:12px;color:var(--db-text-tertiary);">' + escapeHtml(ad.details) + '</div>' : '') +
-            (ad.link ? '<div><a href="' + escapeHtml(ad.link) + '" target="_blank" rel="noopener" class="mono" style="font-size:12px;">' + escapeHtml(ad.link) + '</a></div>' : '') +
+            (safeExternalUrl(ad.link) ? '<div><a href="' + escapeHtml(safeExternalUrl(ad.link)) + '" target="_blank" rel="noopener noreferrer" class="mono" style="font-size:12px;">' + escapeHtml(safeExternalUrl(ad.link)) + '</a></div>' : '') +
           '</td>' +
           '<td>' + escapeHtml(typeLabel) + '</td>' +
           '<td class="mono">' + formatAdDate(ad.date) + '</td>' +
           '<td>' + buildAdStatusBadge(ad) + '</td>' +
           '<td>' +
             '<div class="flex gap-8">' +
-              '<button type="button" class="btn btn-danger btn-sm" data-action="delete-ad" data-id="' + ad.id + '">حذف</button>' +
-              '<button type="button" class="btn btn-ghost btn-sm" data-action="toggle-ad-visibility" data-id="' + ad.id + '">' + (ad.hidden ? 'إظهار' : 'إخفاء') + '</button>' +
-              '<button type="button" class="btn btn-ghost btn-sm" data-action="edit-ad" data-id="' + ad.id + '">تعديل</button>' +
+              '<button type="button" class="btn btn-danger btn-sm" data-action="delete-ad" data-id="' + escapeHtml(ad.id) + '">حذف</button>' +
+              '<button type="button" class="btn btn-ghost btn-sm" data-action="toggle-ad-visibility" data-id="' + escapeHtml(ad.id) + '">' + (ad.hidden ? 'إظهار' : 'إخفاء') + '</button>' +
+              '<button type="button" class="btn btn-ghost btn-sm" data-action="edit-ad" data-id="' + escapeHtml(ad.id) + '">تعديل</button>' +
             '</div>' +
           '</td>' +
         '</tr>';
@@ -3672,7 +3738,7 @@
   function getStoredMenuCategories() {
     try {
       var raw = localStorage.getItem(scopedKey(MENU_CATEGORIES_STORAGE_KEY));
-      return raw ? JSON.parse(raw) : [];
+      return parseStoredArray(raw);
     } catch (err) {
       return [];
     }
@@ -3681,13 +3747,13 @@
   function setStoredMenuCategories(list) {
     try {
       localStorage.setItem(scopedKey(MENU_CATEGORIES_STORAGE_KEY), JSON.stringify(list));
-    } catch (err) {}
+    } catch (err) { handleStorageError(err); }
   }
 
   function getStoredMenuItems() {
     try {
       var raw = localStorage.getItem(scopedKey(MENU_ITEMS_STORAGE_KEY));
-      return raw ? JSON.parse(raw) : [];
+      return parseStoredArray(raw);
     } catch (err) {
       return [];
     }
@@ -3696,7 +3762,7 @@
   function setStoredMenuItems(list) {
     try {
       localStorage.setItem(scopedKey(MENU_ITEMS_STORAGE_KEY), JSON.stringify(list));
-    } catch (err) {}
+    } catch (err) { handleStorageError(err); }
   }
 
   function generateMenuCategoryId() {
@@ -3754,10 +3820,10 @@
 
       if (cat.id === menuEditingCategoryId) {
         return (
-          '<div class="list-row" data-id="' + cat.id + '">' +
-            '<input type="text" id="mcp-rename-' + cat.id + '" value="' + escapeHtml(cat.name) + '" style="flex:1;">' +
+          '<div class="list-row" data-id="' + escapeHtml(cat.id) + '">' +
+            '<input type="text" id="mcp-rename-' + escapeHtml(cat.id) + '" value="' + escapeHtml(cat.name) + '" style="flex:1;">' +
             '<div class="flex gap-8">' +
-              '<button type="button" class="icon-btn" data-action="save-menu-category" data-id="' + cat.id + '" aria-label="حفظ"><i data-lucide="check" class="icon"></i></button>' +
+              '<button type="button" class="icon-btn" data-action="save-menu-category" data-id="' + escapeHtml(cat.id) + '" aria-label="حفظ"><i data-lucide="check" class="icon"></i></button>' +
               '<button type="button" class="icon-btn" data-action="cancel-edit-menu-category" aria-label="إلغاء"><i data-lucide="x" class="icon"></i></button>' +
             '</div>' +
           '</div>'
@@ -3765,12 +3831,12 @@
       }
 
       return (
-        '<div class="list-row" data-id="' + cat.id + '">' +
+        '<div class="list-row" data-id="' + escapeHtml(cat.id) + '">' +
           '<div class="title">' + escapeHtml(cat.name) + '</div>' +
           '<div class="flex gap-8">' +
             '<span class="badge gray">' + itemsCount + ' صنف</span>' +
-            '<button type="button" class="icon-btn" data-action="edit-menu-category" data-id="' + cat.id + '" aria-label="تعديل"><i data-lucide="pencil" class="icon"></i></button>' +
-            '<button type="button" class="icon-btn" data-action="delete-menu-category" data-id="' + cat.id + '" aria-label="حذف"><i data-lucide="trash-2" class="icon"></i></button>' +
+            '<button type="button" class="icon-btn" data-action="edit-menu-category" data-id="' + escapeHtml(cat.id) + '" aria-label="تعديل"><i data-lucide="pencil" class="icon"></i></button>' +
+            '<button type="button" class="icon-btn" data-action="delete-menu-category" data-id="' + escapeHtml(cat.id) + '" aria-label="حذف"><i data-lucide="trash-2" class="icon"></i></button>' +
           '</div>' +
         '</div>'
       );
@@ -3980,8 +4046,8 @@
       tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--db-text-tertiary);padding:24px;">لا توجد نتائج مطابقة لبحثك</td></tr>';
     } else {
       tbody.innerHTML = visibleItems.map(function (item) {
-        var thumb = item.image
-          ? '<img src="' + item.image + '" class="menu-item-thumb" alt="">'
+        var thumb = safeImageSrc(item.image)
+          ? '<img src="' + escapeHtml(safeImageSrc(item.image)) + '" class="menu-item-thumb" alt="">'
           : '<span class="menu-item-thumb" style="display:inline-flex;align-items:center;justify-content:center;"><i data-lucide="utensils" class="icon"></i></span>';
 
         var priceValue = (item.price !== '' && item.price != null && !isNaN(Number(item.price)))
@@ -3998,11 +4064,11 @@
             '<td class="menu-td-price" data-label="السعر">' + priceHtml + '</td>' +
             '<td class="menu-td-status" data-label="الحالة">' + buildMenuStatusBadge(item) + '</td>' +
             '<td class="menu-td-actions">' +
-              '<button type="button" class="icon-btn" data-action="toggle-menu-item-availability" data-id="' + item.id + '" aria-label="' + (item.available !== false ? 'وضع كغير متاح' : 'وضع كمتاح') + '">' +
+              '<button type="button" class="icon-btn" data-action="toggle-menu-item-availability" data-id="' + escapeHtml(item.id) + '" aria-label="' + (item.available !== false ? 'وضع كغير متاح' : 'وضع كمتاح') + '">' +
                 '<i data-lucide="' + (item.available !== false ? 'eye' : 'eye-off') + '" class="icon"></i>' +
               '</button>' +
-              '<button type="button" class="icon-btn" data-action="edit-menu-item" data-id="' + item.id + '" aria-label="تعديل"><i data-lucide="pencil" class="icon"></i></button>' +
-              '<button type="button" class="icon-btn" data-action="delete-menu-item" data-id="' + item.id + '" aria-label="حذف"><i data-lucide="trash-2" class="icon"></i></button>' +
+              '<button type="button" class="icon-btn" data-action="edit-menu-item" data-id="' + escapeHtml(item.id) + '" aria-label="تعديل"><i data-lucide="pencil" class="icon"></i></button>' +
+              '<button type="button" class="icon-btn" data-action="delete-menu-item" data-id="' + escapeHtml(item.id) + '" aria-label="حذف"><i data-lucide="trash-2" class="icon"></i></button>' +
             '</td>' +
           '</tr>'
         );
@@ -4023,10 +4089,10 @@
   function initMenuSearch() {
     var input = document.getElementById('menu-search-input');
     if (!input) return;
-    input.addEventListener('input', function () {
+    input.addEventListener('input', debounce(function () {
       menuSearchTerm = input.value || '';
       renderMenuPage();
-    });
+    }, 150));
   }
 
   function initMenuItemEditPanel() {
@@ -4255,7 +4321,7 @@
   function getStoredProductCategories() {
     try {
       var raw = localStorage.getItem(scopedKey(PRODUCT_CATEGORIES_STORAGE_KEY));
-      return raw ? JSON.parse(raw) : [];
+      return parseStoredArray(raw);
     } catch (err) {
       return [];
     }
@@ -4264,13 +4330,13 @@
   function setStoredProductCategories(list) {
     try {
       localStorage.setItem(scopedKey(PRODUCT_CATEGORIES_STORAGE_KEY), JSON.stringify(list));
-    } catch (err) {}
+    } catch (err) { handleStorageError(err); }
   }
 
   function getStoredProductItems() {
     try {
       var raw = localStorage.getItem(scopedKey(PRODUCT_ITEMS_STORAGE_KEY));
-      return raw ? JSON.parse(raw) : [];
+      return parseStoredArray(raw);
     } catch (err) {
       return [];
     }
@@ -4446,10 +4512,10 @@
 
       if (cat.id === productEditingCategoryId) {
         return (
-          '<div class="list-row" data-id="' + cat.id + '">' +
-            '<input type="text" id="pcp-rename-' + cat.id + '" value="' + escapeHtml(cat.name) + '" style="flex:1;">' +
+          '<div class="list-row" data-id="' + escapeHtml(cat.id) + '">' +
+            '<input type="text" id="pcp-rename-' + escapeHtml(cat.id) + '" value="' + escapeHtml(cat.name) + '" style="flex:1;">' +
             '<div class="flex gap-8">' +
-              '<button type="button" class="icon-btn" data-action="save-product-category" data-id="' + cat.id + '" aria-label="حفظ"><i data-lucide="check" class="icon"></i></button>' +
+              '<button type="button" class="icon-btn" data-action="save-product-category" data-id="' + escapeHtml(cat.id) + '" aria-label="حفظ"><i data-lucide="check" class="icon"></i></button>' +
               '<button type="button" class="icon-btn" data-action="cancel-edit-product-category" aria-label="إلغاء"><i data-lucide="x" class="icon"></i></button>' +
             '</div>' +
           '</div>'
@@ -4457,12 +4523,12 @@
       }
 
       return (
-        '<div class="list-row" data-id="' + cat.id + '">' +
+        '<div class="list-row" data-id="' + escapeHtml(cat.id) + '">' +
           '<div class="title">' + escapeHtml(cat.name) + '</div>' +
           '<div class="flex gap-8">' +
             '<span class="badge gray">' + itemsCount + ' منتج</span>' +
-            '<button type="button" class="icon-btn" data-action="edit-product-category" data-id="' + cat.id + '" aria-label="تعديل"><i data-lucide="pencil" class="icon"></i></button>' +
-            '<button type="button" class="icon-btn" data-action="delete-product-category" data-id="' + cat.id + '" aria-label="حذف"><i data-lucide="trash-2" class="icon"></i></button>' +
+            '<button type="button" class="icon-btn" data-action="edit-product-category" data-id="' + escapeHtml(cat.id) + '" aria-label="تعديل"><i data-lucide="pencil" class="icon"></i></button>' +
+            '<button type="button" class="icon-btn" data-action="delete-product-category" data-id="' + escapeHtml(cat.id) + '" aria-label="حذف"><i data-lucide="trash-2" class="icon"></i></button>' +
           '</div>' +
         '</div>'
       );
@@ -4690,8 +4756,8 @@
       tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--db-text-tertiary);padding:24px;">لا توجد نتائج مطابقة لبحثك</td></tr>';
     } else {
       tbody.innerHTML = visibleItems.map(function (item) {
-        var thumb = item.image
-          ? '<img src="' + item.image + '" class="menu-item-thumb" alt="">'
+        var thumb = safeImageSrc(item.image)
+          ? '<img src="' + escapeHtml(safeImageSrc(item.image)) + '" class="menu-item-thumb" alt="">'
           : '<span class="menu-item-thumb" style="display:inline-flex;align-items:center;justify-content:center;"><i data-lucide="package" class="icon"></i></span>';
 
         var priceValue = (item.price !== '' && item.price != null && !isNaN(Number(item.price)))
@@ -4725,11 +4791,11 @@
             '<td class="menu-td-price" data-label="السعر">' + priceHtml + '</td>' +
             '<td class="menu-td-status" data-label="الحالة">' + buildProductStatusBadge(item) + discountBadge + '</td>' +
             '<td class="menu-td-actions">' +
-              '<button type="button" class="icon-btn" data-action="toggle-product-item-availability" data-id="' + item.id + '" aria-label="' + (item.available !== false ? 'وضع كغير متاح' : 'وضع كمتاح') + '">' +
+              '<button type="button" class="icon-btn" data-action="toggle-product-item-availability" data-id="' + escapeHtml(item.id) + '" aria-label="' + (item.available !== false ? 'وضع كغير متاح' : 'وضع كمتاح') + '">' +
                 '<i data-lucide="' + (item.available !== false ? 'eye' : 'eye-off') + '" class="icon"></i>' +
               '</button>' +
-              '<button type="button" class="icon-btn" data-action="edit-product-item" data-id="' + item.id + '" aria-label="تعديل"><i data-lucide="pencil" class="icon"></i></button>' +
-              '<button type="button" class="icon-btn" data-action="delete-product-item" data-id="' + item.id + '" aria-label="حذف"><i data-lucide="trash-2" class="icon"></i></button>' +
+              '<button type="button" class="icon-btn" data-action="edit-product-item" data-id="' + escapeHtml(item.id) + '" aria-label="تعديل"><i data-lucide="pencil" class="icon"></i></button>' +
+              '<button type="button" class="icon-btn" data-action="delete-product-item" data-id="' + escapeHtml(item.id) + '" aria-label="حذف"><i data-lucide="trash-2" class="icon"></i></button>' +
             '</td>' +
           '</tr>'
         );
@@ -4750,10 +4816,10 @@
   function initProductSearch() {
     var input = document.getElementById('product-search-input');
     if (!input) return;
-    input.addEventListener('input', function () {
+    input.addEventListener('input', debounce(function () {
       productSearchTerm = input.value || '';
       renderProductsPage();
-    });
+    }, 150));
   }
 
   function initProductItemEditPanel() {
@@ -5110,7 +5176,7 @@
   function getStoredServiceCategories() {
     try {
       var raw = localStorage.getItem(scopedKey(STORE_SERVICE_CATEGORIES_STORAGE_KEY));
-      return raw ? JSON.parse(raw) : [];
+      return parseStoredArray(raw);
     } catch (err) {
       return [];
     }
@@ -5119,13 +5185,13 @@
   function setStoredServiceCategories(list) {
     try {
       localStorage.setItem(scopedKey(STORE_SERVICE_CATEGORIES_STORAGE_KEY), JSON.stringify(list));
-    } catch (err) {}
+    } catch (err) { handleStorageError(err); }
   }
 
   function getStoredServiceItems() {
     try {
       var raw = localStorage.getItem(scopedKey(STORE_SERVICE_ITEMS_STORAGE_KEY));
-      return raw ? JSON.parse(raw) : [];
+      return parseStoredArray(raw);
     } catch (err) {
       return [];
     }
@@ -5134,7 +5200,7 @@
   function setStoredServiceItems(list) {
     try {
       localStorage.setItem(scopedKey(STORE_SERVICE_ITEMS_STORAGE_KEY), JSON.stringify(list));
-    } catch (err) {}
+    } catch (err) { handleStorageError(err); }
   }
 
   function generateServiceCategoryId() {
@@ -5192,10 +5258,10 @@
 
       if (cat.id === serviceEditingCategoryId) {
         return (
-          '<div class="list-row" data-id="' + cat.id + '">' +
-            '<input type="text" id="scp-rename-' + cat.id + '" value="' + escapeHtml(cat.name) + '" style="flex:1;">' +
+          '<div class="list-row" data-id="' + escapeHtml(cat.id) + '">' +
+            '<input type="text" id="scp-rename-' + escapeHtml(cat.id) + '" value="' + escapeHtml(cat.name) + '" style="flex:1;">' +
             '<div class="flex gap-8">' +
-              '<button type="button" class="icon-btn" data-action="save-service-category" data-id="' + cat.id + '" aria-label="حفظ"><i data-lucide="check" class="icon"></i></button>' +
+              '<button type="button" class="icon-btn" data-action="save-service-category" data-id="' + escapeHtml(cat.id) + '" aria-label="حفظ"><i data-lucide="check" class="icon"></i></button>' +
               '<button type="button" class="icon-btn" data-action="cancel-edit-service-category" aria-label="إلغاء"><i data-lucide="x" class="icon"></i></button>' +
             '</div>' +
           '</div>'
@@ -5203,12 +5269,12 @@
       }
 
       return (
-        '<div class="list-row" data-id="' + cat.id + '">' +
+        '<div class="list-row" data-id="' + escapeHtml(cat.id) + '">' +
           '<div class="title">' + escapeHtml(cat.name) + '</div>' +
           '<div class="flex gap-8">' +
             '<span class="badge gray">' + itemsCount + ' خدمة</span>' +
-            '<button type="button" class="icon-btn" data-action="edit-service-category" data-id="' + cat.id + '" aria-label="تعديل"><i data-lucide="pencil" class="icon"></i></button>' +
-            '<button type="button" class="icon-btn" data-action="delete-service-category" data-id="' + cat.id + '" aria-label="حذف"><i data-lucide="trash-2" class="icon"></i></button>' +
+            '<button type="button" class="icon-btn" data-action="edit-service-category" data-id="' + escapeHtml(cat.id) + '" aria-label="تعديل"><i data-lucide="pencil" class="icon"></i></button>' +
+            '<button type="button" class="icon-btn" data-action="delete-service-category" data-id="' + escapeHtml(cat.id) + '" aria-label="حذف"><i data-lucide="trash-2" class="icon"></i></button>' +
           '</div>' +
         '</div>'
       );
@@ -5413,7 +5479,7 @@
       var lockedFeatureKey = getServiceLockedFeatureKey(svc.id);
       var isLocked = isServiceLocked(svc.id);
       var icon = isLocked ? 'lock' : (SERVICE_SUGGESTION_ICONS[svc.id] || (suggestionSource.fromConfig && svc.icon) || 'sparkles');
-      var lockAttr = lockedFeatureKey ? ' data-locked-feature="' + lockedFeatureKey + '"' : '';
+      var lockAttr = lockedFeatureKey ? ' data-locked-feature="' + escapeHtml(lockedFeatureKey) + '"' : '';
       return (
         '<button type="button" class="card quick-card" data-action="add-service-suggestion" data-name="' + escapeHtml(svc.label) + '"' + lockAttr + ' ' +
           'style="width:100%;text-align:right;font:inherit;color:inherit;">' +
@@ -5498,8 +5564,8 @@
             '<td class="menu-td-cat" data-label="التصنيف"><span class="menu-cat-chip">' + escapeHtml(serviceCategoryLabel(item.categoryId)) + '</span></td>' +
             '<td class="menu-td-price" data-label="السعر">' + priceHtml + '</td>' +
             '<td class="menu-td-actions">' +
-              '<button type="button" class="icon-btn" data-action="edit-service-item" data-id="' + item.id + '" aria-label="تعديل"><i data-lucide="pencil" class="icon"></i></button>' +
-              '<button type="button" class="icon-btn" data-action="delete-service-item" data-id="' + item.id + '" aria-label="حذف"><i data-lucide="trash-2" class="icon"></i></button>' +
+              '<button type="button" class="icon-btn" data-action="edit-service-item" data-id="' + escapeHtml(item.id) + '" aria-label="تعديل"><i data-lucide="pencil" class="icon"></i></button>' +
+              '<button type="button" class="icon-btn" data-action="delete-service-item" data-id="' + escapeHtml(item.id) + '" aria-label="حذف"><i data-lucide="trash-2" class="icon"></i></button>' +
             '</td>' +
           '</tr>'
         );
@@ -5521,10 +5587,10 @@
   function initServiceSearch() {
     var input = document.getElementById('service-search-input');
     if (!input) return;
-    input.addEventListener('input', function () {
+    input.addEventListener('input', debounce(function () {
       serviceSearchTerm = input.value || '';
       renderServicesPage();
-    });
+    }, 150));
   }
 
   function initServiceItemEditPanel() {
@@ -5784,7 +5850,7 @@
     var freeActionHTML = isPaidPlan ? '' : currentPlanButtonHTML;
 
     var paidActionHTML = isPaidPlan ? currentPlanButtonHTML : (
-      '<button type="button" class="btn btn-primary pkg-btn" data-action="select-package" data-plan="' + paid.id + '" aria-expanded="false" aria-controls="pkg-pay">' +
+      '<button type="button" class="btn btn-primary pkg-btn" data-action="select-package" data-plan="' + escapeHtml(paid.id) + '" aria-expanded="false" aria-controls="pkg-pay">' +
         '<span class="pkg-swap">' +
           '<span class="pkg-swap-item">' + paid.buttonLabel + '</span>' +
           '<span class="pkg-swap-item pkg-swap-item--alt" aria-hidden="true"><i data-lucide="check" class="icon"></i> تم الاختيار</span>' +
@@ -5826,7 +5892,7 @@
     grid.innerHTML =
       '<article class="card pkg-card" aria-labelledby="pkg-free-name">' +
         '<div class="pkg-eyebrow">' + free.eyebrow + '</div>' +
-        '<h2 class="pkg-name" id="pkg-free-name">' + free.name + '</h2>' +
+        '<h2 class="pkg-name" id="pkg-free-name">' + escapeHtml(free.name) + '</h2>' +
         '<p class="pkg-desc">' + free.desc + '</p>' +
         '<div class="pkg-price">' +
           '<span class="pkg-price-amount">' + free.price + '</span>' +
@@ -5838,7 +5904,7 @@
       '<article class="card pkg-card pkg-card--featured" aria-labelledby="pkg-paid-name">' +
         badgeHTML +
         '<div class="pkg-eyebrow">' + paid.eyebrow + '</div>' +
-        '<h2 class="pkg-name" id="pkg-paid-name">' + paid.name + '</h2>' +
+        '<h2 class="pkg-name" id="pkg-paid-name">' + escapeHtml(paid.name) + '</h2>' +
         '<p class="pkg-desc">' + paid.desc + '</p>' +
         '<div class="pkg-price">' +
           '<span class="pkg-price-amount pkg-price-amount--accent">' + paid.price + '</span>' +

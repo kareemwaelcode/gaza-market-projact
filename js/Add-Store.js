@@ -159,6 +159,11 @@
       imgInput.addEventListener("change", function () {
         const file = this.files[0];
         if (!file) return;
+        if (!/^image\/(png|jpe?g|webp|gif)$/i.test(file.type)) {
+          alert(getLang() === "ar" ? "نوع الملف غير مدعوم، اختر صورة PNG أو JPG أو WEBP" : "Unsupported file type. Choose a PNG, JPG or WEBP image.");
+          this.value = "";
+          return;
+        }
         if (file.size > 5 * 1024 * 1024) {
           alert(getLang() === "ar" ? "يجب أن تكون الصورة أقل من 5MB" : "Image must be under 5MB.");
           return;
@@ -345,17 +350,6 @@
 
   function initStep4() {
     $("#gmSubmit")?.addEventListener("click", () => {
-      console.log("[Gaza Market] Submission:", {
-        type:     state.type,
-        subCat:   state.storeSubCat,
-        name:     $("#f2Name")?.value.trim(),
-        region:   $("#f2Region")?.value.trim(),
-        address:  $("#f2Address")?.value.trim(),
-        phone:    $("#f3Phone")?.value.trim(),
-        whatsapp: $("#f3Wa")?.value.trim(),
-        hasImage: Boolean(state.imageDataUrl),
-        lang:     getLang(),
-      });
       persistTypeForDashboard();
       goToStep("success");
     });
