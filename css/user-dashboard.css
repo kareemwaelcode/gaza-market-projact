@@ -281,7 +281,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   white-space: nowrap;
 }
 .plan-mini-name { font-size: 24px; font-weight: 800; line-height: 1.2; margin-bottom: 6px; color: #ffffff; }
-.plan-mini-desc { margin: 0 0 14px; font-size: 12.5px; line-height: 1.6; color: rgba(255, 255, 255, 0.85); text-wrap: balance; }
+.plan-mini-desc { margin: 0 0 14px; font-size: 11px; line-height: 1.6; color: rgba(255, 255, 255, 0.85); text-wrap: balance; }
 .plan-mini-btn {
   width: 100%;
   justify-content: center;

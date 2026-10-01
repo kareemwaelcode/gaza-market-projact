@@ -36,20 +36,214 @@ window.GMStoreTypeConfig = (function () {
       hasAppointments: false,
       hasProducts: true,
       hiddenServices: [],
-      serviceIds: ['cash_payment', 'card_payment', 'warranty', 'exchange_return'],
+      serviceIds: ['delivery', 'wholesale', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'توصيل، بيع بالجملة، دفع كاش وبطاقة',
+      productFields: ['details', 'brand'],
+      productExtraFields: [
+        { key: 'unit', label: 'وحدة البيع', type: 'choice', options: ['قطعة', 'كيلو', 'علبة', 'كرتونة', 'لتر', 'دزينة'] },
+        { key: 'expiry', label: 'تاريخ الانتهاء', placeholder: 'مثال: 2027/03', maxLength: 20 }
+      ],
+      productHints: { name: 'مثال: أرز مصري 5 كيلو', details: 'مثال: حبة طويلة، كيس 5 كيلو', brand: 'مثال: اسم الشركة المصنعة' },
+      suggestedCategories: ['معلبات', 'أرز وبقوليات', 'زيوت وسمن', 'سكر وطحين', 'ألبان وأجبان', 'مشروبات وعصائر', 'منظفات ومستلزمات منزلية', 'حلويات وسناكس'],
+      heroWelcomeText: 'محلك جاهز لعرض المواد الغذائية وأسعارها من هنا.',
       adTypes: ['offer', 'job'],
       adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
     },
-    clothing: {
-      key: 'clothing',
+    produce: {
+      key: 'produce',
+      freeLimits: { products: 15, productCategories: 5 },
+      hasDiscounts: false,
+      hasAppointments: false,
+      hasProducts: true,
+      hiddenServices: [],
+      serviceIds: ['delivery', 'wholesale', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'توصيل، بيع بالجملة، دفع كاش وبطاقة',
+      productFields: ['details'],
+      productExtraFields: [
+        { key: 'unit', label: 'وحدة البيع', type: 'choice', options: ['كيلو', 'حبة', 'ربطة', 'صندوق'] },
+        { key: 'origin', label: 'المصدر', type: 'choice', options: ['محلي', 'مستورد'] }
+      ],
+      productHints: { name: 'مثال: بندورة بلدية', details: 'مثال: درجة أولى، طازجة من المزرعة' },
+      suggestedCategories: ['خضار', 'فواكه', 'ورقيات وأعشاب طازجة', 'خضار وفواكه موسمية', 'فواكه مجففة وتمور'],
+      heroWelcomeText: 'محلك جاهز لعرض الخضار والفواكه وأسعارها من هنا.',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    butcher: {
+      key: 'butcher',
+      freeLimits: { products: 15, productCategories: 5 },
+      hasDiscounts: false,
+      hasAppointments: false,
+      hasProducts: true,
+      hiddenServices: [],
+      serviceIds: ['delivery', 'wholesale', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'توصيل، بيع بالجملة، دفع كاش وبطاقة',
+      productFields: ['details'],
+      productExtraFields: [
+        { key: 'unit', label: 'وحدة البيع', type: 'choice', options: ['كيلو', 'قطعة', 'كرتونة'] },
+        { key: 'condition', label: 'الحالة', type: 'choice', options: ['طازج', 'مجمد'] },
+        { key: 'origin', label: 'المصدر', type: 'choice', options: ['محلي', 'مستورد'] }
+      ],
+      productHints: { name: 'مثال: لحم عجل مفروم', details: 'مثال: مفروم ناعم، خالي من الدهون' },
+      suggestedCategories: ['لحم عجل وبقر', 'لحم غنم', 'دجاج وطيور', 'لحوم مفرومة ومتبلة', 'لحوم مصنّعة ومجمدة'],
+      heroWelcomeText: 'محلك جاهز لعرض اللحوم وأسعارها من هنا.',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    fish: {
+      key: 'fish',
+      freeLimits: { products: 15, productCategories: 5 },
+      hasDiscounts: false,
+      hasAppointments: false,
+      hasProducts: true,
+      hiddenServices: [],
+      serviceIds: ['delivery', 'wholesale', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'توصيل، بيع بالجملة، دفع كاش وبطاقة',
+      productFields: ['details'],
+      productExtraFields: [
+        { key: 'unit', label: 'وحدة البيع', type: 'choice', options: ['كيلو', 'قطعة', 'كرتونة'] },
+        { key: 'condition', label: 'الحالة', type: 'choice', options: ['طازج', 'مجمد'] },
+        { key: 'origin', label: 'المصدر', type: 'choice', options: ['محلي', 'مستورد'] }
+      ],
+      productHints: { name: 'مثال: سمك دنيس', details: 'مثال: حجم وسط، منظف وجاهز للطبخ' },
+      suggestedCategories: ['أسماك طازجة', 'أسماك مجمدة', 'جمبري ومأكولات بحرية', 'أسماك مملحة ومعلبة'],
+      heroWelcomeText: 'محلك جاهز لعرض الأسماك وأسعارها من هنا.',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    bakery: {
+      key: 'bakery',
+      freeLimits: { products: 15, productCategories: 5 },
+      hasDiscounts: false,
+      hasAppointments: false,
+      hasProducts: true,
+      hiddenServices: [],
+      serviceIds: ['delivery', 'custom_order', 'wholesale', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'توصيل، طلبات خاصة، بيع بالجملة',
+      productFields: ['details'],
+      productExtraFields: [
+        { key: 'unit', label: 'وحدة البيع', type: 'choice', options: ['قطعة', 'كيلو', 'دزينة', 'كيس', 'كرتونة'] }
+      ],
+      productHints: { name: 'مثال: خبز عربي أبيض', details: 'مثال: كيس 10 أرغفة، مخبوز طازج يومياً' },
+      suggestedCategories: ['خبز', 'معجنات ومناقيش', 'كعك وبسكويت', 'كيك ومخبوزات حلوة', 'مخبوزات صحية'],
+      heroWelcomeText: 'مخبزك جاهز لعرض منتجاتك وأسعارها من هنا.',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    sweets: {
+      key: 'sweets',
+      freeLimits: { products: 15, productCategories: 5 },
+      hasDiscounts: false,
+      hasAppointments: false,
+      hasProducts: true,
+      hiddenServices: [],
+      serviceIds: ['delivery', 'custom_order', 'gift_wrap', 'wholesale', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'توصيل، طلبات خاصة، تغليف هدايا، جملة',
+      productFields: ['details'],
+      productExtraFields: [
+        { key: 'unit', label: 'وحدة البيع', type: 'choice', options: ['كيلو', 'قطعة', 'علبة', 'صينية', 'دزينة'] }
+      ],
+      productHints: { name: 'مثال: كنافة نابلسية', details: 'مثال: جبنة نابلسية، صينية 12 قطعة' },
+      suggestedCategories: ['حلويات شرقية', 'حلويات غربية', 'كنافة وقطايف', 'كيك وتورتات', 'شوكولاتة ومكسرات'],
+      heroWelcomeText: 'محلك جاهز لعرض الحلويات وأسعارها من هنا.',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    spices: {
+      key: 'spices',
+      freeLimits: { products: 15, productCategories: 5 },
+      hasDiscounts: false,
+      hasAppointments: false,
+      hasProducts: true,
+      hiddenServices: [],
+      serviceIds: ['delivery', 'wholesale', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'توصيل، بيع بالجملة، دفع كاش وبطاقة',
+      productFields: ['details', 'brand'],
+      productExtraFields: [
+        { key: 'unit', label: 'وحدة البيع', type: 'choice', options: ['كيلو', '100 غرام', 'علبة', 'كيس'] }
+      ],
+      productHints: { name: 'مثال: كمون مطحون', details: 'مثال: مطحون طازج، بدون إضافات', brand: 'مثال: اسم المصدر أو الشركة' },
+      suggestedCategories: ['بهارات', 'أعشاب وعطارة', 'مكسرات وبذور', 'قهوة وشاي', 'توابل مشكلة'],
+      heroWelcomeText: 'محلك جاهز لعرض البهارات والأعشاب وأسعارها من هنا.',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    menswear: {
+      key: 'menswear',
       freeLimits: { productCategories: 5, discountedProducts: 5 },
       hasDiscounts: true,
       hasAppointments: false,
       hasProducts: true,
-      hiddenServices: ['gift_wrap'],
-      serviceIds: ['cash_payment', 'card_payment', 'warranty', 'exchange_return'],
-      servicesNavSub: 'دفع كاش وبطاقة، ضمان، استبدال واسترجاع',
-      productFields: ['details', 'size'],
+      hiddenServices: [],
+      serviceIds: ['size_exchange', 'alteration', 'exchange_return', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'تبديل مقاسات، تعديل، استبدال واسترجاع',
+      productFields: ['details', 'size', 'color'],
+      productExtraFields: [
+        { key: 'season', label: 'الموسم', type: 'choice', options: ['صيفي', 'شتوي', 'لكل المواسم'] }
+      ],
+      productHints: { name: 'مثال: قميص رجالي كلاسيك', details: 'مثال: قطن 100%، قصة ضيقة', size: 'مثال: M أو L أو 42', color: 'مثال: أبيض، أزرق سماوي' },
+      suggestedCategories: ['قمصان', 'بناطيل', 'تيشرتات وبلوزات', 'بدلات وجاكيتات', 'ملابس رياضية', 'ملابس داخلية وجوارب', 'ملابس شتوية'],
+      heroWelcomeText: 'محلك جاهز لعرض الملابس الرجالية وأسعارها من هنا.',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    womenswear: {
+      key: 'womenswear',
+      freeLimits: { productCategories: 5, discountedProducts: 5 },
+      hasDiscounts: true,
+      hasAppointments: false,
+      hasProducts: true,
+      hiddenServices: [],
+      serviceIds: ['size_exchange', 'alteration', 'exchange_return', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'تبديل مقاسات، تعديل، استبدال واسترجاع',
+      productFields: ['details', 'size', 'color'],
+      productExtraFields: [
+        { key: 'season', label: 'الموسم', type: 'choice', options: ['صيفي', 'شتوي', 'لكل المواسم'] }
+      ],
+      productHints: { name: 'مثال: فستان سهرة طويل', details: 'مثال: قماش شيفون، بطانة داخلية', size: 'مثال: S أو M أو 38', color: 'مثال: أسود، بيج' },
+      suggestedCategories: ['فساتين', 'بلوزات وقمصان', 'بناطيل وتنانير', 'عبايات وإسدالات', 'ملابس منزلية ونوم', 'ملابس رياضية', 'ملابس شتوية'],
+      heroWelcomeText: 'محلك جاهز لعرض الملابس النسائية وأسعارها من هنا.',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    kidswear: {
+      key: 'kidswear',
+      freeLimits: { productCategories: 5, discountedProducts: 5 },
+      hasDiscounts: true,
+      hasAppointments: false,
+      hasProducts: true,
+      hiddenServices: [],
+      serviceIds: ['size_exchange', 'alteration', 'exchange_return', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'تبديل مقاسات، تعديل، استبدال واسترجاع',
+      productFields: ['details', 'size', 'color'],
+      productExtraFields: [
+        { key: 'ageGroup', label: 'الفئة العمرية', type: 'choice', options: ['مواليد', '1-3 سنوات', '4-7 سنوات', '8-12 سنة', '13 سنة فما فوق'] },
+        { key: 'gender', label: 'للجنس', type: 'choice', options: ['أولاد', 'بنات', 'للجنسين'] },
+        { key: 'season', label: 'الموسم', type: 'choice', options: ['صيفي', 'شتوي', 'لكل المواسم'] }
+      ],
+      productHints: { name: 'مثال: طقم أطفال قطن', details: 'مثال: قطعتين، قطن ناعم للبشرة الحساسة', size: 'مثال: 4 سنوات أو 98 سم', color: 'مثال: سماوي، وردي' },
+      suggestedCategories: ['ملابس مواليد', 'ملابس أولاد', 'ملابس بنات', 'ملابس مدرسية', 'ملابس نوم', 'ملابس شتوية'],
+      heroWelcomeText: 'محلك جاهز لعرض ملابس الأطفال وأسعارها من هنا.',
+      adTypes: ['offer', 'job'],
+      adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
+    },
+    shoes: {
+      key: 'shoes',
+      freeLimits: { productCategories: 5, discountedProducts: 5 },
+      hasDiscounts: true,
+      hasAppointments: false,
+      hasProducts: true,
+      hiddenServices: [],
+      serviceIds: ['size_exchange', 'exchange_return', 'warranty', 'cash_payment', 'card_payment'],
+      servicesNavSub: 'تبديل مقاسات، استبدال واسترجاع، ضمان',
+      productFields: ['details', 'brand', 'size', 'color', 'material'],
+      productExtraFields: [
+        { key: 'shoeFor', label: 'الفئة', type: 'choice', options: ['رجالي', 'نسائي', 'أطفال', 'للجنسين'] },
+        { key: 'season', label: 'الموسم', type: 'choice', options: ['صيفي', 'شتوي', 'لكل المواسم'] }
+      ],
+      productHints: { name: 'مثال: حذاء رياضي للجري', details: 'مثال: نعل طبي مريح، خفيف الوزن', brand: 'مثال: نايك، أديداس، بوما', size: 'مثال: 42 أو 38-41', color: 'مثال: أسود، أبيض', material: 'مثال: جلد طبيعي، قماش' },
+      suggestedCategories: ['أحذية رياضية', 'أحذية رسمية', 'صنادل وشباشب', 'بوتات وجزم', 'أحذية مدرسية', 'أحذية أطفال'],
+      heroWelcomeText: 'محلك جاهز لعرض الأحذية وأسعارها من هنا.',
       adTypes: ['offer', 'job'],
       adOptions: { offerPrices: true, linkOnlyForJob: true, limitNotice: true, expiryNotice: true }
     },
@@ -899,20 +1093,20 @@ window.GMStoreTypeConfig = (function () {
   var STORE_SUBCATEGORY_VARIANT = {
     'General Grocery': 'grocery',
     'Supermarket': 'grocery',
-    'Vegetables & Fruits': 'grocery',
-    'Meat': 'grocery',
-    'Fish': 'grocery',
-    'Bakery': 'grocery',
-    'Sweets & Pastries': 'grocery',
-    'Spices & Herbs': 'grocery',
+    'Vegetables & Fruits': 'produce',
+    'Meat': 'butcher',
+    'Fish': 'fish',
+    'Bakery': 'bakery',
+    'Sweets & Pastries': 'sweets',
+    'Spices & Herbs': 'spices',
     'Pharmacy': 'pharmacy',
     'Clinic & Medicine': 'clinic',
     'Medical Supplies': 'medical',
     'Optics': 'optics',
-    "Men's Clothing": 'clothing',
-    "Women's Clothing": 'clothing',
-    "Kids' Clothing": 'clothing',
-    'Shoes': 'clothing',
+    "Men's Clothing": 'menswear',
+    "Women's Clothing": 'womenswear',
+    "Kids' Clothing": 'kidswear',
+    'Shoes': 'shoes',
     'Accessories': 'accessories',
     'Tailoring': 'tailoring',
     'Home Furniture': 'furniture',
@@ -993,7 +1187,9 @@ window.GMStoreTypeConfig = (function () {
     'إطارات': 'Tires',
     'بيطري': 'Veterinary',
     'أعلاف ومستلزمات': 'Fodder & Supplies',
-    'أدوات زراعية': 'Agricultural Tools'
+    'أدوات زراعية': 'Agricultural Tools',
+    'متنوع': 'Miscellaneous',
+    'أخرى': 'Other'
   };
 
   var CLOTHING_ONLY_SERVICE_IDS = ['size_exchange', 'alteration', 'whatsapp_order'];
@@ -1074,7 +1270,10 @@ window.GMStoreTypeConfig = (function () {
         profileTitle: 'بيانات المساحة',
         entityNameLabel: 'اسم المساحة',
         adsSubtitle: 'فعاليات، ورش، وظائف، عروض تظهر في صفحة مساحتك',
-        heroWelcomeText: 'مساحتك جاهزة لبدء استقبال طلباتك وخدماتك من هنا.'
+        heroWelcomeText: 'مساحتك جاهزة لبدء استقبال طلباتك وخدماتك من هنا.',
+        fallbackName: 'مساحتي',
+        entityPossessive: 'مساحتك',
+        previewLabel: 'معاينة مساحتي'
       },
       packages: {
         pageSubtitle: 'اختر باقة مساحتك',
@@ -1085,7 +1284,7 @@ window.GMStoreTypeConfig = (function () {
           desc: 'لوحة تحكم ومعلومات أساسية لمساحتك',
           price: 0,
           features: [
-            { label: 'صفحة خاصة بالـ Workspace على GazaPrice', on: true },
+            { label: 'صفحة خاصة بالـ Workspace على GazaMarket', on: true },
             { label: 'لوحة تحكم لإدارة مساحتك', on: true },
             { label: 'المعلومات الأساسية (الأسعار، الأوقات، الخدمات)', on: true },
             { label: 'إدارة المشتركين', on: false },
@@ -1106,7 +1305,7 @@ window.GMStoreTypeConfig = (function () {
           buttonLabel: 'اشترك في باقة المساحة',
           whatsappMessage: 'السلام عليكم، قمت بتحويل مبلغ 99 ₪ لاشتراك باقة Workspace، وهذا إشعار التحويل.',
           features: [
-            'صفحة خاصة بالـ Workspace على GazaPrice',
+            'صفحة خاصة بالـ Workspace على GazaMarket',
             'إدارة المشتركين (إضافة، تجديد، انتهاء الاشتراك)',
             'استقبال طلبات الاشتراك أونلاين',
             'نظام حجز غرف الاجتماعات',
@@ -1214,7 +1413,7 @@ window.GMStoreTypeConfig = (function () {
     );
 
     var paidFeatures = [
-      'صفحة خاصة بنشاطك على GazaPrice',
+      'صفحة خاصة بنشاطك على GazaMarket',
       'لوحة تحكم لإدارة نشاطك',
       'منيو غير محدود (تصنيفات وأصناف بلا حدود)',
       opts.adsPaidLabel || 'نشر عدد غير محدود من الإعلانات (عروض، فعاليات، وظائف)'
@@ -1258,7 +1457,10 @@ window.GMStoreTypeConfig = (function () {
         profileTitle: 'بيانات النشاط',
         entityNameLabel: 'اسم النشاط',
         adsSubtitle: opts.adsSubtitle || 'عروض وفعاليات تظهر في صفحة نشاطك',
-        heroWelcomeText: 'نشاطك جاهز لبدء استقبال طلباتك وخدماتك من هنا.'
+        heroWelcomeText: 'نشاطك جاهز لبدء استقبال طلباتك وخدماتك من هنا.',
+        fallbackName: 'نشاطي',
+        entityPossessive: 'نشاطك',
+        previewLabel: 'معاينة نشاطي'
       },
       packages: {
         pageSubtitle: 'اختر باقة نشاطك',
@@ -1366,7 +1568,7 @@ window.GMStoreTypeConfig = (function () {
     var hasInstallments = services.some(function (service) { return service.id === 'installments'; });
 
     var freeFeatures = [
-      { label: 'صفحة خاصة بمتجرك على GazaPrice', on: true },
+      { label: 'صفحة خاصة بمتجرك على GazaMarket', on: true },
       { label: 'لوحة تحكم لإدارة متجرك', on: true }
     ];
     if (hasProducts) {
@@ -1420,7 +1622,7 @@ window.GMStoreTypeConfig = (function () {
       : 'عروض وتخفيضات ومنتجات جديدة تظهر في صفحة متجرك';
 
     var paidFeatures = [
-      'صفحة خاصة بمتجرك على GazaPrice',
+      'صفحة خاصة بمتجرك على GazaMarket',
       'لوحة تحكم لإدارة متجرك'
     ];
     if (hasProducts) {
@@ -1494,7 +1696,10 @@ window.GMStoreTypeConfig = (function () {
       profileTitle: 'بيانات المتجر',
       entityNameLabel: 'اسم المتجر',
       adsSubtitle: adsSubtitle,
-      heroWelcomeText: variant.heroWelcomeText || 'متجرك جاهز لعرض منتجاتك وخدماتك من هنا.'
+      heroWelcomeText: variant.heroWelcomeText || 'متجرك جاهز لعرض منتجاتك وخدماتك من هنا.',
+      fallbackName: 'متجري',
+      entityPossessive: 'متجرك',
+      previewLabel: 'معاينة متجري'
     };
     if (variant.pageCopy) {
       Object.keys(variant.pageCopy).forEach(function (key) { storePageCopy[key] = variant.pageCopy[key]; });

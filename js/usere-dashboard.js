@@ -84,6 +84,11 @@
     return (config && config.fallbackAvatarLetter) || 'م';
   }
 
+  function getFallbackName() {
+    var config = getStoreTypeConfig();
+    return (config && config.pageCopy && config.pageCopy.fallbackName) || 'نشاطي';
+  }
+
   var STORE_SUBCATEGORY_KEY = 'gm-store-subcategory';
 
   function getTypeLabelWithSubCategory(typeLabel) {
@@ -871,7 +876,7 @@
     profile = profile || {};
     if (profile.publicUrl) return String(profile.publicUrl);
     if (profile.slug) return PUBLIC_BASE_URL + '/' + encodeURIComponent(profile.slug);
-    var slugSource = (profile.name || 'مساحتي').trim();
+    var slugSource = (profile.name || getFallbackName()).trim();
     return PUBLIC_BASE_URL + '/' + encodeURIComponent(slugSource);
   }
 
@@ -2013,7 +2018,11 @@
 
   function applyProfileToUI(profile) {
     applyProfileSubText(profile);
-    if (!profile) return;
+    if (!profile) {
+      var emptyProfileName = document.getElementById('profile-page-name');
+      if (emptyProfileName) emptyProfileName.textContent = getFallbackName();
+      return;
+    }
 
     var heroName = document.getElementById('hero-user-name');
     if (heroName && profile.name) heroName.textContent = profile.name;
@@ -2074,7 +2083,7 @@
     }
 
     var ppName = document.getElementById('profile-page-name');
-    if (ppName) ppName.textContent = profile.name || 'مساحتي';
+    if (ppName) ppName.textContent = profile.name || getFallbackName();
 
     var ppAddress = document.getElementById('profile-address-value');
     if (ppAddress) ppAddress.textContent = profile.address || '—';
