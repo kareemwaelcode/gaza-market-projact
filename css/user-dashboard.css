@@ -2896,3 +2896,43 @@ table.menu-table tr.is-unavailable .menu-price { opacity: 0.55; }
 .qr-modal-url { margin-bottom: 16px; font-size: 12px; color: var(--db-text-tertiary); word-break: break-all; }
 .qr-modal-actions { display: flex; gap: 10px; }
 .qr-modal-actions .btn { flex: 1; justify-content: center; }
+
+/* ===== Share tip (light tip under the visits stats, desktop + mobile cards) ===== */
+body[data-page="dashboard"] .notice:has(> .share-hint) { display: none; }
+
+.share-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--db-green) 9%, var(--card-bg));
+  border: 1px solid color-mix(in srgb, var(--db-green) 18%, transparent);
+}
+.share-tip-icon {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  color: var(--db-green);
+}
+.share-tip-body { min-width: 0; }
+.share-tip-title {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.6;
+  color: var(--db-text-secondary);
+}
+.share-tip-text {
+  margin: 2px 0 0;
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--db-text-tertiary);
+}
+
+@media (max-width: 520px) {
+  .share-tip { margin-top: 12px; padding: 10px 12px; }
+  .share-tip-title { font-size: 12.5px; }
+  .share-tip-text { font-size: 11.5px; }
+}
