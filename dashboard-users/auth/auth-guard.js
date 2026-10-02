@@ -3,6 +3,10 @@
 
   var SESSION_STORAGE_KEY = 'gmDashboardSession';
   var LOGOUT_MAX_WAIT_MS = 1500;
+  var SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+  var SESSION_CHECK_INTERVAL_MS = 60 * 1000;
+  var CLOCK_SKEW_MS = 5 * 60 * 1000;
+  var WHATSAPP_PATTERN = /^(970|972)\d{9}$/;
 
   var scriptEl = document.currentScript;
   var LOGIN_PAGE_URL = scriptEl && scriptEl.src
@@ -11,11 +15,21 @@
 
   var loggingOut = false;
 
+  function isValidSession(session) {
+    if (!session || typeof session !== 'object' || Array.isArray(session)) return false;
+    if (typeof session.whatsapp !== 'string' || !WHATSAPP_PATTERN.test(session.whatsapp)) return false;
+    if (typeof session.loggedInAt !== 'number' || !isFinite(session.loggedInAt)) return false;
+    var now = Date.now();
+    if (session.loggedInAt > now + CLOCK_SKEW_MS) return false;
+    if (now - session.loggedInAt > SESSION_MAX_AGE_MS) return false;
+    return true;
+  }
+
   function readSession() {
     try {
       var raw = window.localStorage.getItem(SESSION_STORAGE_KEY);
       var session = raw ? JSON.parse(raw) : null;
-      return session && typeof session.whatsapp === 'string' && session.whatsapp ? session : null;
+      return isValidSession(session) ? session : null;
     } catch (err) {
       return null;
     }
@@ -84,6 +98,14 @@
   });
 
   window.addEventListener('storage', function (e) {
-    if (e.key === SESSION_STORAGE_KEY && !e.newValue) redirectToLogin();
+    if (e.key === SESSION_STORAGE_KEY && !readSession()) redirectToLogin();
   });
+
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden && !readSession()) endSession();
+  });
+
+  window.setInterval(function () {
+    if (!readSession()) endSession();
+  }, SESSION_CHECK_INTERVAL_MS);
 })();

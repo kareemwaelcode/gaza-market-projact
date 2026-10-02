@@ -307,7 +307,7 @@
     }).join('');
     var line = document.getElementById('apt-hours-slot-line');
     if (line) {
-      line.innerHTML = '<i data-lucide="clock" class="icon"></i><span>مدة الموعد الواحد: <b>' + hours.slot + ' دقيقة</b></span>';
+      line.innerHTML = '<i data-lucide="clock" class="icon"></i><span>مدة الموعد الواحد: <b>' + escapeHtml(String(parseInt(hours.slot, 10) || 0)) + ' دقيقة</b></span>';
     }
     refreshIcons();
   }
@@ -383,7 +383,7 @@
     var host = document.getElementById('apt-hours-slot');
     if (!host || !CURRENT_SCRIPT_URL) return Promise.resolve();
     var url = new URL('../dashboard-users/partials/apt-hours-edit-panel.html', CURRENT_SCRIPT_URL).href;
-    return fetch(url)
+    return fetch(url, { credentials: 'same-origin' })
       .then(function (res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.text(); })
       .then(function (html) { host.innerHTML = html; refreshIcons(); })
       .catch(function (err) { console.error('Failed to load hours panel:', url, err); });

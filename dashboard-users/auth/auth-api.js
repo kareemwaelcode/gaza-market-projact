@@ -3,6 +3,7 @@
 
   var CONFIG = {
     USE_MOCK: true,
+    ALLOW_MOCK_ON_ANY_HOST: false,
     BASE_URL: '/api/auth',
     TIMEOUT_MS: 15000
   };
@@ -15,6 +16,40 @@
 
   function fail(code, data) {
     return { ok: false, code: code, data: data || {} };
+  }
+
+  function isLocalDevHost() {
+    var host = window.location.hostname;
+    return host === '' ||
+      host === 'localhost' ||
+      host === '127.0.0.1' ||
+      host === '[::1]' ||
+      /\.localhost$/.test(host) ||
+      /\.local$/.test(host) ||
+      /^192\.168\.\d{1,3}\.\d{1,3}$/.test(host) ||
+      /^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(host) ||
+      /^172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}$/.test(host);
+  }
+
+  function secureRandomInt(min, max) {
+    var range = max - min + 1;
+    var cryptoObj = window.crypto || window.msCrypto;
+    if (!cryptoObj || typeof cryptoObj.getRandomValues !== 'function') {
+      return min + Math.floor(Math.random() * range);
+    }
+    var limit = Math.floor(4294967296 / range) * range;
+    var buf = new Uint32Array(1);
+    do {
+      cryptoObj.getRandomValues(buf);
+    } while (buf[0] >= limit);
+    return min + (buf[0] % range);
+  }
+
+  function secureRandomString(length) {
+    var alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    var out = '';
+    for (var i = 0; i < length; i++) out += alphabet.charAt(secureRandomInt(0, alphabet.length - 1));
+    return out;
   }
 
   function isValidPassword(password) {
@@ -38,6 +73,8 @@
         method: 'POST',
         headers: headers,
         body: JSON.stringify(body),
+        credentials: 'same-origin',
+        cache: 'no-store',
         signal: controller ? controller.signal : undefined
       }).then(function (response) {
         return response.json().then(
@@ -134,6 +171,10 @@
     var MAX_CODE_ATTEMPTS = 5;
     var RESET_TOKEN_TTL_MS = 15 * 60 * 1000;
 
+    var LOGIN_ATTEMPTS_KEY = 'gmMockLoginAttempts';
+    var MAX_LOGIN_ATTEMPTS = 5;
+    var LOGIN_LOCK_MS = 5 * 60 * 1000;
+
     var DEMO_USER = { whatsapp: '970591234567', password: 'Test1234' };
 
     function read(store, key, fallback) {
@@ -180,11 +221,20 @@
     }
 
     function generateResetCode() {
-      return String(Math.floor(100000 + Math.random() * 900000));
+      return String(secureRandomInt(100000, 999999));
     }
 
     function generateResetTokenValue() {
-      return 'rst_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+      return 'rst_' + secureRandomString(32);
+    }
+
+    function getLoginAttempts() {
+      var state = read('localStorage', LOGIN_ATTEMPTS_KEY, null);
+      if (!state || typeof state !== 'object') return { count: 0, lockedUntil: 0 };
+      return {
+        count: typeof state.count === 'number' ? state.count : 0,
+        lockedUntil: typeof state.lockedUntil === 'number' ? state.lockedUntil : 0
+      };
     }
 
     function later(fn) {
@@ -199,8 +249,28 @@
       login: function (whatsapp, password) {
         return later(function () {
           if (!WHATSAPP_PATTERN.test(whatsapp)) return fail('INVALID_PHONE');
+
+          var attempts = getLoginAttempts();
+          var now = Date.now();
+          if (attempts.lockedUntil > now) {
+            return fail('RATE_LIMITED', { retryAfter: Math.ceil((attempts.lockedUntil - now) / 1000) });
+          }
+          if (attempts.lockedUntil && attempts.lockedUntil <= now) {
+            attempts = { count: 0, lockedUntil: 0 };
+          }
+
           var user = findUser(whatsapp);
-          if (!user || user.password !== password) return fail('INVALID_CREDENTIALS');
+          if (!user || user.password !== password) {
+            attempts.count += 1;
+            if (attempts.count >= MAX_LOGIN_ATTEMPTS) {
+              attempts.lockedUntil = now + LOGIN_LOCK_MS;
+              attempts.count = 0;
+            }
+            write('localStorage', LOGIN_ATTEMPTS_KEY, attempts);
+            return fail('INVALID_CREDENTIALS');
+          }
+
+          remove('localStorage', LOGIN_ATTEMPTS_KEY);
           return ok({ whatsapp: user.whatsapp, token: null });
         });
       },
@@ -288,7 +358,27 @@
     };
   }
 
-  var driver = CONFIG.USE_MOCK ? createMockDriver() : createLiveDriver();
+  function createBlockedDriver() {
+    function blocked() {
+      return Promise.resolve(fail('SERVER'));
+    }
+    return {
+      login: blocked,
+      requestResetCode: blocked,
+      verifyResetCode: blocked,
+      resetPassword: blocked,
+      logout: function () { return Promise.resolve(ok()); }
+    };
+  }
+
+  var mockBlocked = CONFIG.USE_MOCK && !CONFIG.ALLOW_MOCK_ON_ANY_HOST && !isLocalDevHost();
+  if (mockBlocked && window.console) {
+    console.error('[GMAuthApi] Mock auth is disabled on this host. Set USE_MOCK to false once the backend is ready.');
+  }
+
+  var driver = CONFIG.USE_MOCK
+    ? (mockBlocked ? createBlockedDriver() : createMockDriver())
+    : createLiveDriver();
 
   window.GMAuthApi = {
     mode: CONFIG.USE_MOCK ? 'mock' : 'live',

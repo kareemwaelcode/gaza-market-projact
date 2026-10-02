@@ -746,7 +746,18 @@
   }
 
   function compressImageFile(file, maxSide, quality, onDone) {
+    if (!file || !IMAGE_ALLOWED_TYPES.test(file.type || '')) {
+      showToast('صيغة الصورة غير مدعومة. استخدم PNG أو JPG أو WEBP أو GIF', { danger: true, icon: 'alert-triangle' });
+      return;
+    }
+    if (file.size > IMAGE_MAX_FILE_BYTES) {
+      showToast('حجم الصورة كبير. الحد الأقصى 10 ميجابايت', { danger: true, icon: 'alert-triangle' });
+      return;
+    }
     var reader = new FileReader();
+    reader.onerror = function () {
+      showToast('تعذّر قراءة الصورة', { danger: true, icon: 'alert-triangle' });
+    };
     reader.onload = function () {
       var img = new Image();
       img.onload = function () {
@@ -757,7 +768,9 @@
         canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
         onDone(encodeCompressedCanvas(canvas, quality));
       };
-      img.onerror = function () { onDone(reader.result); };
+      img.onerror = function () {
+        showToast('ملف الصورة تالف أو غير مدعوم', { danger: true, icon: 'alert-triangle' });
+      };
       img.src = reader.result;
     };
     reader.readAsDataURL(file);
@@ -2089,15 +2102,15 @@
   function applyIdentityToUI(profile) {
     var hasName = !!(profile && profile.name);
     var displayName = hasName ? profile.name : getFallbackName();
-    var avatarText = hasName ? profile.name.trim().charAt(0) : getFallbackAvatarLetter();
+    var avatarText = hasName ? (Array.from(profile.name.trim())[0] || getFallbackAvatarLetter()) : getFallbackAvatarLetter();
     var image = profile && profile.image ? profile.image : null;
 
     ['hero-user-name', 'profile-name-text', 'udTopnavUsername'].forEach(function (id) {
       var el = document.getElementById(id);
       if (el) el.textContent = displayName;
     });
-    setAvatarElement(document.getElementById('profile-avatar-letter'), image, avatarText, true);
-    setAvatarElement(document.querySelector('.ud-topnav-avatar'), image, avatarText, true);
+    setAvatarElement(document.getElementById('profile-avatar-letter'), image, avatarText, false);
+    setAvatarElement(document.querySelector('.ud-topnav-avatar'), image, avatarText, false);
   }
 
   function applyProfileToUI(profile) {
@@ -2111,7 +2124,7 @@
 
     var emptyBox = document.getElementById('location-empty');
     var filledBox = document.getElementById('location-filled');
-    var hasLocation = typeof profile.lat === 'number' && typeof profile.lng === 'number';
+    var hasLocation = isValidCoordinate(profile.lat, -90, 90) && isValidCoordinate(profile.lng, -180, 180);
     if (emptyBox && filledBox) {
       emptyBox.style.display = hasLocation ? 'none' : '';
       filledBox.style.display = hasLocation ? '' : 'none';
@@ -2333,11 +2346,11 @@
       if (whatsappInput) whatsappInput.value = profile.whatsapp || '';
 
       pendingImageDataUrl = profile.image || null;
-      pendingLat = typeof profile.lat === 'number' ? profile.lat : null;
-      pendingLng = typeof profile.lng === 'number' ? profile.lng : null;
+      pendingLat = isValidCoordinate(profile.lat, -90, 90) ? profile.lat : null;
+      pendingLng = isValidCoordinate(profile.lng, -180, 180) ? profile.lng : null;
 
       if (pendingImageDataUrl) {
-        avatarPreview.style.backgroundImage = 'url(' + pendingImageDataUrl + ')';
+        avatarPreview.style.backgroundImage = toCssUrl(pendingImageDataUrl);
         avatarPreview.textContent = '';
       } else {
         avatarPreview.style.backgroundImage = '';
@@ -2409,7 +2422,7 @@
         if (!file) return;
         compressImageFile(file, 480, 0.85, function (dataUrl) {
           pendingImageDataUrl = dataUrl;
-          avatarPreview.style.backgroundImage = 'url(' + pendingImageDataUrl + ')';
+          avatarPreview.style.backgroundImage = toCssUrl(pendingImageDataUrl);
           avatarPreview.textContent = '';
         });
       });
@@ -2537,7 +2550,7 @@
       var lockedKey = getServiceLockedFeatureKey(svc.id);
       var locked = isServiceLocked(svc.id);
       var iconHtml = svc.icon
-        ? '<div class="sve-row-icon"><i data-lucide="' + svc.icon + '" class="icon"></i></div>'
+        ? '<div class="sve-row-icon"><i data-lucide="' + escapeHtml(svc.icon) + '" class="icon"></i></div>'
         : '';
       return (
         '<div class="sve-row">' +
@@ -2715,6 +2728,13 @@
     return 'url("' + safe.replace(/["\\\r\n()]/g, function (ch) { return encodeURIComponent(ch); }) + '")';
   }
 
+  function isValidCoordinate(value, min, max) {
+    return typeof value === 'number' && isFinite(value) && value >= min && value <= max;
+  }
+
+  var IMAGE_MAX_FILE_BYTES = 10 * 1024 * 1024;
+  var IMAGE_ALLOWED_TYPES = /^image\/(png|jpe?g|webp|gif)$/i;
+
   function parseStoredArray(raw) {
     if (!raw) return [];
     var parsed = JSON.parse(raw);
@@ -2800,7 +2820,7 @@
       '<div class="gm-confirm-overlay" id="gm-confirm-overlay">' +
         '<div class="gm-confirm-modal" role="alertdialog" aria-modal="true">' +
           '<div class="gm-confirm-icon' + (isDanger ? ' danger' : '') + '">' +
-            '<i data-lucide="' + (opts.icon || 'trash-2') + '" class="icon"></i>' +
+            '<i data-lucide="' + escapeHtml(opts.icon || 'trash-2') + '" class="icon"></i>' +
           '</div>' +
           '<div class="gm-confirm-title">' + escapeHtml(opts.title || '') + '</div>' +
           (opts.message ? '<div class="gm-confirm-message">' + opts.message + '</div>' : '') +
@@ -3922,7 +3942,7 @@
     var categories = getStoredMenuCategories();
 
     select.innerHTML = '<option value="">بدون تصنيف</option>' + categories.map(function (cat) {
-      return '<option value="' + cat.id + '">' + escapeHtml(cat.name) + '</option>';
+      return '<option value="' + escapeHtml(cat.id) + '">' + escapeHtml(cat.name) + '</option>';
     }).join('');
 
     if (categories.some(function (c) { return c.id === current; })) select.value = current;
@@ -4197,7 +4217,7 @@
       pendingImage = imageUrl || null;
       if (!preview) return;
       if (pendingImage) {
-        preview.style.backgroundImage = 'url(' + pendingImage + ')';
+        preview.style.backgroundImage = toCssUrl(pendingImage);
         preview.innerHTML = '';
         if (removeImageBtn) removeImageBtn.style.display = '';
       } else {
@@ -4614,7 +4634,7 @@
     var categories = getStoredProductCategories();
 
     select.innerHTML = '<option value="">بدون تصنيف</option>' + categories.map(function (cat) {
-      return '<option value="' + cat.id + '">' + escapeHtml(cat.name) + '</option>';
+      return '<option value="' + escapeHtml(cat.id) + '">' + escapeHtml(cat.name) + '</option>';
     }).join('');
 
     if (categories.some(function (c) { return c.id === current; })) select.value = current;
@@ -4979,7 +4999,7 @@
       pendingImage = imageUrl || null;
       if (!preview) return;
       if (pendingImage) {
-        preview.style.backgroundImage = 'url(' + pendingImage + ')';
+        preview.style.backgroundImage = toCssUrl(pendingImage);
         preview.innerHTML = '';
         if (removeImageBtn) removeImageBtn.style.display = '';
       } else {
@@ -5360,7 +5380,7 @@
     var categories = getStoredServiceCategories();
 
     select.innerHTML = '<option value="">بدون تصنيف</option>' + categories.map(function (cat) {
-      return '<option value="' + cat.id + '">' + escapeHtml(cat.name) + '</option>';
+      return '<option value="' + escapeHtml(cat.id) + '">' + escapeHtml(cat.name) + '</option>';
     }).join('');
 
     if (categories.some(function (c) { return c.id === current; })) select.value = current;
@@ -5553,7 +5573,7 @@
       return (
         '<button type="button" class="card quick-card" data-action="add-service-suggestion" data-name="' + escapeHtml(svc.label) + '"' + lockAttr + ' ' +
           'style="width:100%;text-align:right;font:inherit;color:inherit;">' +
-          '<div class="icon-wrap"><i data-lucide="' + icon + '" class="icon"></i></div>' +
+          '<div class="icon-wrap"><i data-lucide="' + escapeHtml(icon) + '" class="icon"></i></div>' +
           '<div><div class="title">' + escapeHtml(svc.label) + '</div><div class="sub">' + (isLocked ? LOCK_OVERLAY_TEXT : 'اضغط للإضافة') + '</div></div>' +
         '</button>'
       );
@@ -6268,6 +6288,7 @@
   }
 
   async function init() {
+    if (window.GMAuth && typeof window.GMAuth.getSession === 'function' && !window.GMAuth.getSession()) return;
     if (!guardPageForStoreType()) return;
     initHeroDynamicInfo();
     ensureMobileNavHost();

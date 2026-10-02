@@ -1792,7 +1792,7 @@ window.GMStoreTypeConfig = (function () {
   function getStoreConfig() {
     var key = getStoreVariantKey();
     if (!storeConfigCache[key]) {
-      storeConfigCache[key] = buildStoreTypeConfig('store', 'متجر', STORE_VARIANTS[key] || STORE_VARIANTS.general);
+      storeConfigCache[key] = buildStoreTypeConfig('store', 'متجر', (hasOwn(STORE_VARIANTS, key) && STORE_VARIANTS[key]) || STORE_VARIANTS.general);
     }
     return storeConfigCache[key];
   }
@@ -1800,21 +1800,21 @@ window.GMStoreTypeConfig = (function () {
   function getCurrentType() {
     try {
       var stored = window.localStorage.getItem(STORAGE_KEY);
-      if (stored && TYPES[stored]) return stored;
+      if (stored && hasOwn(TYPES, stored)) return stored;
     } catch (e) { }
     return DEFAULT_TYPE;
   }
 
   function setCurrentType(typeId) {
     try {
-      if (TYPES[typeId]) window.localStorage.setItem(STORAGE_KEY, typeId);
+      if (hasOwn(TYPES, typeId)) window.localStorage.setItem(STORAGE_KEY, typeId);
     } catch (e) { }
   }
 
   function getConfig(typeId) {
     var id = typeId || getCurrentType();
     if (id === 'store') return getStoreConfig();
-    return TYPES[id] || TYPES[DEFAULT_TYPE];
+    return (hasOwn(TYPES, id) && TYPES[id]) || TYPES[DEFAULT_TYPE];
   }
 
   function getCurrentPlan() {
