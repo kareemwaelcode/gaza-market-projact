@@ -1,28 +1,3 @@
-/*
- * Gaza Market — Dashboard session guard
- *
- * Put this file in the same folder as login.html and load it as the FIRST
- * script in <head> of every protected page (dashboard.html and its siblings):
- *
- *   <script src="auth/auth-guard.js"></script>
- *   (optional, only if the page should call the server on logout)
- *   <script src="auth/auth-api.js"></script>   <- must come BEFORE the guard
- *
- * What it does:
- *   - No valid session -> hides the page and redirects to login.html
- *   - Any element with data-action="logout" ends the session
- *   - Logging out in one tab logs out the other open tabs
- *   - Pressing Back after logout does not show the cached dashboard
- *
- * NOTE: this is a user-experience guard only. Real protection is the backend
- * rejecting requests without a valid token (401). When any API call returns
- * 401, call GMAuth.endSession().
- *
- * Public API (window.GMAuth):
- *   GMAuth.getSession()  -> { whatsapp, token, loggedInAt } or null
- *   GMAuth.logout()      -> revoke token on the server (best effort), clear session, go to login
- *   GMAuth.endSession()  -> clear session and go to login immediately (use on 401)
- */
 (function () {
   'use strict';
 
@@ -92,7 +67,7 @@
   };
 
   if (!readSession()) {
-    /* Clear a broken session too, otherwise login.html would send us back here. */
+
     endSession();
     return;
   }

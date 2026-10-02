@@ -32,12 +32,31 @@
   var DASHBOARD_USERS_BASE_URL = CURRENT_SCRIPT_URL
     ? new URL('../dashboard-users/', CURRENT_SCRIPT_URL).href
     : null;
+  var LOGO_URL = CURRENT_SCRIPT_URL
+    ? new URL('../assets/img/logo.gazamarket.2.png', CURRENT_SCRIPT_URL).href
+    : '../assets/img/logo.gazamarket.2.png';
   var PROFILE_PAGE_URL = DASHBOARD_USERS_BASE_URL
     ? new URL('profile.html', DASHBOARD_USERS_BASE_URL).href
     : 'profile.html';
   var PACKAGES_PAGE_URL = DASHBOARD_USERS_BASE_URL
     ? new URL('packages.html', DASHBOARD_USERS_BASE_URL).href
     : 'packages.html';
+
+  var PARTIAL_CACHE_PREFIX = 'gmPartial:';
+
+  function readPartialCache(key) {
+    try {
+      return sessionStorage.getItem(key);
+    } catch (err) {
+      return null;
+    }
+  }
+
+  function writePartialCache(key, value) {
+    try {
+      sessionStorage.setItem(key, value);
+    } catch (err) {}
+  }
 
   async function loadPartial(selector, filename) {
     var host = document.querySelector(selector);
@@ -50,10 +69,24 @@
       return;
     }
     var url = new URL(filename, PARTIALS_BASE_URL).href;
+    var cacheKey = PARTIAL_CACHE_PREFIX + url;
+    var cached = readPartialCache(cacheKey);
+    if (cached !== null) {
+      host.innerHTML = cached;
+      fetch(url, { credentials: 'same-origin' })
+        .then(function (res) { return res.ok ? res.text() : null; })
+        .then(function (text) {
+          if (text !== null && text !== cached) writePartialCache(cacheKey, text);
+        })
+        .catch(function () {});
+      return;
+    }
     try {
       var res = await fetch(url, { credentials: 'same-origin' });
       if (!res.ok) throw new Error('HTTP ' + res.status);
-      host.innerHTML = await res.text();
+      var html = await res.text();
+      host.innerHTML = html;
+      writePartialCache(cacheKey, html);
     } catch (err) {
       host.innerHTML =
         '<div style="padding:14px;font-size:12.5px;color:#d93025;">' +
@@ -2024,18 +2057,32 @@
     if (pageSub) pageSub.textContent = text;
   }
 
-  function setAvatarElement(el, image, text) {
+  function setAvatarElement(el, image, text, useLogo) {
     if (!el) return;
+    el.classList.remove('avatar--logo');
+    el.style.backgroundColor = '';
     if (image) {
       el.style.backgroundImage = toCssUrl(image);
       el.style.backgroundSize = 'cover';
       el.style.backgroundPosition = 'center';
+      el.style.backgroundRepeat = '';
+      el.textContent = '';
+      return;
+    }
+    if (useLogo) {
+      el.classList.add('avatar--logo');
+      el.style.backgroundImage = 'url("' + LOGO_URL + '")';
+      el.style.backgroundSize = '68%';
+      el.style.backgroundPosition = 'center';
+      el.style.backgroundRepeat = 'no-repeat';
+      el.style.backgroundColor = '#ffffff';
       el.textContent = '';
       return;
     }
     el.style.backgroundImage = '';
     el.style.backgroundSize = '';
     el.style.backgroundPosition = '';
+    el.style.backgroundRepeat = '';
     el.textContent = text;
   }
 
@@ -2049,8 +2096,8 @@
       var el = document.getElementById(id);
       if (el) el.textContent = displayName;
     });
-    setAvatarElement(document.getElementById('profile-avatar-letter'), image, avatarText);
-    setAvatarElement(document.querySelector('.ud-topnav-avatar'), image, avatarText);
+    setAvatarElement(document.getElementById('profile-avatar-letter'), image, avatarText, true);
+    setAvatarElement(document.querySelector('.ud-topnav-avatar'), image, avatarText, true);
   }
 
   function applyProfileToUI(profile) {
@@ -5885,7 +5932,7 @@
             '<div class="pkg-pay-box">' +
               '<div class="pkg-pay-step">' +
                 '<span class="pkg-pay-step-no" aria-hidden="true">1</span>' +
-                '<span>حوّل المبلغ عبر بنك فلسطين</span>' +
+                '<span>حوّل المبلغ عبر بنك فلسطين (باسم كريم وائل ابو عويمر)</span>' +
               '</div>' +
               '<div class="pkg-pay-number-row">' +
                 '<span class="pkg-pay-number" data-bank-number>0592194533</span>' +
@@ -6066,6 +6113,160 @@
     return false;
   }
 
+  var SAVE_DELAY_MS = 550;
+
+  function initSaveButtonDelay() {
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest && e.target.closest('button[id$="-save-btn"]');
+      if (!btn || btn.disabled) return;
+      if (btn.getAttribute('data-save-passed') === '1') {
+        btn.removeAttribute('data-save-passed');
+        return;
+      }
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      if (btn.classList.contains('is-saving')) return;
+      btn.classList.add('is-saving');
+      btn.setAttribute('aria-busy', 'true');
+      window.setTimeout(function () {
+        btn.classList.remove('is-saving');
+        btn.removeAttribute('aria-busy');
+        btn.setAttribute('data-save-passed', '1');
+        btn.click();
+        btn.removeAttribute('data-save-passed');
+      }, SAVE_DELAY_MS);
+    }, true);
+  }
+
+  function buildQrCanvas(text, size) {
+    if (typeof window.qrcode !== 'function') return null;
+    var qr = window.qrcode(0, 'M');
+    qr.addData(text);
+    qr.make();
+    var count = qr.getModuleCount();
+    var margin = 2;
+    var cell = Math.max(1, Math.floor(size / (count + margin * 2)));
+    var total = cell * (count + margin * 2);
+    var canvas = document.createElement('canvas');
+    canvas.width = total;
+    canvas.height = total;
+    var ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, total, total);
+    ctx.fillStyle = '#1f3f9e';
+    for (var r = 0; r < count; r++) {
+      for (var col = 0; col < count; col++) {
+        if (qr.isDark(r, col)) ctx.fillRect((col + margin) * cell, (r + margin) * cell, cell, cell);
+      }
+    }
+    return canvas;
+  }
+
+  function closeQrModal() {
+    var root = document.getElementById('qr-modal');
+    if (root && root.parentNode) root.parentNode.removeChild(root);
+    document.removeEventListener('keydown', onQrModalKeydown);
+  }
+
+  function onQrModalKeydown(e) {
+    if (e.key === 'Escape') closeQrModal();
+  }
+
+  function openQrModal() {
+    closeQrModal();
+    var profile = getStoredProfile();
+    var url = getPublicUrl(profile);
+    var name = (profile && profile.name) || getFallbackName();
+    var canvas = null;
+    try {
+      canvas = buildQrCanvas(url, 480);
+    } catch (err) {
+      canvas = null;
+    }
+
+    var root = document.createElement('div');
+    root.className = 'qr-modal';
+    root.id = 'qr-modal';
+    root.setAttribute('role', 'dialog');
+    root.setAttribute('aria-modal', 'true');
+    root.setAttribute('aria-label', 'كود QR');
+    root.innerHTML =
+      '<div class="qr-modal-card">' +
+        '<button type="button" class="icon-btn qr-modal-close" data-qr-close aria-label="إغلاق"><i data-lucide="x" class="icon"></i></button>' +
+        '<h3 class="qr-modal-title">كود QR</h3>' +
+        '<p class="qr-modal-sub">يوجّه كل من يمسحه إلى صفحة ' + escapeHtml(name) + ' في المنصة.</p>' +
+        '<div class="qr-modal-code" data-qr-slot></div>' +
+        '<div class="qr-modal-url" dir="ltr">' + escapeHtml(url) + '</div>' +
+        '<div class="qr-modal-actions">' +
+          '<button type="button" class="btn btn-primary" data-qr-share><i data-lucide="share-2" class="icon"></i> مشاركة</button>' +
+          '<button type="button" class="btn btn-ghost" data-qr-download><i data-lucide="download" class="icon"></i> تحميل</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(root);
+
+    var slot = root.querySelector('[data-qr-slot]');
+    if (canvas) {
+      canvas.className = 'qr-modal-canvas';
+      canvas.setAttribute('role', 'img');
+      canvas.setAttribute('aria-label', 'كود QR');
+      slot.appendChild(canvas);
+    } else {
+      slot.textContent = 'تعذّر إنشاء الكود حالياً.';
+      root.querySelector('[data-qr-download]').disabled = true;
+    }
+
+    root.addEventListener('click', function (e) {
+      if (e.target === root || (e.target.closest && e.target.closest('[data-qr-close]'))) {
+        closeQrModal();
+        return;
+      }
+      if (e.target.closest && e.target.closest('[data-qr-share]')) {
+        if (navigator.share) {
+          navigator.share({ title: name, url: url }).catch(function () {});
+        } else {
+          copyText(url).then(function () {
+            showToast('تم نسخ الرابط');
+          }, function () {
+            showToast('تعذّر نسخ الرابط', { danger: true, icon: 'x-circle' });
+          });
+        }
+        return;
+      }
+      if (e.target.closest && e.target.closest('[data-qr-download]') && canvas) {
+        var link = document.createElement('a');
+        link.href = canvas.toDataURL('image/png');
+        link.download = 'qr-code.png';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    });
+    document.addEventListener('keydown', onQrModalKeydown);
+    bootIcons();
+    var closeBtn = root.querySelector('[data-qr-close]');
+    if (closeBtn) closeBtn.focus();
+  }
+
+  function initQrAction() {
+    document.addEventListener('click', function (e) {
+      var trigger = e.target.closest && e.target.closest('[data-action="open-qr"]');
+      if (!trigger) return;
+      e.preventDefault();
+      openQrModal();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      var trigger = e.target.closest && e.target.closest('[data-action="open-qr"][role="button"]');
+      if (!trigger) return;
+      e.preventDefault();
+      if (isFeatureLockedForPlan('qrCode')) {
+        openUpgradeModal({ featureKey: 'qrCode' });
+      } else {
+        openQrModal();
+      }
+    });
+  }
+
   async function init() {
     if (!guardPageForStoreType()) return;
     initHeroDynamicInfo();
@@ -6146,6 +6347,8 @@
     initCopyLinkButtons();
     initPackagesPage();
     initLockedFeatures();
+    initQrAction();
+    initSaveButtonDelay();
     bootIcons();
   }
 

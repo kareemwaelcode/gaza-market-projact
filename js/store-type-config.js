@@ -1234,6 +1234,7 @@ window.GMStoreTypeConfig = (function () {
       id: 'cowork',
       label: 'مساحة عمل',
       fallbackAvatarLetter: 'م',
+      lockedFeatures: { free: ['qrCode'], paid: [] },
       sidebar: [
         { page: 'dashboard', href: 'dashboard.html', icon: 'layout-grid', label: 'الرئيسية', sub: 'نظرة عامة على مساحتك' },
         { action: 'open-prices-edit', href: '#', icon: 'tag', label: 'الأسعار والأوقات', sub: 'أسعار الساعة/اليوم، مواعيد العمل' },

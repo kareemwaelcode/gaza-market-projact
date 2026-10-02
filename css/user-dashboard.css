@@ -2838,3 +2838,61 @@ table.menu-table tr.is-unavailable .menu-price { opacity: 0.55; }
     height: 100dvh;
   }
 }
+
+.status-pill .dot { background: var(--db-green); }
+.status-pill.closed .dot { background: var(--db-red); }
+
+.avatar.avatar--logo { border: 1px solid var(--border); }
+
+.notice .share-hint { color: var(--db-accent-text); }
+
+.quick-card--qr .icon-wrap,
+.pubrow--qr .pubrow-icon { background: var(--db-accent-soft); color: var(--db-accent-text); }
+.quick-card--qr.is-locked .icon-wrap,
+.pubrow--qr.is-locked .pubrow-icon { background: var(--db-red-soft); color: var(--db-red); }
+
+.btn.is-saving { pointer-events: none; opacity: 0.85; }
+.btn.is-saving::after {
+  content: '';
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-inline-start: 8px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  vertical-align: -2px;
+  animation: gm-spin 0.6s linear infinite;
+}
+@keyframes gm-spin { to { transform: rotate(360deg); } }
+
+.qr-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(10, 14, 25, 0.55);
+}
+.qr-modal-card {
+  position: relative;
+  width: min(100%, 380px);
+  max-height: 100%;
+  overflow-y: auto;
+  padding: 24px 20px 20px;
+  border-radius: var(--radius-lg, 16px);
+  background: var(--db-bg-card-raised);
+  color: var(--text);
+  border: 1px solid var(--border);
+  text-align: center;
+}
+.qr-modal-close { position: absolute; top: 10px; inset-inline-start: 10px; }
+.qr-modal-title { margin: 0 0 4px; font-size: 18px; font-weight: 800; }
+.qr-modal-sub { margin: 0 0 16px; font-size: 12.5px; color: var(--db-text-tertiary); }
+.qr-modal-code { display: flex; justify-content: center; margin-bottom: 12px; }
+.qr-modal-canvas { width: min(100%, 240px); height: auto; aspect-ratio: 1; border-radius: 12px; border: 1px solid var(--border); background: #fff; }
+.qr-modal-url { margin-bottom: 16px; font-size: 12px; color: var(--db-text-tertiary); word-break: break-all; }
+.qr-modal-actions { display: flex; gap: 10px; }
+.qr-modal-actions .btn { flex: 1; justify-content: center; }

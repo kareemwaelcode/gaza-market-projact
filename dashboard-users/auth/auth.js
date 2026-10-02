@@ -12,7 +12,6 @@
   var WHATSAPP_PATTERN = /^(970|972)\d{9}$/;
 
   var CODE_LENGTH = 6;
-  var TEST_CODE_TOAST_MS = 12000;
 
   var ERROR_MESSAGES = {
     NETWORK: 'تعذّر الاتصال بالخادم. تأكد من الإنترنت وحاول مرة ثانية.',
@@ -219,17 +218,6 @@
 
   function maskWhatsapp(whatsapp) {
     return '+' + whatsapp.slice(0, 3) + ' •••••• ' + whatsapp.slice(-3);
-  }
-
-  /* Test code toast: only exists while GMAuthApi runs in mock mode.
-     The live backend never returns a code, so this does nothing there. */
-  function announceTestCode(code) {
-    if (!code) return;
-    console.log('Test activation code:', code);
-    showToast('كود التفعيل التجريبي: ' + code, {
-      icon: 'message-circle',
-      duration: TEST_CODE_TOAST_MS
-    });
   }
 
   function wireLoginForm() {
@@ -454,7 +442,6 @@
         return;
       }
 
-      /* Network / server / rate limit: keep the typed digits so the user can retry. */
       showAlert('forgot-alert', errorMessage(res));
     }
 
@@ -508,7 +495,6 @@
           resendAt: res.data.resendAt
         };
         setResetRequest(request);
-        announceTestCode(res.data.testCode);
         openCodeStep(request);
       });
     });
@@ -639,7 +625,6 @@
           expiresAt: res.data.expiresAt,
           resendAt: res.data.resendAt
         });
-        announceTestCode(res.data.testCode);
         clearCodeInputs();
         clearCodeError();
         hideAlert('forgot-alert');
@@ -721,7 +706,6 @@
         return;
       }
 
-      /* Network / server / rate limit: keep the typed passwords so the user can retry. */
       showAlert('reset-alert', errorMessage(res));
     }
 

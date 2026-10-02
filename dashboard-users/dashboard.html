@@ -142,7 +142,7 @@
             </div>
             <div class="notice">
               <i data-lucide="info" class="icon"></i>
-              <span>شارك <span data-store-type-copy="entityPossessive">مساحتك</span> لبدء جذب الزوار — <a href="#">انسخ الرابط وأرسله عبر واتساب أو ضمّه في سيرتك الذاتية أو بروفايلك على السوشيال ميديا.</a></span>
+              <span class="share-hint">شارك <span data-store-type-copy="entityPossessive">مساحتك</span> لبدء جذب الزوار — انسخ الرابط وأرسله عبر واتساب أو ضمّه في سيرتك الذاتية أو بروفايلك على السوشيال ميديا.</span>
             </div>
           </div>
 
@@ -181,11 +181,11 @@
         <div class="dashboard-desktop-shortcuts">
           <div class="section-title">صفحات عامة</div>
           <div class="quick-grid">
-            <div class="card quick-card" data-locked-feature="qrCode">
+            <div class="card quick-card quick-card--qr" data-action="open-qr" data-locked-feature="qrCode" role="button" tabindex="0">
               <div class="icon-wrap"><i data-lucide="qr-code" class="icon"></i></div>
               <div>
                 <div class="title">كود QR</div>
-                <div class="sub">متاح في باقتي Basic وBest</div>
+                <div class="sub">احصل على كود QR لصفحتك</div>
               </div>
             </div>
             <div class="card quick-card" data-locked-feature="shareWhatsapp">
@@ -231,6 +231,14 @@
             </div>
           </button>
 
+          <button type="button" class="pubrow pubrow--qr" data-action="open-qr" data-locked-feature="qrCode">
+            <div class="pubrow-icon"><i data-lucide="qr-code" class="icon"></i></div>
+            <div class="pubrow-text">
+              <div class="pubrow-title">كود QR</div>
+              <div class="pubrow-sub">يوجّه الزبائن إلى صفحتك</div>
+            </div>
+          </button>
+
           <a href="#" class="pubrow pubrow--accent" id="mobile-whatsapp-share-btn" data-locked-feature="shareWhatsapp">
             <div class="pubrow-icon"><i data-lucide="message-circle" class="icon"></i></div>
             <div class="pubrow-text">
@@ -258,7 +266,7 @@
           </div>
           <div class="notice">
             <i data-lucide="info" class="icon"></i>
-            <span>شارك <span data-store-type-copy="entityPossessive">مساحتك</span> لتبدأ بجذب الزوار — انسخ الرابط وأرسله للزبائن عبر واتساب أو ضعه في بايو حساباتك.</span>
+            <span class="share-hint">شارك <span data-store-type-copy="entityPossessive">مساحتك</span> لتبدأ بجذب الزوار — انسخ الرابط وأرسله للزبائن عبر واتساب أو ضعه في بايو حساباتك.</span>
           </div>
         </div>
 
@@ -277,6 +285,7 @@
   <div id="mobile-nav-slot"></div>
 
   <script src="../js/vendor/lucide.min.js"></script>
+  <script src="../js/vendor/qrcode.js"></script>
   <script src="../js/store-type-config.js"></script>
   <script src="../js/usere-dashboard.js"></script>
 </body>

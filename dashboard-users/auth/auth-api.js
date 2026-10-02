@@ -1,63 +1,3 @@
-/*
- * Gaza Market — Auth API layer
- *
- * auth.js never talks to storage or the network for auth logic. It only calls
- * window.GMAuthApi. This file has two drivers:
- *   - mock: everything runs in the browser (temporary, testing only)
- *   - live: real requests to the Laravel backend
- * To switch to the backend: set CONFIG.USE_MOCK = false and set CONFIG.BASE_URL.
- * Then the whole createMockDriver() function can be deleted.
- *
- * Every method returns a Promise that ALWAYS resolves (never rejects):
- *   { ok: true,  data: { ... } }
- *   { ok: false, code: 'ERROR_CODE', data: { attemptsLeft?, retryAfter? } }
- *
- * ---------------------------------------------------------------------------
- * BACKEND CONTRACT (JSON, POST, relative to CONFIG.BASE_URL)
- * Success body: { "data": { ... } }
- * Error body (any non-2xx): { "code": "ERROR_CODE", "attempts_left": 3, "retry_after": 60 }
- * (attempts_left and retry_after are optional; retry_after is in seconds)
- *
- * POST /login
- *   body: { whatsapp, password }
- *   200 -> { token, user: { whatsapp } }
- *   401 -> INVALID_CREDENTIALS | 422 -> INVALID_PHONE | 429 -> RATE_LIMITED
- *
- * POST /password/forgot
- *   body: { whatsapp }
- *   200 -> { expires_in, resend_in }   (seconds)
- *          Must also return 200 when the number is NOT registered (do not
- *          reveal which numbers have accounts). Only send the WhatsApp
- *          message if the number is registered.
- *   422 -> INVALID_PHONE | 429 -> RATE_LIMITED
- *
- * POST /password/verify-code
- *   body: { whatsapp, code }
- *   200 -> { reset_token, expires_in }   (reset_token: single use, signed, expiring)
- *   422 -> INVALID_CODE (+ attempts_left) | CODE_EXPIRED | TOO_MANY_ATTEMPTS | REQUEST_NOT_FOUND
- *   429 -> RATE_LIMITED
- *
- * POST /password/reset
- *   body: { whatsapp, reset_token, password, password_confirmation }
- *   200 -> {}
- *   422 -> INVALID_TOKEN | WEAK_PASSWORD | PASSWORD_MISMATCH | 429 -> RATE_LIMITED
- *
- * POST /logout
- *   header: Authorization: Bearer <token>   body: {}
- *   200 -> {}   (revokes the token on the server)
- *   Best effort: the frontend clears its local session even if this fails.
- *
- * Any request that needs a login must send the Authorization header. If the
- * server answers 401, the frontend calls GMAuth.endSession() (auth-guard.js),
- * which clears the session and returns to the login page.
- *
- * The code, its expiry and its attempt counter live ONLY on the server.
- * The password rule (min length, letters + digits) must be enforced on the
- * server too. The frontend check is only for instant feedback.
- * Auth is assumed token-based (e.g. Sanctum personal access token). If the
- * backend uses cookie sessions instead, add credentials: 'include' in post().
- * ---------------------------------------------------------------------------
- */
 (function () {
   'use strict';
 
@@ -83,8 +23,6 @@
       /[A-Za-z\u0600-\u06FF]/.test(value) &&
       /[0-9]/.test(value);
   }
-
-  /* ========================= LIVE DRIVER (Laravel) ========================= */
 
   function createLiveDriver() {
     function post(path, body, token) {
@@ -183,10 +121,6 @@
       }
     };
   }
-
-  /* ====================== MOCK DRIVER (temporary, testing only) ====================== */
-  /* Passwords are stored in plain text and the code lives in the browser.
-     This is NOT secure. It exists only until the backend is ready. */
 
   function createMockDriver() {
     var USERS_KEY = 'gmDashboardAuthUsers';
@@ -287,8 +221,7 @@
 
           return ok({
             expiresAt: state.expiresAt,
-            resendAt: now + RESEND_COOLDOWN_MS,
-            testCode: state.code
+            resendAt: now + RESEND_COOLDOWN_MS
           });
         });
       },
@@ -354,8 +287,6 @@
       }
     };
   }
-
-  /* ================================= Export ================================= */
 
   var driver = CONFIG.USE_MOCK ? createMockDriver() : createLiveDriver();
 
