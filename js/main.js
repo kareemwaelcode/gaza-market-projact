@@ -705,7 +705,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function showOtpError(msg) {
       if (!otpErr) return;
-      otpErr.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${msg || ""}`;
+      otpErr.textContent = "";
+      const errIcon = document.createElement("i");
+      errIcon.className = "fas fa-exclamation-circle";
+      otpErr.appendChild(errIcon);
+      otpErr.appendChild(document.createTextNode(" " + (msg || "")));
       otpErr.classList.add("show");
     }
 

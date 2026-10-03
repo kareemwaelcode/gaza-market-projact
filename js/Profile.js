@@ -95,6 +95,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let pendingAvatarDataUrl = null;
 
+  /* يعرض صورة الأفاتار بأمان (بدون innerHTML) وبيقبل بس data:image أو روابط http(s) أو مسارات محلية */
+  function setAvatarImage(el, src) {
+    el.textContent = '';
+    if (typeof src !== 'string' || !/^(data:image\/|https?:\/\/|\/|assets\/)/i.test(src)) return false;
+    const img = document.createElement('img');
+    img.src = src;
+    img.alt = 'avatar';
+    el.appendChild(img);
+    return true;
+  }
+
   /* ══════════════════════════════════════
      تعبئة بيانات المستخدم الحقيقية بالصفحة
      (بدل القيم الوهمية "Kareem" / "0599145431" يلي كانت مكتوبة يدوياً بالـ HTML)
@@ -104,8 +115,8 @@ document.addEventListener('DOMContentLoaded', () => {
     userPhoneEl.textContent = user.phone || '';
 
     // لو المستخدم عنده صورة محفوظة سابقاً نعرضها، وإلا نعرض أول حرف من اسمه
-    if (user.avatar) {
-      avatarEl.innerHTML = `<img src="${user.avatar}" alt="avatar">`;
+    if (user.avatar && setAvatarImage(avatarEl, user.avatar)) {
+      // تم عرض الصورة
     } else {
       avatarEl.textContent = (user.name || '').trim().charAt(0).toUpperCase() || '؟';
     }
@@ -170,9 +181,9 @@ document.addEventListener('DOMContentLoaded', () => {
     statusEl.className = 'upload-status';
 
     const currentImg = avatarEl.querySelector('img');
-    modalAvatarEl.innerHTML = currentImg
-      ? `<img src="${currentImg.src}" alt="avatar">`
-      : avatarEl.textContent;
+    if (!(currentImg && setAvatarImage(modalAvatarEl, currentImg.src))) {
+      modalAvatarEl.textContent = avatarEl.textContent;
+    }
 
     editModal.classList.add('open');
   }
@@ -209,7 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const reader = new FileReader();
     reader.onload = e => {
       pendingAvatarDataUrl = e.target.result;
-      modalAvatarEl.innerHTML = `<img src="${pendingAvatarDataUrl}" alt="avatar">`;
+      setAvatarImage(modalAvatarEl, pendingAvatarDataUrl);
     };
     reader.readAsDataURL(file);
   });
@@ -230,8 +241,8 @@ document.addEventListener('DOMContentLoaded', () => {
     userRegionEl.dataset.value = newRegion;
     userRegionEl.textContent = regionLabels[newRegion] || newRegion || '—';
 
-    if (pendingAvatarDataUrl) {
-      avatarEl.innerHTML = `<img src="${pendingAvatarDataUrl}" alt="avatar">`;
+    if (pendingAvatarDataUrl && setAvatarImage(avatarEl, pendingAvatarDataUrl)) {
+      // تم عرض الصورة
     } else if (!avatarEl.querySelector('img')) {
       avatarEl.textContent = newName.charAt(0).toUpperCase() || '؟';
     }
