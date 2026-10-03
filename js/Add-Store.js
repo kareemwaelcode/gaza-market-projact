@@ -403,7 +403,6 @@
     initStep4();
     updateStepIndicator(1);
     $$(".gm-back-btn").forEach((btn) => (btn.style.display = "none"));
-    initAdditionModal();
     initNavbar();
   }
 

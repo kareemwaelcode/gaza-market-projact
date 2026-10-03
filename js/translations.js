@@ -119,6 +119,8 @@ const translations = {
     authSuccessLoginSub: "Nice to see you again in Gaza Market 👋",
     authSuccessRegisterTitle: "Welcome to the Gaza Market.🎉",
     authSuccessRegisterSub: "You have successfully logged in. We wish you a great experience at Gaza Market.",
+    loaderTagline: "Transparent pricing from people",
+    loaderStep1: "I am currently preparing the prices.",
 
     "addition.title":              "New addition",
     "addition.subtitle":           "Share new information with the community.",
@@ -285,6 +287,9 @@ const translations = {
     "npw.catFishSeafood":         "Fish & Seafood",
     "npw.catEggsDairyCheese":     "Eggs, Dairy & Cheese",
     "npw.catTestCategory":        "Test Category",
+    "npw.catOilsFats":            "Oils & Fats",
+    "npw.catCarbonatedDrinks":    "Carbonated Drinks",
+    "npw.catBabySupplies":        "Diapers & Baby Supplies",
 
     "npw.cardUnitTitle":         "Unit & Quantity",
     "npw.cardUnitSub":           "Specify the unit of measurement and the quantity.",
@@ -600,6 +605,8 @@ const translations = {
     authSuccessLoginSub: "سعداء برؤيتك مجدداً في سوق غزة 👋",
     authSuccessRegisterTitle: "مرحباً بكم في سوق غزة 🎉",
     authSuccessRegisterSub: "لقد قمت بتسجيل الدخول بنجاح. نتمنى لك تجربة رائعة في سوق غزة.",
+    loaderTagline: "أسعار شفافة من الناس",
+    loaderStep1: "جاري تجهيز الأسعار.",
 
     "addition.title":              "إضافة جديدة",
     "addition.subtitle":           "شارك معلومات جديدة مع المجتمع",
@@ -765,6 +772,9 @@ const translations = {
     "npw.catFishSeafood":         "أسماك ومأكولات بحرية",
     "npw.catEggsDairyCheese":     "بيض وألبان وأجبان",
     "npw.catTestCategory":        "فئة اختبار",
+    "npw.catOilsFats":            "زيوت ودهون",
+    "npw.catCarbonatedDrinks":    "مشروبات غازية",
+    "npw.catBabySupplies":        "حفاضات ومستلزمات أطفال",
 
     "npw.cardUnitTitle":         "الوحدة والكمية",
     "npw.cardUnitSub":           "حدد وحدة القياس والكمية",
