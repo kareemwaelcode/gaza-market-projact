@@ -468,11 +468,11 @@ html {
   flex-shrink: 0;
 }
 .navbar-brand img {
-  height: 60px;
+  height: 50px;
   width: auto;
-  transform: scale(1.2);
-  /* position: relative;
-  top: 4px; */
+  transform: scale(1.5);
+  position: relative;
+  top: 4px;
 }
 .navbar-toggler {
   border: none;
